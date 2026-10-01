@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 334935a434894584494014e14b873f0a, type: 3}
+  m_Name: M16
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponDefinition
+  weaponName: M16
+  magazineSize: 30
+  fireRate: 0.08
+  reloadTime: 2
+  damage: 8
+  range: 100
+  isAutomatic: 1
+  ammoFillPoint: 0.7
+  shootSound: {fileID: 0}
+  reloadSound: {fileID: 0}
+  ownedFromStart: 0
+  price: 400
+  fireRateUpgrade:
+    step: 0.02
+    limit: 0.05
+    basePrice: 100
+    priceIncrease: 50
+    maxLevel: 5
+  reloadUpgrade:
+    step: 0.15
+    limit: 0.5
+    basePrice: 100
+    priceIncrease: 50
+    maxLevel: 5
+  damageUpgrade:
+    step: 1
+    limit: 0
+    basePrice: 150
+    priceIncrease: 75
+    maxLevel: 10

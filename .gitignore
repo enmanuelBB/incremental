@@ -1,0 +1,59 @@
+# Unity - carpetas generadas
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+
+# Carpetas de herramientas/IDE
+/.vs/
+/.vscode/
+/.idea/
+/.utmp/
+.gradle/
+
+# Archivos de proyecto generados por Unity/IDE
+*.csproj
+*.unityproj
+*.sln
+*.slnx
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Builds y paquetes
+*.apk
+*.aab
+*.unitypackage
+*.app
+
+# Crashes y reportes
+sysinfo.txt
+crashlytics-build.properties
+
+# Basura del sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Asset Store Tools
+/[Aa]ssets/AssetStoreTools*
+
+# Datos de MCP/IA generados localmente
+/.claude/
+/graphify-out/
+
+# Configuracion local del servidor MCP (ruta de esta maquina)
+/.mcp.json
