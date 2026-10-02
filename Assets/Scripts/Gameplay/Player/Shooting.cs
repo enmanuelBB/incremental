@@ -122,7 +122,8 @@ public class Shooting : MonoBehaviour
     {
         TickMana();
 
-        if (GameState.InputBlocked) return;
+        // En niebla no se dispara, ni se recarga, ni se cambia de arma.
+        if (GameState.InputBlocked || abilities.IsMist) return;
 
         GameInput input = GameInput.Instance;
 
@@ -240,7 +241,7 @@ public class Shooting : MonoBehaviour
         if (enemy != null)
         {
             enemy.TakeDamage(weapon.Damage);
-            enemy.ApplyBleed(weapon.BleedPerHit, BleedStacks.CapForLevel(BleedLevel), BleedStacks.DamagePerStack(weapon.Damage));
+            abilities.AfterBulletHit(enemy, hit.point, weapon);
             return;
         }
 

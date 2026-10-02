@@ -47,4 +47,35 @@ public class AbilityDefinitionTests
         ability.name = "DisparoPesado";
         Assert.AreEqual("DisparoPesado", ability.Id);
     }
+
+    [TestCase(20, 10)]
+    [TestCase(120, 60)]
+    [TestCase(0, 0)]
+    public void LifeSteal_IsHalfOfTheDirectDamage(int damage, int expected)
+    {
+        Assert.AreEqual(expected, ability.LifeStealFor(damage));
+    }
+
+    [TestCase(20, 12)]
+    [TestCase(1, 1)]
+    public void Explosion_DealsSixtyPercentToNeighboursWithAMinimumOfOne(int bullet, int expected)
+    {
+        Assert.AreEqual(expected, ability.ExplosionDamageFor(bullet));
+    }
+
+    [TestCase(1, 2)]
+    [TestCase(3, 6)]
+    [TestCase(0, 0)]
+    public void UltimateBleed_DoublesTheStacksPerShot(int stacks, int expected)
+    {
+        Assert.AreEqual(expected, ability.BoostedBleed(stacks));
+    }
+
+    [Test]
+    public void UltimateDefaults_MatchTheDesign()
+    {
+        Assert.AreEqual(2.5f, ability.explosionRadius, 0.001f);
+        Assert.AreEqual(2, ability.explosionBleedStacks);
+        Assert.AreEqual(2f, ability.riverTickSeconds, 0.001f);
+    }
 }

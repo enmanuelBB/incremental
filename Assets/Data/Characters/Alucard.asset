@@ -26,4 +26,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: cd7b31293651b1d42af53796b3f4f5d8, type: 2}
   abilities:
   - {fileID: 11400000, guid: f23e85061cd98cf4a973ddd61e8fd4ca, type: 2}
+  - {fileID: 11400000, guid: b0fa4afa517b7d94098671bbc2a3153f, type: 2}
+  - {fileID: 11400000, guid: 729d4a6d98cc92c4392240e0563186f5, type: 2}
   heldItemPrefab: {fileID: 0}

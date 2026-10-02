@@ -26,9 +26,21 @@ public abstract class Health : MonoBehaviour, IDamageable
         OnHealthChanged();
     }
 
+    /// <summary>Mientras sea true no recibe daño (niebla de Alucard).</summary>
+    public bool Invulnerable { get; set; }
+
+    /// <summary>Recupera vida sin pasar del máximo. No revive a quien ya murió.</summary>
+    public void Heal(int amount)
+    {
+        if (IsDead || amount <= 0 || CurrentHealth >= maxHealth) return;
+
+        CurrentHealth = Mathf.Min(CurrentHealth + amount, maxHealth);
+        OnHealthChanged();
+    }
+
     public void TakeDamage(int amount)
     {
-        if (IsDead) return;
+        if (IsDead || Invulnerable) return;
 
         CurrentHealth = Mathf.Max(CurrentHealth - amount, 0);
         OnHealthChanged();

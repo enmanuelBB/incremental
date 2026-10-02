@@ -12,6 +12,9 @@ public class PlayerMovement : MonoBehaviour
     /// <summary>Velocidad de movimiento; la define el personaje elegido.</summary>
     public void SetSpeed(float value) => speed = value;
 
+    /// <summary>Multiplicador temporal de velocidad (1 = normal). Lo usa la niebla de Alucard.</summary>
+    public float SpeedMultiplier { get; set; } = 1f;
+
     private Rigidbody rb;
     private CapsuleCollider capsule;
     private Vector3 movement;
@@ -52,7 +55,7 @@ public class PlayerMovement : MonoBehaviour
     {
         isGrounded = CheckGrounded();
 
-        float currentSpeed = isGrounded ? speed : speed * jumpDistance;
+        float currentSpeed = (isGrounded ? speed : speed * jumpDistance) * SpeedMultiplier;
         Vector3 velocity = rb.linearVelocity;
         velocity.x = movement.x * currentSpeed;
         velocity.z = movement.z * currentSpeed;
