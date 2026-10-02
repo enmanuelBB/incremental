@@ -79,6 +79,18 @@ public class EnemyAI : MonoBehaviour, IDamageable
         }
 
         agent.isStopped = false;
+        FaceBase();
+    }
+
+    // Sin esto el enemigo aparece con la orientación que tenía en el pool (o la del prefab) y el
+    // agente tarda ~1,5 s en girar, caminando de espaldas a su destino.
+    private void FaceBase()
+    {
+        if (baseTarget == null) return;
+
+        Vector3 toBase = baseTarget.transform.position - transform.position;
+        toBase.y = 0f;
+        if (toBase.sqrMagnitude > 0.001f) transform.rotation = Quaternion.LookRotation(toBase);
     }
 
     public void TakeDamage(int damage)
@@ -105,13 +117,18 @@ public class EnemyAI : MonoBehaviour, IDamageable
             return;
         }
 
+        // Hacia dónde se mueve (a quién persigue) y a quién golpea son decisiones separadas:
+        // al jugador que tenga al alcance lo golpea siempre, aunque no sea su destino, y en ese
+        // caso sigue caminando hacia la base en vez de detenerse.
         Collider target = ChooseTarget();
-        bool targetIsPlayer = target == playerCollider;
+        bool playerInReach = DistanceToEdge(playerCollider) <= def.attackReach;
+
+        if (playerInReach) Attack(true);
 
         if (DistanceToEdge(target) <= def.attackReach)
         {
             agent.isStopped = true;
-            Attack(targetIsPlayer);
+            if (!playerInReach) Attack(target == playerCollider);
             return;
         }
 
@@ -123,6 +140,7 @@ public class EnemyAI : MonoBehaviour, IDamageable
         }
     }
 
+    /// <summary>Decide hacia dónde se mueve el enemigo: al jugador (si lo persigue) o a la base.</summary>
     private Collider ChooseTarget()
     {
         Vector3 position = transform.position;
