@@ -8,13 +8,15 @@ using UnityEngine.InputSystem;
 public class GameInput : MonoBehaviour
 {
     public const int WeaponSlots = 4;
+    public const int AbilitySlots = 3;
 
     public static GameInput Instance { get; private set; }
 
     [SerializeField] private InputActionAsset actions;
 
-    private InputAction move, look, lookStick, fire, aim, reload, interact, jump, toggleView, nextWeapon, previousWeapon, ability1;
+    private InputAction move, look, lookStick, fire, aim, reload, interact, jump, toggleView, nextWeapon, previousWeapon;
     private readonly InputAction[] weaponSlots = new InputAction[WeaponSlots];
+    private readonly InputAction[] abilitySlots = new InputAction[AbilitySlots];
 
     public Vector2 Move => move.ReadValue<Vector2>();
     public Vector2 LookDelta => look.ReadValue<Vector2>();
@@ -28,11 +30,13 @@ public class GameInput : MonoBehaviour
     public bool ToggleViewPressed => toggleView.WasPressedThisFrame();
     public bool NextWeaponPressed => nextWeapon.WasPressedThisFrame();
     public bool PreviousWeaponPressed => previousWeapon.WasPressedThisFrame();
-    public bool Ability1Pressed => ability1.WasPressedThisFrame();
-
-    /// <summary>Tecla de la habilidad 1 tal como está asignada hoy (por ejemplo "Q"), para mostrarla en el HUD.</summary>
-    public string Ability1Label => ability1.GetBindingDisplayString(0);
     public bool WeaponSlotPressed(int slot) => weaponSlots[slot].WasPressedThisFrame();
+
+    /// <summary>Habilidad de la casilla 0, 1 o 2 (Q, E, F por defecto).</summary>
+    public bool AbilityPressed(int slot) => abilitySlots[slot].WasPressedThisFrame();
+
+    /// <summary>Tecla de esa casilla tal como está asignada hoy (por ejemplo "Q"), para mostrarla en el HUD.</summary>
+    public string AbilityLabel(int slot) => abilitySlots[slot].GetBindingDisplayString(0);
 
     private void Awake()
     {
@@ -50,10 +54,12 @@ public class GameInput : MonoBehaviour
         toggleView = map.FindAction("ToggleView", true);
         nextWeapon = map.FindAction("NextWeapon", true);
         previousWeapon = map.FindAction("PreviousWeapon", true);
-        ability1 = map.FindAction("Ability1", true);
 
         for (int i = 0; i < WeaponSlots; i++)
             weaponSlots[i] = map.FindAction("Weapon" + (i + 1), true);
+
+        for (int i = 0; i < AbilitySlots; i++)
+            abilitySlots[i] = map.FindAction("Ability" + (i + 1), true);
     }
 
     private void OnEnable() => actions.FindActionMap("Player", true).Enable();

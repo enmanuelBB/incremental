@@ -26,6 +26,9 @@ public class EnemyAI : MonoBehaviour, IDamageable
     private float chaseTimer;
     private float ignorePlayerUntil;
     private bool isDead;
+    private EnemyBleed bleed;
+
+    public bool IsDead => isDead;
 
     /// <summary>Lo llama el pool una sola vez, al crear la instancia.</summary>
     public void Init(ObjectPool<EnemyAI> ownerPool, EnemyDefinition definition)
@@ -56,6 +59,7 @@ public class EnemyAI : MonoBehaviour, IDamageable
     public void Spawn(Vector3 position, float healthScale = 1f)
     {
         isDead = false;
+        if (bleed != null) bleed.Clear(); // viene del pool: sin sangrado ni tinte de su vida anterior
         currentHealth = Mathf.CeilToInt(def.maxHealth * healthScale);
         chaseTimer = 0f;
         ignorePlayerUntil = 0f;
@@ -101,10 +105,24 @@ public class EnemyAI : MonoBehaviour, IDamageable
         if (currentHealth > 0) return;
 
         isDead = true;
+        if (bleed != null) bleed.Clear();
         GameEvents.RaiseEnemyKilled(def.moneyReward);
 
         if (pool != null) pool.Release(this);
         else gameObject.SetActive(false);
+    }
+
+    /// <summary>Suma pilas de sangrado (permanentes hasta que muera). No hace nada si ya está muerto.</summary>
+    public void ApplyBleed(int stacks, int cap, int damagePerStack)
+    {
+        if (isDead || stacks <= 0) return;
+
+        if (bleed == null)
+        {
+            bleed = GetComponent<EnemyBleed>();
+            if (bleed == null) bleed = gameObject.AddComponent<EnemyBleed>();
+        }
+        bleed.Apply(stacks, cap, damagePerStack);
     }
 
     private void Update()

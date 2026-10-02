@@ -43,7 +43,9 @@ public class WeaponCardUI : MonoBehaviour
             return;
         }
 
-        float fraction = info.Magazine > 0 ? Mathf.Clamp01((float)info.Ammo / info.Magazine) : 0f;
+        // La barra muestra todas las balas del arma juntas (24 si son dos pistolas de 12).
+        int capacity = info.Magazine * Mathf.Max(1, info.Barrels);
+        float fraction = capacity > 0 ? Mathf.Clamp01((float)info.TotalAmmo / capacity) : 0f;
         bool low = fraction <= lowAmmoFraction;
 
         if (info.Reloading)
@@ -54,9 +56,29 @@ public class WeaponCardUI : MonoBehaviour
             return;
         }
 
-        // El número actual grande y el cargador en pequeño; en rojo cuando queda poco.
-        string color = ColorUtility.ToHtmlStringRGB(low ? lowAmmoColor : Color.white);
-        ammoText.text = "<color=#" + color + ">" + info.Ammo + "</color><size=55%><color=#B8C0D0> / " + info.Magazine + "</color></size>";
+        // Un cañón: "12 / 12". Varios (dos pistolas): "11 | 12", una cifra por cargador. Como los disparos se
+        // turnan, bajan de a una; cada cifra se pone roja por separado cuando a esa pistola le quedan pocas.
+        if (info.Barrels > 1)
+        {
+            const string separator = "<size=60%><color=#B8C0D0> | </color></size>";
+            var text = new System.Text.StringBuilder();
+
+            for (int barrel = 0; barrel < info.Barrels; barrel++)
+            {
+                bool barrelLow = info.Magazine > 0 && (float)info.BarrelAmmo[barrel] / info.Magazine <= lowAmmoFraction;
+                string barrelColor = ColorUtility.ToHtmlStringRGB(barrelLow ? lowAmmoColor : Color.white);
+
+                if (barrel > 0) text.Append(separator);
+                text.Append("<color=#").Append(barrelColor).Append('>').Append(info.BarrelAmmo[barrel]).Append("</color>");
+            }
+
+            ammoText.text = text.ToString();
+        }
+        else
+        {
+            string color = ColorUtility.ToHtmlStringRGB(low ? lowAmmoColor : Color.white);
+            ammoText.text = "<color=#" + color + ">" + info.TotalAmmo + "</color><size=55%><color=#B8C0D0> / " + info.Magazine + "</color></size>";
+        }
         ammoBar.fillAmount = fraction;
         ammoBar.color = low ? lowAmmoColor : barColor;
     }

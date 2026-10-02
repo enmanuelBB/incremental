@@ -6,12 +6,16 @@ using UnityEngine;
 /// </summary>
 public static class CombatMath
 {
-    /// <summary>daño × cargador ÷ (cargador × cadencia + recarga)</summary>
+    /// <summary>
+    /// balas × daño ÷ (balas × cadencia + recarga), con balas = cañones × cargador. Los disparos se turnan entre los
+    /// cañones (una bala por clic), así que más cañones NO suben el daño por segundo: solo hay más balas por recarga
+    /// y por eso se pierde menos tiempo recargando.
+    /// </summary>
     public static float GunSustainedDps(WeaponDefinition weapon, int fireRateLevel, int reloadLevel, int damageLevel)
     {
-        float magazine = weapon.magazineSize;
-        float cycle = magazine * weapon.FireRateAt(fireRateLevel) + weapon.ReloadTimeAt(reloadLevel);
-        return magazine * weapon.DamageAt(damageLevel) / cycle;
+        float bullets = weapon.barrels * weapon.magazineSize;
+        float cycle = bullets * weapon.FireRateAt(fireRateLevel) + weapon.ReloadTimeAt(reloadLevel);
+        return bullets * weapon.DamageAt(damageLevel) / cycle;
     }
 
     public static float StaffBasicDps(StaffDefinition staff, int fireRateLevel, int damageLevel) =>

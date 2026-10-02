@@ -5,12 +5,13 @@ public enum UpgradeType
 {
     FireRate = 0,
     Reload = 1,
-    Damage = 2
+    Damage = 2,
+    Bleed = 3
 }
 
 public static class UpgradeTypeInfo
 {
-    public const int Count = 3;
+    public const int Count = 4;
 
     public static string DisplayName(UpgradeType type)
     {
@@ -19,6 +20,7 @@ public static class UpgradeTypeInfo
             case UpgradeType.FireRate: return "Cadencia";
             case UpgradeType.Reload: return "Recarga";
             case UpgradeType.Damage: return "Daño";
+            case UpgradeType.Bleed: return "Sangrado";
         }
         return type.ToString();
     }
@@ -36,7 +38,18 @@ public class UpgradeStat
 
     public int basePrice = 100;
     public int priceIncrease = 50;
+
+    [Tooltip("Si es mayor que 0, el precio crece de forma exponencial: basePrice × crecimiento^nivel (y priceIncrease se ignora). Con 0 el precio es lineal.")]
+    public float priceGrowth = 0f;
+
     public int maxLevel = 5;
 
-    public int PriceAt(int level) => basePrice + level * priceIncrease;
+    /// <summary>Precio de subir DESDE el nivel indicado al siguiente. Redondeado a la decena en el modo exponencial.</summary>
+    public int PriceAt(int level)
+    {
+        if (priceGrowth <= 0f) return basePrice + level * priceIncrease;
+
+        float exact = basePrice * Mathf.Pow(priceGrowth, level);
+        return Mathf.RoundToInt(exact / 10f) * 10;
+    }
 }

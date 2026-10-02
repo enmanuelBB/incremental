@@ -35,7 +35,8 @@ public class SaveMigrationTests
 
         WeaponSave m16 = main.GetWeapon("M16");
         Assert.IsTrue(m16.owned);
-        CollectionAssert.AreEqual(new[] { 5, 5, 10 }, m16.upgradeLevels);
+        // Los tres niveles viejos se conservan; la mejora de sangrado (nueva) empieza en 0.
+        CollectionAssert.AreEqual(new[] { 5, 5, 10, 0 }, m16.upgradeLevels);
 
         Assert.IsFalse(main.GetWeapon("Pistola").owned);
     }
@@ -77,7 +78,7 @@ public class SaveMigrationTests
         SaveData data = SaveMigrations.Parse(json, out _);
 
         Assert.AreEqual(0, data.money);
-        CollectionAssert.AreEqual(new[] { 0, 2, 1 }, data.GetCharacter(SaveData.DefaultCharacterId).GetWeapon("M16").upgradeLevels);
+        CollectionAssert.AreEqual(new[] { 0, 2, 1, 0 }, data.GetCharacter(SaveData.DefaultCharacterId).GetWeapon("M16").upgradeLevels);
     }
 
     [Test]

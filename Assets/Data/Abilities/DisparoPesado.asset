@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66ffa8d72a5ac2f4fb4471403e5fa868, type: 3}
+  m_Name: DisparoPesado
+  m_EditorClassIdentifier: Game.Core::AbilityDefinition
+  id: 
+  abilityName: Disparo pesado
+  icon: {fileID: -6149107918459777935, guid: 3457195e838a0d441b5dd134fb2dbaf1, type: 3}
+  kind: 0
+  cooldown: 8
+  damageMultiplier: 6
+  range: 60
+  bleedStacks: 3
+  duration: 2
+  speedMultiplier: 1.6
+  radius: 3
+  lifeSteal: 0.5

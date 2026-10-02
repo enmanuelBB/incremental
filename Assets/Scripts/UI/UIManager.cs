@@ -28,12 +28,24 @@ public class UIManager : MonoBehaviour
     [Header("Maná (solo personajes con bastón)")]
     [SerializeField] private Slider manaBar;
     [SerializeField] private TMP_Text manaText;
-    [SerializeField, Tooltip("Casilla de la habilidad: encima de las barras, con la tecla debajo")]
-    private AbilitySlotUI abilitySlot;
 
-    private float abilityReadyAt;
-    private float abilityCooldownTotal = 1f;
+    [Header("Habilidades")]
+    [SerializeField, Tooltip("Las 3 casillas, en orden (Q, E, F): encima de las barras, con la tecla debajo")]
+    private AbilitySlotUI[] abilitySlots;
+    [SerializeField, Tooltip("Fila que contiene las casillas. Se oculta entera si el personaje no tiene habilidades: una fila activa pero vacía descuadra el HUD.")]
+    private GameObject abilityRow;
+
+    private float[] abilityReadyAt;
+    private float[] abilityCooldownTotal;
     private int lastMoney = -1;
+
+    private void Awake()
+    {
+        int count = abilitySlots != null ? abilitySlots.Length : 0;
+        abilityReadyAt = new float[count];
+        abilityCooldownTotal = new float[count];
+        for (int i = 0; i < count; i++) abilityCooldownTotal[i] = 1f;
+    }
 
     private void Start()
     {
@@ -51,6 +63,7 @@ public class UIManager : MonoBehaviour
         GameEvents.PromptChanged += SetPrompt;
         GameEvents.ResourceModeChanged += SetResourceMode;
         GameEvents.ManaChanged += SetMana;
+        GameEvents.AbilitiesChanged += SetAbilities;
         GameEvents.AbilityUsed += OnAbilityUsed;
     }
 
@@ -64,20 +77,24 @@ public class UIManager : MonoBehaviour
         GameEvents.PromptChanged -= SetPrompt;
         GameEvents.ResourceModeChanged -= SetResourceMode;
         GameEvents.ManaChanged -= SetMana;
+        GameEvents.AbilitiesChanged -= SetAbilities;
         GameEvents.AbilityUsed -= OnAbilityUsed;
     }
 
-    // La cuenta atrás de la habilidad la dibuja la propia UI a partir del momento en que queda lista;
+    // La cuenta atrás de cada habilidad la dibuja la propia UI a partir del momento en que queda lista;
     // gameplay solo publica ese momento una vez, no cada frame.
     private void Update()
     {
-        if (abilitySlot == null || !abilitySlot.isActiveAndEnabled) return;
+        for (int i = 0; i < abilityReadyAt.Length; i++)
+        {
+            if (abilitySlots[i] == null || !abilitySlots[i].isActiveAndEnabled) continue;
 
-        abilitySlot.SetCooldown(abilityReadyAt - Time.time, abilityCooldownTotal);
+            abilitySlots[i].SetCooldown(abilityReadyAt[i] - Time.time, abilityCooldownTotal[i]);
+        }
     }
 
-    // Munición para armas de fuego; barra de maná y casilla de habilidad para el bastón.
-    private void SetResourceMode(bool usesMana, string ability, Sprite icon)
+    // Munición para armas de fuego; barra de maná para el bastón.
+    private void SetResourceMode(bool usesMana)
     {
         if (ammoPanel != null)
         {
@@ -86,13 +103,26 @@ public class UIManager : MonoBehaviour
         }
 
         if (manaBar != null) manaBar.gameObject.SetActive(usesMana);
+    }
 
-        abilityReadyAt = 0f;
+    // Muestra las casillas que el personaje tiene y oculta el resto.
+    private void SetAbilities(AbilityHudInfo[] info)
+    {
+        bool any = false;
 
-        if (abilitySlot == null) return;
+        for (int i = 0; i < abilitySlots.Length; i++)
+        {
+            abilityReadyAt[i] = 0f;
+            if (abilitySlots[i] == null) continue;
 
-        if (usesMana && !string.IsNullOrEmpty(ability)) abilitySlot.Show(icon, GameInput.Instance.Ability1Label);
-        else abilitySlot.Hide();
+            bool has = info != null && i < info.Length && info[i].HasAbility;
+            any |= has;
+
+            if (has) abilitySlots[i].Show(info[i].Icon, GameInput.Instance.AbilityLabel(i));
+            else abilitySlots[i].Hide();
+        }
+
+        if (abilityRow != null) abilityRow.SetActive(any);
     }
 
     private void SetWeaponSlot(WeaponSlotInfo info)
@@ -110,10 +140,12 @@ public class UIManager : MonoBehaviour
     }
 
     // El evento trae el momento en que queda lista; la duración total es lo que falta ahora mismo.
-    private void OnAbilityUsed(string ability, float readyAt)
+    private void OnAbilityUsed(int slot, float readyAt)
     {
-        abilityReadyAt = readyAt;
-        abilityCooldownTotal = Mathf.Max(0.01f, readyAt - Time.time);
+        if (slot < 0 || slot >= abilityReadyAt.Length) return;
+
+        abilityReadyAt[slot] = readyAt;
+        abilityCooldownTotal[slot] = Mathf.Max(0.01f, readyAt - Time.time);
     }
 
     private void SetPlayerHealth(int current, int max)

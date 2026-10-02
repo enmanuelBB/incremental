@@ -54,9 +54,15 @@ public static class CharacterInfo
         float dps = CombatMath.GunSustainedDps(weapon, fireRate, reload, damage);
         string mode = weapon.isAutomatic ? "automática" : "semiautomática";
 
+        // Con varios cañones (dos pistolas): "cargador 12 + 12 (24 balas)" y los disparos se turnan.
+        string magazineText = weapon.barrels > 1
+            ? $"cargador {string.Join(" + ", System.Linq.Enumerable.Repeat(weapon.magazineSize, weapon.barrels))} ({weapon.barrels * weapon.magazineSize} balas)"
+            : $"cargador {weapon.magazineSize}";
+        if (weapon.barrels > 1) mode += ", turnándose";
+
         lines.Add(new StatLine(weapon.weaponName,
             $"daño {weapon.DamageAt(damage)} · {weapon.FireRateAt(fireRate).ToString("0.00", Culture)} s · " +
-            $"cargador {weapon.magazineSize} · recarga {weapon.ReloadTimeAt(reload).ToString("0.0", Culture)} s · {mode} · {dps.ToString("0", Culture)} DPS"));
+            $"{magazineText} · recarga {weapon.ReloadTimeAt(reload).ToString("0.0", Culture)} s · {mode} · {dps.ToString("0", Culture)} DPS"));
     }
 
     private static void AddStaff(List<StatLine> lines, StaffDefinition staff, int fireRate, int mana, int power)

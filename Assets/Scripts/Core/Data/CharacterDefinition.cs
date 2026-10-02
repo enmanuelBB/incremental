@@ -46,6 +46,9 @@ public class CharacterDefinition : GameDefinition
     [Tooltip("Armas del personaje, en el orden de los atajos 1, 2, 3...")]
     public WeaponDefinition[] startingWeapons;
 
+    [Tooltip("Habilidades en el orden de las casillas del HUD: la 1.ª con Q, la 2.ª con E, la 3.ª con F. Máximo 3. Frieren aún usa la habilidad de su bastón.")]
+    public AbilityDefinition[] abilities;
+
     [Tooltip("Objeto que lleva en la mano (por ejemplo el bastón). Si tiene un hijo llamado 'Muzzle', de ahí salen los disparos.")]
     public GameObject heldItemPrefab;
 }

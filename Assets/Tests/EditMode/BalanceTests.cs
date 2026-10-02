@@ -1,28 +1,30 @@
+using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
 
 /// <summary>
 /// Protegen el balance entre Alucard y el mago con los números REALES de los assets: si alguien cambia un valor
-/// y un personaje se descompensa, fallan. Los rangos salen del diseño (ver el spec de personajes).
-/// Se comparan 6 puntos de progreso (0%, 20%... 100% de las mejoras).
+/// y un personaje se descompensa, fallan. La referencia de Alucard es el arma que de verdad lleva
+/// (sus dos pistolas). Se comparan 6 puntos de progreso (0%, 20%... 100% de las mejoras).
 /// </summary>
 [TestFixture]
 public class BalanceTests
 {
-    private WeaponDefinition pistola;
-    private WeaponDefinition m16;
+    private CharacterDefinition alucard;
+    private WeaponDefinition dualPistols;
     private StaffDefinition staff;
 
     [SetUp]
     public void SetUp()
     {
-        pistola = AssetDatabase.LoadAssetAtPath<WeaponDefinition>("Assets/Data/Weapons/Pistola.asset");
-        m16 = AssetDatabase.LoadAssetAtPath<WeaponDefinition>("Assets/Data/Weapons/M16.asset");
+        alucard = AssetDatabase.LoadAssetAtPath<CharacterDefinition>("Assets/Data/Characters/Alucard.asset");
         staff = AssetDatabase.LoadAssetAtPath<StaffDefinition>("Assets/Data/Weapons/Baston.asset");
 
-        Assert.IsNotNull(pistola, "falta Assets/Data/Weapons/Pistola.asset");
-        Assert.IsNotNull(m16, "falta Assets/Data/Weapons/M16.asset");
+        Assert.IsNotNull(alucard, "falta Assets/Data/Characters/Alucard.asset");
         Assert.IsNotNull(staff, "falta Assets/Data/Weapons/Baston.asset");
+        Assert.AreEqual(1, alucard.startingWeapons.Length, "Alucard lleva una sola arma (sus dos pistolas)");
+
+        dualPistols = alucard.startingWeapons[0];
     }
 
     private static readonly float[] Progress = { 0f, 0.2f, 0.4f, 0.6f, 0.8f, 1f };
@@ -35,42 +37,58 @@ public class BalanceTests
         damage = UnityEngine.Mathf.RoundToInt(max[2] * progress);
     }
 
-    private float Pistol(float p) { Levels(pistola, p, out int f, out int r, out int d); return CombatMath.GunSustainedDps(pistola, f, r, d); }
-    private float Rifle(float p) { Levels(m16, p, out int f, out int r, out int d); return CombatMath.GunSustainedDps(m16, f, r, d); }
+    private float Alucard(float p) { Levels(dualPistols, p, out int f, out int r, out int d); return CombatMath.GunSustainedDps(dualPistols, f, r, d); }
     private float Mage(float p, int targets) { Levels(staff, p, out int f, out int r, out int d); return CombatMath.StaffSustainedDps(staff, f, r, d, targets); }
 
     [Test]
-    public void Mage_AgainstOneEnemy_IsCloseToThePistolAtEveryProgress()
+    public void Alucard_CarriesTwoPistolsWith24BulletsAndNoM16()
+    {
+        Assert.AreEqual("Pistola", dualPistols.Id);
+        Assert.AreEqual(2, dualPistols.barrels, "dos pistolas que se turnan");
+        Assert.AreEqual(12, dualPistols.magazineSize, "12 balas en cada una");
+        Assert.AreEqual(24, dualPistols.barrels * dualPistols.magazineSize, "24 balas en total");
+    }
+
+    [Test]
+    public void M16_StaysInTheProjectButNoCharacterUsesIt()
+    {
+        var m16 = AssetDatabase.LoadAssetAtPath<WeaponDefinition>("Assets/Data/Weapons/M16.asset");
+        Assert.IsNotNull(m16, "el M16 se conserva para un personaje futuro");
+
+        var users = AssetDatabase.FindAssets("t:CharacterDefinition")
+            .Select(g => AssetDatabase.LoadAssetAtPath<CharacterDefinition>(AssetDatabase.GUIDToAssetPath(g)))
+            .Where(c => c.startingWeapons != null && c.startingWeapons.Contains(m16))
+            .Select(c => c.displayName)
+            .ToArray();
+
+        Assert.IsEmpty(users, "ningún personaje debe usar el M16 por ahora: " + string.Join(", ", users));
+    }
+
+    [Test]
+    public void AgainstOneEnemy_AlucardIsStronger_SoHeKeepsTheSingleTargetRole()
     {
         foreach (float p in Progress)
         {
-            float ratio = Mage(p, 1) / Pistol(p);
-            Assert.That(ratio, Is.InRange(0.85f, 1.05f), "progreso " + p + ": maga/pistola = " + ratio);
+            float ratio = Mage(p, 1) / Alucard(p);
+            Assert.That(ratio, Is.InRange(0.60f, 0.90f), "progreso " + p + ": maga/Alucard contra 1 enemigo = " + ratio);
         }
     }
 
     [Test]
-    public void Mage_InALineOfFour_IsCloseToTheRifleAtEveryProgress()
+    public void InALineOfFour_TheMageIsStronger_SoSheKeepsTheHordeRole()
     {
         foreach (float p in Progress)
         {
-            float ratio = Mage(p, CharacterInfo.LineTargets) / Rifle(p);
-            Assert.That(ratio, Is.InRange(0.75f, 1.0f), "progreso " + p + ": maga(fila de 4)/M16 = " + ratio);
+            float ratio = Mage(p, CharacterInfo.LineTargets) / Alucard(p);
+            Assert.That(ratio, Is.InRange(1.0f, 1.5f), "progreso " + p + ": maga(fila de 4)/Alucard = " + ratio);
         }
     }
 
     [Test]
-    public void Mage_InALine_BeatsThePistolClearly()
+    public void Mage_GainsClearlyFromLines()
     {
         foreach (float p in Progress)
-            Assert.That(Mage(p, CharacterInfo.LineTargets) / Pistol(p), Is.GreaterThan(1.3f), "progreso " + p);
-    }
-
-    [Test]
-    public void Mage_AgainstOneEnemy_IsWeakerThanTheRifle_SoAlucardKeepsTheSingleTargetRole()
-    {
-        foreach (float p in Progress)
-            Assert.That(Mage(p, 1) / Rifle(p), Is.LessThan(0.6f), "progreso " + p);
+            Assert.That(Mage(p, CharacterInfo.LineTargets) / Mage(p, 1), Is.GreaterThan(1.4f), "progreso " + p);
     }
 
     [Test]
@@ -88,7 +106,7 @@ public class BalanceTests
     {
         foreach (UpgradeType type in new[] { UpgradeType.FireRate, UpgradeType.Reload, UpgradeType.Damage })
         {
-            UpgradeStat gun = pistola.GetUpgrade(type);
+            UpgradeStat gun = dualPistols.GetUpgrade(type);
             UpgradeStat mage = staff.GetUpgrade(type);
 
             Assert.AreEqual(gun.basePrice, mage.basePrice, type + " basePrice");

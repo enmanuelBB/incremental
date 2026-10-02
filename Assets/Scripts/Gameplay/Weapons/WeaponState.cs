@@ -7,7 +7,9 @@ using UnityEngine;
 public class WeaponState
 {
     public WeaponDefinition Definition { get; }
-    public int Ammo { get; set; }
+
+    /// <summary>Cargadores del arma: uno por cañón, y los disparos se turnan entre ellos.</summary>
+    public BarrelMagazines Magazines { get; }
     public bool Owned { get; private set; }
 
     private readonly WeaponSave save;
@@ -23,7 +25,7 @@ public class WeaponState
             save.upgradeLevels[i] = Mathf.Min(save.upgradeLevels[i], definition.GetUpgrade((UpgradeType)i).maxLevel);
 
         Owned = definition.ownedFromStart || save.owned;
-        Ammo = definition.magazineSize;
+        Magazines = new BarrelMagazines(definition.barrels, definition.magazineSize);
     }
 
     public string Name => Definition.weaponName;
@@ -47,6 +49,9 @@ public class WeaponState
     public float ReloadTime => Definition.ReloadTimeAt(GetLevel(UpgradeType.Reload));
     public int Damage => Definition.DamageAt(GetLevel(UpgradeType.Damage));
 
+    /// <summary>Pilas de sangrado que aplica cada impacto (0 si el arma no sangra).</summary>
+    public int BleedPerHit => Definition.BleedPerHitAt(GetLevel(UpgradeType.Bleed));
+
     // Solo bastón
     public int AbilityDamage => Staff.AbilityDamageAt(GetLevel(UpgradeType.Damage));
     public float ManaRegen => Staff.ManaRegenAt(GetLevel(UpgradeType.Reload));
@@ -67,6 +72,7 @@ public class WeaponState
     /// <summary>Cobra y sube un nivel de mejora. Devuelve false si está al máximo o no alcanza el dinero.</summary>
     public bool TryUpgrade(UpgradeType type)
     {
+        if (type == UpgradeType.Bleed && !Definition.AppliesBleed) return false;
         if (IsMaxLevel(type)) return false;
         if (!MoneyManager.Instance.SpendMoney(GetUpgradeCost(type))) return false;
 

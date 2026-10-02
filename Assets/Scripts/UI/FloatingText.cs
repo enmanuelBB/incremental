@@ -10,6 +10,7 @@ public class FloatingText : MonoBehaviour
 
     private TMP_Text text;
     private RectTransform rectTransform;
+    private Color defaultColor;
     private Color startColor;
     private Vector2 startPosition;
     private float timer;
@@ -19,13 +20,15 @@ public class FloatingText : MonoBehaviour
     {
         text = GetComponent<TMP_Text>();
         rectTransform = GetComponent<RectTransform>();
-        startColor = text.color;
+        defaultColor = text.color;
+        startColor = defaultColor;
     }
 
-    /// <summary>Muestra el texto en la posición dada; al terminar llama a release (devolverlo al pool).</summary>
-    public void Show(string message, Vector3 position, Action<FloatingText> releaseCallback)
+    /// <summary>Muestra el texto en la posición dada; al terminar llama a release (devolverlo al pool). Sin color usa el del prefab.</summary>
+    public void Show(string message, Vector3 position, Action<FloatingText> releaseCallback, Color? color = null)
     {
         release = releaseCallback;
+        startColor = color ?? defaultColor;
         text.text = message;
         text.color = startColor;
         rectTransform.position = position;

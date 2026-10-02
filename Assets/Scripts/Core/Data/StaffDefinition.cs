@@ -34,12 +34,16 @@ public class StaffDefinition : WeaponDefinition
 
     public override bool UsesAmmo => false;
 
+    // El bastón no sangra: no muestra la mejora de sangrado.
+    public override bool AppliesBleed => false;
+
     public override string UpgradeLabel(UpgradeType type)
     {
         switch (type)
         {
             case UpgradeType.FireRate: return "Cadencia";
             case UpgradeType.Reload: return "Maná";
+            case UpgradeType.Bleed: return "Sangrado";
             default: return "Poder";
         }
     }

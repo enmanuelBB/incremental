@@ -9,7 +9,9 @@ public class UpgradeMenuUI : MenuPanel
     [SerializeField] private TMP_Text fireRateText;
     [SerializeField] private TMP_Text reloadText;
     [SerializeField] private TMP_Text damageText;
+    [SerializeField, Tooltip("Columna de la mejora de sangrado; se oculta en armas que no sangran")] private TMP_Text bleedText;
     [SerializeField] private TMP_Text panelMoneyText;
+    [SerializeField, Tooltip("Separación horizontal entre columnas de mejora")] private float columnSpacing = 330f;
 
     private int selectedWeaponIndex;
 
@@ -64,12 +66,46 @@ public class UpgradeMenuUI : MenuPanel
         fireRateText.text = UpgradeLabel(weapon, UpgradeType.FireRate);
         reloadText.text = UpgradeLabel(weapon, UpgradeType.Reload);
         damageText.text = UpgradeLabel(weapon, UpgradeType.Damage);
+
+        bool bleeds = bleedText != null && weapon.Definition.AppliesBleed;
+        if (bleedText != null)
+        {
+            bleedText.gameObject.SetActive(bleeds);
+            if (bleeds) bleedText.text = BleedLabel(weapon);
+        }
+
+        CenterColumns(bleeds);
+    }
+
+    // Las columnas activas se reparten centradas: tres para el bastón, cuatro para las armas que sangran.
+    private void CenterColumns(bool includeBleed)
+    {
+        TMP_Text[] columns = includeBleed
+            ? new[] { fireRateText, reloadText, damageText, bleedText }
+            : new[] { fireRateText, reloadText, damageText };
+
+        float start = -(columns.Length - 1) * columnSpacing * 0.5f;
+        for (int i = 0; i < columns.Length; i++)
+        {
+            RectTransform rect = columns[i].rectTransform;
+            rect.anchoredPosition = new Vector2(start + i * columnSpacing, rect.anchoredPosition.y);
+        }
+    }
+
+    // Además del nivel y el precio, muestra cuántas pilas de sangrado pone cada impacto.
+    private static string BleedLabel(WeaponState weapon)
+    {
+        string cost = weapon.IsMaxLevel(UpgradeType.Bleed) ? "MAX" : "$" + HudFormat.Money(weapon.GetUpgradeCost(UpgradeType.Bleed));
+        return weapon.GetUpgradeLabel(UpgradeType.Bleed)
+            + "\nNv " + weapon.GetLevel(UpgradeType.Bleed) + "/" + weapon.GetMaxLevel(UpgradeType.Bleed)
+            + "\nPilas: " + weapon.BleedPerHit
+            + "\n" + cost;
     }
 
     // El nombre de cada mejora lo decide el arma (el bastón las llama Cadencia, Maná y Poder).
     private static string UpgradeLabel(WeaponState weapon, UpgradeType type)
     {
-        string cost = weapon.IsMaxLevel(type) ? "MAX" : "$" + weapon.GetUpgradeCost(type);
+        string cost = weapon.IsMaxLevel(type) ? "MAX" : "$" + HudFormat.Money(weapon.GetUpgradeCost(type));
         return weapon.GetUpgradeLabel(type) + "\nNv " + weapon.GetLevel(type) + "/" + weapon.GetMaxLevel(type) + "\n" + cost;
     }
 
@@ -77,6 +113,7 @@ public class UpgradeMenuUI : MenuPanel
     public void UpgradeFireRate() => Upgrade(UpgradeType.FireRate);
     public void UpgradeReload() => Upgrade(UpgradeType.Reload);
     public void UpgradeDamage() => Upgrade(UpgradeType.Damage);
+    public void UpgradeBleed() => Upgrade(UpgradeType.Bleed);
 
     private void Upgrade(UpgradeType type)
     {

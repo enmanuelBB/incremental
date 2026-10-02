@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Pistola
   m_EditorClassIdentifier: Assembly-CSharp::WeaponDefinition
   id: Pistola
-  weaponName: pistola
+  weaponName: Pistolas
   magazineSize: 12
+  barrels: 2
   fireRate: 0.2
   reloadTime: 1.5
   damage: 10

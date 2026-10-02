@@ -31,6 +31,13 @@ public class Shooting : MonoBehaviour
     private BeamVfx beamVfx;
 
     private readonly RaycastHit[] hitBuffer = new RaycastHit[16];
+    private PlayerAbilities abilities;
+
+    // Nivel de sangrado del personaje (sube el tope de pilas). Hasta la fase de progresión es siempre 1: tope de 5.
+    private const int BleedLevel = 1;
+
+    /// <summary>Tope de pilas de sangrado por enemigo con el nivel de sangrado actual.</summary>
+    public int BleedCap => BleedStacks.CapForLevel(BleedLevel);
 
     public int WeaponCount => states.Length;
     public int CurrentWeaponIndex => currentIndex;
@@ -52,6 +59,8 @@ public class Shooting : MonoBehaviour
         Instance = this;
         boltVfx = BeamVfx.Create("BoltVfx");
         beamVfx = BeamVfx.Create("BeamVfx");
+        abilities = GetComponent<PlayerAbilities>();
+        if (abilities == null) abilities = gameObject.AddComponent<PlayerAbilities>();
         Build(character);
     }
 
@@ -86,6 +95,7 @@ public class Shooting : MonoBehaviour
         isReloading = false;
         nextFireTime = 0f;
         abilityCooldown.Reset();
+        abilities.Configure(def);
 
         CharacterSave progress = SaveSystem.Data.GetCharacter(def.Id);
         WeaponDefinition[] weapons = def.startingWeapons;
@@ -133,7 +143,7 @@ public class Shooting : MonoBehaviour
 
         WeaponState weapon = CurrentWeapon;
 
-        if (input.ReloadPressed && weapon.Ammo < weapon.MagazineSize)
+        if (input.ReloadPressed && !weapon.Magazines.IsFull)
         {
             reloadRoutine = StartCoroutine(Reload());
             return;
@@ -143,7 +153,7 @@ public class Shooting : MonoBehaviour
 
         if (triggerPressed && Time.time >= nextFireTime)
         {
-            if (weapon.Ammo <= 0)
+            if (weapon.Magazines.IsEmpty)
             {
                 reloadRoutine = StartCoroutine(Reload());
                 return;
@@ -157,7 +167,7 @@ public class Shooting : MonoBehaviour
     // Bastón: el disparo básico es gratis y la habilidad gasta maná y tiene enfriamiento.
     private void UpdateStaff(WeaponState weapon, GameInput input)
     {
-        if (input.Ability1Pressed) TryCastAbility(weapon);
+        if (input.AbilityPressed(0)) TryCastAbility(weapon);
 
         bool triggerPressed = weapon.IsAutomatic ? input.FireHeld : input.FirePressed;
 
@@ -202,14 +212,20 @@ public class Shooting : MonoBehaviour
     {
         WeaponState weapon = CurrentWeapon;
 
+        // Con varios cañones (dos pistolas) los disparos se turnan: cada clic gasta una bala del cañón que toca.
         if (weapon.UsesAmmo)
         {
-            weapon.Ammo--;
+            if (!weapon.Magazines.TryFire(out _)) return;
             PublishSlot(currentIndex);
         }
 
         AudioManager.Instance.PlaySFX(weapon.Definition.shootSound);
 
+        FireBullet(weapon);
+    }
+
+    private void FireBullet(WeaponState weapon)
+    {
         bool found = TryGetHit(weapon.Definition.range, out RaycastHit hit);
 
         if (!weapon.UsesAmmo)
@@ -224,6 +240,7 @@ public class Shooting : MonoBehaviour
         if (enemy != null)
         {
             enemy.TakeDamage(weapon.Damage);
+            enemy.ApplyBleed(weapon.BleedPerHit, BleedStacks.CapForLevel(BleedLevel), BleedStacks.DamagePerStack(weapon.Damage));
             return;
         }
 
@@ -247,7 +264,7 @@ public class Shooting : MonoBehaviour
 
         beamVfx.Show(origin, end, BeamColor, staff.abilityBeamRadius * 1.5f, 0.25f);
 
-        GameEvents.RaiseAbilityUsed(staff.abilityName, Time.time + cooldown);
+        GameEvents.RaiseAbilityUsed(0, Time.time + cooldown);
         PublishMana(true);
     }
 
@@ -272,13 +289,17 @@ public class Shooting : MonoBehaviour
         return direction.normalized;
     }
 
-    private Ray AimRay() => cam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+    public Ray AimRay() => cam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+
+    /// <summary>Dibuja un rayo de energía desde el arma hasta el punto dado (habilidades).</summary>
+    public void ShowBolt(Vector3 end, Color color, float width, float seconds) =>
+        boltVfx.Show(MuzzlePosition, end, color, width, seconds);
 
     /// <summary>
     /// Lanza el rayo desde el centro de la pantalla y devuelve el impacto más cercano,
     /// ignorando al propio jugador (la cámara en tercera persona queda detrás de él) y los triggers.
     /// </summary>
-    private bool TryGetHit(float range, out RaycastHit result)
+    public bool TryGetHit(float range, out RaycastHit result)
     {
         Ray ray = AimRay();
         int count = Physics.RaycastNonAlloc(ray, hitBuffer, range, ~0, QueryTriggerInteraction.Ignore);
@@ -312,7 +333,7 @@ public class Shooting : MonoBehaviour
         PublishSlot(currentIndex);
 
         yield return new WaitForSeconds(reloadTime * fillPoint);
-        weapon.Ammo = weapon.MagazineSize;
+        weapon.Magazines.Refill();
 
         yield return new WaitForSeconds(reloadTime * (1f - fillPoint));
 
@@ -362,11 +383,22 @@ public class Shooting : MonoBehaviour
         if (states.Length == 0) return;
 
         bool usesMana = !CurrentWeapon.UsesAmmo;
-        StaffDefinition staff = CurrentWeapon.Staff;
-        GameEvents.RaiseResourceModeChanged(usesMana, staff != null ? staff.abilityName : null, staff != null ? staff.abilityIcon : null);
+        GameEvents.RaiseResourceModeChanged(usesMana);
+        GameEvents.RaiseAbilitiesChanged(BuildAbilityHud());
 
         if (usesMana) PublishMana(true);
         else PublishSlots();
+    }
+
+    // Casillas del HUD: con bastón la 1.ª es la habilidad del bastón (Frieren); si no, las del personaje.
+    private AbilityHudInfo[] BuildAbilityHud()
+    {
+        StaffDefinition staff = CurrentWeapon.Staff;
+        if (staff == null) return abilities.HudInfo();
+
+        var info = new AbilityHudInfo[GameInput.AbilitySlots];
+        info[0] = new AbilityHudInfo { Name = staff.abilityName, Icon = staff.abilityIcon };
+        return info;
     }
 
     // Cada arma con munición tiene su casilla en el HUD: así se ve también la que no está equipada.
@@ -384,7 +416,7 @@ public class Shooting : MonoBehaviour
         {
             Index = index,
             Name = weapon.Name,
-            Ammo = weapon.Ammo,
+            BarrelAmmo = weapon.Magazines.Snapshot(),
             Magazine = weapon.MagazineSize,
             Owned = weapon.Owned,
             Selected = index == currentIndex,
