@@ -58,5 +58,5 @@ desktop.ini
 # Configuracion local del servidor MCP (ruta de esta maquina)
 /.mcp.json
 
-# Notas personales de diseno (no se suben)
-/NOTAS_DEL_JUEGO.md
+# Notas personales de diseno, decisiones y registro de cambios (no se suben)
+/notas/
