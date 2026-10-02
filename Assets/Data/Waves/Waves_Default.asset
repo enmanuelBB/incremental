@@ -14,17 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Core::WaveSet
   id: waves_default
   waves:
-  - waveName: Horda 1
+  - waveName: Oleada 1
     enemyGroups:
     - enemy: {fileID: 11400000, guid: bd30dd44f09ae8441921ebd4a9187930, type: 2}
       count: 10
     spawnInterval: 2
-  - waveName: Horda 2
+  - waveName: Oleada 2
     enemyGroups:
     - enemy: {fileID: 11400000, guid: bd30dd44f09ae8441921ebd4a9187930, type: 2}
       count: 20
     spawnInterval: 1.5
-  - waveName: Horda 3
+  - waveName: Oleada 3
     enemyGroups:
     - enemy: {fileID: 11400000, guid: bd30dd44f09ae8441921ebd4a9187930, type: 2}
       count: 15

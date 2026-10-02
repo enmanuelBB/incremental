@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 
-/// <summary>Cuántos enemigos de un tipo faltan por aparecer en una horda.</summary>
+/// <summary>Cuántos enemigos de un tipo faltan por aparecer en una oleada.</summary>
 public class WaveGroup
 {
     public EnemyDefinition Enemy;
     public int Count;
 }
 
-/// <summary>Lo que hay que spawnear en una horda concreta.</summary>
+/// <summary>Lo que hay que spawnear en una oleada concreta.</summary>
 public class WavePlan
 {
     public List<WaveGroup> Groups = new List<WaveGroup>();
@@ -16,12 +16,12 @@ public class WavePlan
 }
 
 /// <summary>
-/// Arma la composición de cada horda a partir de un WaveSet. Es lógica pura (sin MonoBehaviour)
+/// Arma la composición de cada oleada a partir de un WaveSet. Es lógica pura (sin MonoBehaviour)
 /// para poder probarla sin entrar a Play.
 /// </summary>
 public static class WaveBuilder
 {
-    /// <param name="waveIndex">Índice base 0 de la horda.</param>
+    /// <param name="waveIndex">Índice base 0 de la oleada.</param>
     public static WavePlan Build(WaveSet set, int waveIndex)
     {
         var plan = new WavePlan();
@@ -35,7 +35,7 @@ public static class WaveBuilder
         }
         else
         {
-            // Pasada la última horda definida, se usa como plantilla y se le suman enemigos.
+            // Pasada la última oleada definida, se usa como plantilla y se le suman enemigos.
             int wavesPastEnd = waveIndex - set.waves.Length + 1;
             AddGroups(plan.Groups, set.waves[set.waves.Length - 1], set.extraEnemiesPerWave * wavesPastEnd);
             plan.SpawnInterval = set.infiniteSpawnInterval;

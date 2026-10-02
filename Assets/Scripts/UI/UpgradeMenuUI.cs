@@ -59,7 +59,7 @@ public class UpgradeMenuUI : MenuPanel
         WeaponState weapon = Shooting.Instance.GetWeapon(selectedWeaponIndex);
 
         weaponNameText.text = weapon.Name;
-        panelMoneyText.text = "$" + MoneyManager.Instance.Money;
+        panelMoneyText.text = "$ " + HudFormat.Money(MoneyManager.Instance.Money);
 
         fireRateText.text = UpgradeLabel(weapon, UpgradeType.FireRate);
         reloadText.text = UpgradeLabel(weapon, UpgradeType.Reload);

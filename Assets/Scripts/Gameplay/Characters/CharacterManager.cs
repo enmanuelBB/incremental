@@ -42,7 +42,7 @@ public class CharacterManager : MonoBehaviour
         CharacterDefinition selected = CharacterRules.ResolveSelected(ordered, SaveSystem.Data);
         if (selected != null) Apply(selected);
 
-        // Solo se elige personaje antes de la primera horda.
+        // Solo se elige personaje antes de la primera oleada.
         if (menu != null && !WaveManager.Instance.HasStarted) menu.Open();
     }
 

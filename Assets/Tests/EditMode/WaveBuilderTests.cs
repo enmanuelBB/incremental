@@ -15,16 +15,16 @@ public class WaveBuilderTests
         normal = ScriptableObject.CreateInstance<EnemyDefinition>();
         tank = ScriptableObject.CreateInstance<EnemyDefinition>();
 
-        // Mismas hordas que la escena original.
+        // Mismas oleadas que la escena original.
         set = ScriptableObject.CreateInstance<WaveSet>();
         set.healthMultiplierPerWave = 0.15f;
         set.extraEnemiesPerWave = 2;
         set.infiniteSpawnInterval = 1f;
         set.waves = new[]
         {
-            Wave("Horda 1", 2f, (normal, 10)),
-            Wave("Horda 2", 1.5f, (normal, 20)),
-            Wave("Horda 3", 1.5f, (normal, 15), (tank, 5)),
+            Wave("Oleada 1", 2f, (normal, 10)),
+            Wave("Oleada 2", 1.5f, (normal, 20)),
+            Wave("Oleada 3", 1.5f, (normal, 15), (tank, 5)),
         };
     }
 

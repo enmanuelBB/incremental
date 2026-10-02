@@ -52,7 +52,7 @@ public class EnemyAI : MonoBehaviour, IDamageable
         }
     }
 
-    /// <summary>Coloca y activa al enemigo. healthScale permite hordas más resistentes.</summary>
+    /// <summary>Coloca y activa al enemigo. healthScale permite oleadas más resistentes.</summary>
     public void Spawn(Vector3 position, float healthScale = 1f)
     {
         isDead = false;

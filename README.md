@@ -16,11 +16,11 @@ Assets/Scripts/
     Player/ Weapons/ Enemies/ Waves/ Economy/ Base/ Interaction/ Characters/ Audio/ Debug/
   UI/              Game.Runtime (HUD, menús, game over)
 Assets/Data/       Weapons/  Enemies/  Waves/  Characters/   (los assets de datos)
-Assets/Tests/EditMode/   tests del guardado y de las hordas
+Assets/Tests/EditMode/   tests del guardado y de las oleadas
 ```
 
 - **Agregar un enemigo:** Create > Game > Enemy, asignarle un prefab (con `NavMeshAgent` y `EnemyAI`) y ponerlo en un grupo de un `WaveSet`.
-- **Cambiar las hordas:** editar `Assets/Data/Waves/Waves_Default.asset`. Después de la última horda definida se generan solas (ver `WaveBuilder`).
+- **Cambiar las oleadas:** editar `Assets/Data/Waves/Waves_Default.asset`. Después de la última oleada definida se generan solas (ver `WaveBuilder`).
 - **Agregar un arma o personaje:** Create > Game > Weapon / Staff / Character. El `id` del asset es lo que usa el guardado; no lo cambies cuando ya existan partidas.
 - **Agregar un personaje al menú:** crear su `CharacterDefinition` (vida, velocidad, armas, cómo se desbloquea) y ponerlo en el elenco de `CharacterManager` en la escena; el menú de selección se arma solo.
 - **Balance:** los números de armas y personajes son datos de los assets. `BalanceTests` (Assets/Tests/EditMode) comprueba que ningún personaje se descompense; córrelos después de cambiar un valor.
@@ -32,4 +32,4 @@ Assets/Tests/EditMode/   tests del guardado y de las hordas
 
 ## Controles de desarrollo (solo Editor / Development build)
 
-`O` dinero · `P` borrar progreso · `N` saltar horda · `U` desbloquear todos los personajes
+`O` dinero · `P` borrar progreso · `N` saltar oleada · `U` desbloquear todos los personajes

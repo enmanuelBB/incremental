@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Core::CharacterDefinition
   id: maga
   displayName: Frieren
-  description: "Maga de precisi\xF3n. Disparo b\xE1sico sin man\xE1 y un rayo penetrante que atraviesa filas enteras de enemigos. Especialista en hordas."
+  description: "Maga de precisi\xF3n. Disparo b\xE1sico sin man\xE1 y un rayo penetrante que atraviesa filas enteras de enemigos. Especialista en oleadas."
   menuOrder: 1
   availability: 0
   maxHealth: 100

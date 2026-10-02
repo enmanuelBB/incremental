@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// Dinero del jugador. Vive en SaveSystem.Data; el disco se escribe en puntos de control
-/// (fin de horda, comprar, salir) y no en cada kill.
+/// (fin de oleada, comprar, salir) y no en cada kill.
 /// </summary>
 public class MoneyManager : MonoBehaviour
 {

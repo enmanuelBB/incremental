@@ -16,7 +16,7 @@ public struct StatLine
 /// <summary>Arma las líneas de estadísticas que muestra el menú de personajes, con las mejoras ya compradas.</summary>
 public static class CharacterInfo
 {
-    // Para comparar contra hordas: cuántos enemigos suponemos en la fila del rayo.
+    // Para comparar contra oleadas: cuántos enemigos suponemos en la fila del rayo.
     public const int LineTargets = 4;
 
     // InvariantCulture: es-CL no existe en todas las builds y no queremos una excepción por un texto.

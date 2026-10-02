@@ -9,19 +9,37 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Slider baseHealthBar;
     [SerializeField] private TMP_Text playerHealthText;
     [SerializeField] private TMP_Text baseHealthText;
-    [SerializeField] private TMP_Text waveText;
-    [SerializeField] private TMP_Text moneyText;
-    [SerializeField] private TMP_Text ammoText;
     [SerializeField] private TMP_Text shopPromptText;
+
+    [Header("Dinero")]
+    [SerializeField] private TMP_Text moneyText;
+    [SerializeField, Tooltip("Pulso al ganar o gastar dinero (opcional)")]
+    private HudPunch moneyPunch;
+
+    [Header("Oleada")]
+    [SerializeField, Tooltip("Rótulo de la oleada; está oculto hasta que empieza la primera")]
+    private GameObject waveBanner;
+    [SerializeField] private TMP_Text waveText;
+    [SerializeField] private HudPunch wavePunch;
+
+    [Header("Munición (personajes con armas de fuego)")]
+    [SerializeField] private AmmoPanelUI ammoPanel;
 
     [Header("Maná (solo personajes con bastón)")]
     [SerializeField] private Slider manaBar;
     [SerializeField] private TMP_Text manaText;
-    [SerializeField, Tooltip("Casilla de la habilidad: se muestra a la derecha, con la tecla debajo")]
+    [SerializeField, Tooltip("Casilla de la habilidad: encima de las barras, con la tecla debajo")]
     private AbilitySlotUI abilitySlot;
 
     private float abilityReadyAt;
     private float abilityCooldownTotal = 1f;
+    private int lastMoney = -1;
+
+    private void Start()
+    {
+        // El rótulo de la oleada aparece cuando empieza la primera, no antes.
+        if (waveBanner != null) waveBanner.SetActive(false);
+    }
 
     private void OnEnable()
     {
@@ -29,7 +47,7 @@ public class UIManager : MonoBehaviour
         GameEvents.BaseHealthChanged += SetBaseHealth;
         GameEvents.MoneyChanged += SetMoney;
         GameEvents.WaveStarted += SetWave;
-        GameEvents.AmmoChanged += SetAmmo;
+        GameEvents.WeaponSlotChanged += SetWeaponSlot;
         GameEvents.PromptChanged += SetPrompt;
         GameEvents.ResourceModeChanged += SetResourceMode;
         GameEvents.ManaChanged += SetMana;
@@ -42,7 +60,7 @@ public class UIManager : MonoBehaviour
         GameEvents.BaseHealthChanged -= SetBaseHealth;
         GameEvents.MoneyChanged -= SetMoney;
         GameEvents.WaveStarted -= SetWave;
-        GameEvents.AmmoChanged -= SetAmmo;
+        GameEvents.WeaponSlotChanged -= SetWeaponSlot;
         GameEvents.PromptChanged -= SetPrompt;
         GameEvents.ResourceModeChanged -= SetResourceMode;
         GameEvents.ManaChanged -= SetMana;
@@ -61,7 +79,12 @@ public class UIManager : MonoBehaviour
     // Munición para armas de fuego; barra de maná y casilla de habilidad para el bastón.
     private void SetResourceMode(bool usesMana, string ability, Sprite icon)
     {
-        ammoText.gameObject.SetActive(!usesMana);
+        if (ammoPanel != null)
+        {
+            ammoPanel.gameObject.SetActive(!usesMana);
+            ammoPanel.ResetSlots();
+        }
+
         if (manaBar != null) manaBar.gameObject.SetActive(usesMana);
 
         abilityReadyAt = 0f;
@@ -70,6 +93,11 @@ public class UIManager : MonoBehaviour
 
         if (usesMana && !string.IsNullOrEmpty(ability)) abilitySlot.Show(icon, GameInput.Instance.Ability1Label);
         else abilitySlot.Hide();
+    }
+
+    private void SetWeaponSlot(WeaponSlotInfo info)
+    {
+        if (ammoPanel != null) ammoPanel.SetSlot(info);
     }
 
     private void SetMana(float current, float max)
@@ -102,13 +130,20 @@ public class UIManager : MonoBehaviour
         baseHealthText.text = "Base  " + current + " / " + max;
     }
 
-    private void SetWave(int wave) => waveText.text = "Horda " + wave;
-
-    private void SetMoney(int amount) => moneyText.text = "$" + amount;
-
-    private void SetAmmo(int current, int max, bool reloading)
+    private void SetWave(int wave)
     {
-        ammoText.text = reloading ? "Recargando..." : current + " / " + max;
+        if (waveBanner != null) waveBanner.SetActive(true);
+        waveText.text = HudFormat.WaveLabel(wave);
+        if (wavePunch != null) wavePunch.Play();
+    }
+
+    private void SetMoney(int amount)
+    {
+        moneyText.text = HudFormat.Money(amount);
+
+        // El pulso solo cuando cambia el dinero, no al mostrar el valor inicial.
+        if (moneyPunch != null && lastMoney >= 0 && amount != lastMoney) moneyPunch.Play();
+        lastMoney = amount;
     }
 
     private void SetPrompt(string message)

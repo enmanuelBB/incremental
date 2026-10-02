@@ -205,7 +205,7 @@ public class Shooting : MonoBehaviour
         if (weapon.UsesAmmo)
         {
             weapon.Ammo--;
-            PublishAmmo();
+            PublishSlot(currentIndex);
         }
 
         AudioManager.Instance.PlaySFX(weapon.Definition.shootSound);
@@ -309,7 +309,7 @@ public class Shooting : MonoBehaviour
         float fillPoint = weapon.Definition.ammoFillPoint;
 
         AudioManager.Instance.PlaySFX(weapon.Definition.reloadSound);
-        GameEvents.RaiseAmmoChanged(0, weapon.MagazineSize, true);
+        PublishSlot(currentIndex);
 
         yield return new WaitForSeconds(reloadTime * fillPoint);
         weapon.Ammo = weapon.MagazineSize;
@@ -317,7 +317,7 @@ public class Shooting : MonoBehaviour
         yield return new WaitForSeconds(reloadTime * (1f - fillPoint));
 
         isReloading = false;
-        PublishAmmo();
+        PublishSlot(currentIndex);
     }
 
     // --- Maná y HUD ---
@@ -366,18 +366,38 @@ public class Shooting : MonoBehaviour
         GameEvents.RaiseResourceModeChanged(usesMana, staff != null ? staff.abilityName : null, staff != null ? staff.abilityIcon : null);
 
         if (usesMana) PublishMana(true);
-        else PublishAmmo();
+        else PublishSlots();
     }
 
-    private void PublishAmmo()
+    // Cada arma con munición tiene su casilla en el HUD: así se ve también la que no está equipada.
+    private void PublishSlots()
     {
-        WeaponState weapon = CurrentWeapon;
+        for (int i = 0; i < states.Length; i++) PublishSlot(i);
+    }
+
+    private void PublishSlot(int index)
+    {
+        WeaponState weapon = states[index];
         if (!weapon.UsesAmmo) return;
 
-        GameEvents.RaiseAmmoChanged(weapon.Ammo, weapon.MagazineSize, isReloading);
+        GameEvents.RaiseWeaponSlotChanged(new WeaponSlotInfo
+        {
+            Index = index,
+            Name = weapon.Name,
+            Ammo = weapon.Ammo,
+            Magazine = weapon.MagazineSize,
+            Owned = weapon.Owned,
+            Selected = index == currentIndex,
+            Reloading = isReloading && index == currentIndex
+        });
     }
 
-    public bool BuyWeapon(int index) => states[index].TryBuy();
+    public bool BuyWeapon(int index)
+    {
+        bool bought = states[index].TryBuy();
+        if (bought) PublishSlots();   // pasó a estar comprada
+        return bought;
+    }
 
     public bool BuyUpgrade(int index, UpgradeType type)
     {

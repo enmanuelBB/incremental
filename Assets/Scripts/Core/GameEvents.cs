@@ -1,6 +1,18 @@
 using System;
 using UnityEngine;
 
+/// <summary>Lo que el HUD necesita saber de una arma para dibujar su casilla de munición.</summary>
+public struct WeaponSlotInfo
+{
+    public int Index;
+    public string Name;
+    public int Ammo;
+    public int Magazine;
+    public bool Owned;
+    public bool Selected;
+    public bool Reloading;
+}
+
 /// <summary>
 /// Canal de eventos del juego. Quien produce un dato lo publica aquí y quien lo
 /// necesita se suscribe (OnEnable) y se desuscribe (OnDisable), sin conocerse entre sí.
@@ -11,9 +23,9 @@ public static class GameEvents
     public static event Action<int, int> BaseHealthChanged;     // actual, máximo
     public static event Action<int> MoneyChanged;               // total
     public static event Action<int> MoneyGained;                // cantidad ganada
-    public static event Action<int> WaveStarted;                // número de horda (desde 1)
-    public static event Action<int> WaveCompleted;              // número de horda (desde 1)
-    public static event Action<int, int, bool> AmmoChanged;     // actual, máximo, recargando
+    public static event Action<int> WaveStarted;                // número de oleada (desde 1)
+    public static event Action<int> WaveCompleted;              // número de oleada (desde 1)
+    public static event Action<WeaponSlotInfo> WeaponSlotChanged; // estado de una arma (munición, si está comprada, si es la equipada)
     public static event Action<int> EnemyKilled;                // recompensa en dinero
     public static event Action GameStarted;
     public static event Action<string> GameOver;
@@ -29,7 +41,7 @@ public static class GameEvents
     public static void RaiseMoneyGained(int amount) => MoneyGained?.Invoke(amount);
     public static void RaiseWaveStarted(int wave) => WaveStarted?.Invoke(wave);
     public static void RaiseWaveCompleted(int wave) => WaveCompleted?.Invoke(wave);
-    public static void RaiseAmmoChanged(int current, int max, bool reloading) => AmmoChanged?.Invoke(current, max, reloading);
+    public static void RaiseWeaponSlotChanged(WeaponSlotInfo slot) => WeaponSlotChanged?.Invoke(slot);
     public static void RaiseEnemyKilled(int reward) => EnemyKilled?.Invoke(reward);
     public static void RaiseGameStarted() => GameStarted?.Invoke();
     public static void RaiseGameOver(string message) => GameOver?.Invoke(message);

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Ejecuta las hordas: spawnea enemigos, cuenta cuántos siguen vivos y avisa por GameEvents.
-/// Qué enemigos tiene cada horda lo decide WaveBuilder a partir del WaveSet.
+/// Ejecuta las oleadas: spawnea enemigos, cuenta cuántos siguen vivos y avisa por GameEvents.
+/// Qué enemigos tiene cada oleada lo decide WaveBuilder a partir del WaveSet.
 /// </summary>
 public class WaveManager : MonoBehaviour
 {
@@ -24,7 +24,7 @@ public class WaveManager : MonoBehaviour
     private bool allSpawned;
     private Coroutine waveRoutine;
 
-    // Para poder calcular lo que falta por spawnear si se salta la horda
+    // Para poder calcular lo que falta por spawnear si se salta la oleada
     private List<WaveGroup> currentGroups;
     private int currentGroupIndex;
     private int currentSpawnCountInGroup;
@@ -57,7 +57,7 @@ public class WaveManager : MonoBehaviour
         if (HasStarted) return;
         if (waveSet == null || waveSet.waves == null || waveSet.waves.Length == 0 || spawnPoints == null || spawnPoints.Length == 0)
         {
-            Debug.LogError("WaveManager necesita un WaveSet con al menos una horda y un punto de spawn.", this);
+            Debug.LogError("WaveManager necesita un WaveSet con al menos una oleada y un punto de spawn.", this);
             return;
         }
 
@@ -94,7 +94,7 @@ public class WaveManager : MonoBehaviour
             }
         }
 
-        // Si el jugador mató todo antes de terminar de spawnear, la horda se cierra recién aquí.
+        // Si el jugador mató todo antes de terminar de spawnear, la oleada se cierra recién aquí.
         allSpawned = true;
         TryCompleteWave();
     }
@@ -130,7 +130,7 @@ public class WaveManager : MonoBehaviour
         waveRoutine = StartCoroutine(StartWave());
     }
 
-    /// <summary>Salta a la siguiente horda; lo que no alcanzó a spawnear pasa a la siguiente.</summary>
+    /// <summary>Salta a la siguiente oleada; lo que no alcanzó a spawnear pasa a la siguiente.</summary>
     public void SkipWave()
     {
         if (!HasStarted || GameState.IsGameOver) return;

@@ -105,7 +105,7 @@ public class CharacterSelectUI : MenuPanel
         SaveData data = SaveSystem.Data;
         CharacterStatus status = CharacterRules.StatusOf(def, data);
 
-        moneyText.text = "Dinero: $" + data.money;
+        moneyText.text = "Dinero: $ " + HudFormat.Money(data.money);
         nameText.text = def.displayName;
         descriptionText.text = def.description;
 

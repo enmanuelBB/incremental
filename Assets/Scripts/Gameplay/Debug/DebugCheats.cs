@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 /// <summary>
 /// Atajos de desarrollo. En una build final el Update queda vacío, así un jugador no puede
 /// borrar su progreso ni regalarse dinero sin querer.
-/// O = dinero, P = borrar progreso, N = saltar horda, U = desbloquear todos los personajes.
+/// O = dinero, P = borrar progreso, N = saltar oleada, U = desbloquear todos los personajes.
 /// </summary>
 public class DebugCheats : MonoBehaviour
 {
@@ -33,7 +33,7 @@ public class DebugCheats : MonoBehaviour
         if (kb.nKey.wasPressedThisFrame)
         {
             WaveManager.Instance.SkipWave();
-            Debug.Log("[Debug] Horda saltada");
+            Debug.Log("[Debug] Oleada saltada");
         }
 
         if (kb.uKey.wasPressedThisFrame)

@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// Zona (trigger) donde el jugador pulsa "Interactuar". Solo funciona antes de que
-/// empiece la primera horda. Las subclases definen el texto y la acción.
+/// empiece la primera oleada. Las subclases definen el texto y la acción.
 /// </summary>
 public abstract class InteractableStation : MonoBehaviour
 {

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-/// <summary>Objetivo que, al dispararle, inicia la primera horda.</summary>
+/// <summary>Objetivo que, al dispararle, inicia la primera oleada.</summary>
 public class StartTrigger : MonoBehaviour
 {
     private bool activated;
