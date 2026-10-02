@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e189a16f6951cda4db7d353a3ea34ffc, type: 3}
+  m_Name: Waves_Default
+  m_EditorClassIdentifier: Game.Core::WaveSet
+  id: waves_default
+  waves:
+  - waveName: Horda 1
+    enemyGroups:
+    - enemy: {fileID: 11400000, guid: bd30dd44f09ae8441921ebd4a9187930, type: 2}
+      count: 10
+    spawnInterval: 2
+  - waveName: Horda 2
+    enemyGroups:
+    - enemy: {fileID: 11400000, guid: bd30dd44f09ae8441921ebd4a9187930, type: 2}
+      count: 20
+    spawnInterval: 1.5
+  - waveName: Horda 3
+    enemyGroups:
+    - enemy: {fileID: 11400000, guid: bd30dd44f09ae8441921ebd4a9187930, type: 2}
+      count: 15
+    - enemy: {fileID: 11400000, guid: 6302a053ad8bf7c488d01b0bb3b54104, type: 2}
+      count: 5
+    spawnInterval: 1.5
+  healthMultiplierPerWave: 0.15
+  extraEnemiesPerWave: 2
+  infiniteSpawnInterval: 1

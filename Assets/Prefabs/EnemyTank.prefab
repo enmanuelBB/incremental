@@ -126,18 +126,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c90670a71bc53234abfa5eace1c661e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAI
-  speed: 1.5
-  health: 60
-  moneyReward: 30
-  damageToBase: 15
-  damageToPlayer: 15
-  damageInterval: 1
-  attackReach: 0.6
-  detectionRange: 8
-  chaseGiveUpTime: 5
-  giveUpCooldown: 3
-  directionTolerance: 0
-  repathInterval: 0.25
 --- !u!195 &1726683498962007831
 NavMeshAgent:
   m_ObjectHideFlags: 0

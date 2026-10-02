@@ -16,6 +16,7 @@ public static class GameEvents
     public static event Action<int> EnemyKilled;                // recompensa en dinero
     public static event Action GameStarted;
     public static event Action<string> GameOver;
+    public static event Action<string> PromptChanged;           // texto del aviso; null o vacío lo oculta
 
     public static void RaisePlayerHealthChanged(int current, int max) => PlayerHealthChanged?.Invoke(current, max);
     public static void RaiseBaseHealthChanged(int current, int max) => BaseHealthChanged?.Invoke(current, max);
@@ -27,4 +28,5 @@ public static class GameEvents
     public static void RaiseEnemyKilled(int reward) => EnemyKilled?.Invoke(reward);
     public static void RaiseGameStarted() => GameStarted?.Invoke();
     public static void RaiseGameOver(string message) => GameOver?.Invoke(message);
+    public static void RaisePromptChanged(string message) => PromptChanged?.Invoke(message);
 }

@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0112d453558d3b247a0c0494c156a999, type: 3}
+  m_Name: Enemy_Normal
+  m_EditorClassIdentifier: Game.Core::EnemyDefinition
+  id: enemy_normal
+  displayName: Enemigo
+  prefab: {fileID: 7450647215015053723, guid: 1bc67d3adcd98114980045eccc969705, type: 3}
+  isBoss: 0
+  speed: 2
+  maxHealth: 30
+  moneyReward: 10
+  damageToBase: 10
+  damageToPlayer: 10
+  damageInterval: 1
+  attackReach: 0.6
+  detectionRange: 8
+  chaseGiveUpTime: 5
+  giveUpCooldown: 3
+  directionTolerance: 0
+  repathInterval: 0.25
