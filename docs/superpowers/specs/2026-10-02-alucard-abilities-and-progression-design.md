@@ -1,6 +1,8 @@
 # Habilidades de Alucard, sangrado y progresión por personaje
 
-Fecha: 2026-10-02 · Estado: **diseño para revisión** (nada implementado todavía)
+Fecha: 2026-10-02 · Estado: **aprobado por el usuario. Fase 1 implementada y verificada (149 tests); fase 2 pendiente.**
+
+> **Para retomar:** lo hecho y lo que falta está en `notas/REGISTRO_DE_CAMBIOS.md` (sección "Dónde nos quedamos"); el porqué de cada cosa, en `notas/DECISIONES.md` (D24 a D27).
 
 ## 1. Qué se quiere
 1. Un **sistema de habilidades general** (3 por personaje: 2 normales y 1 definitiva), con las tres de **Alucard**: disparo pesado, niebla y definitiva.
@@ -99,3 +101,11 @@ Se muestra al terminar la partida, antes del botón de reiniciar:
 
 ## 9. Provisional
 Armadura roja (cambio de color con brillo), río de sangre (disco rojo en el suelo), niebla (partículas oscuras), iconos de las habilidades (generados por código) y sin sonidos.
+
+## 10. Diferencias entre lo diseñado y lo implementado (fase 1)
+- **Frieren no se migró** a `AbilityDefinition`: su rayo sigue en `StaffDefinition` y ocupa la casilla 1. Se migra cuando reciba sus 2 habilidades restantes.
+- **Mando:** la sección 4 decía `LB`/`RB` para la niebla y la definitiva, pero esos botones ya cambian de arma. Quedaron en la **cruceta** (arriba = niebla, abajo = definitiva). El teclado es el planeado: Q, E, F.
+- **Nivel de sangrado:** fijo en 1 (tope de 5 pilas) hasta la fase 2 (`Shooting.BleedLevel`).
+- **Número de tests:** el plan hablaba de balance con "builds de referencia"; **eso sigue pendiente** (`BalanceTests` solo compara el disparo básico).
+- **Precio de la mejora "Sangrado":** se implementó tal cual (600 x 1,6^nivel, 10 niveles, 11 pilas por impacto).
+- **Supuestos no confirmados por el usuario:** en niebla no se dispara; el robo de vida es solo de daño directo; el disparo pesado entra en enfriamiento aunque falle.

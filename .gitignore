@@ -60,3 +60,14 @@ desktop.ini
 
 # Notas personales de diseno, decisiones y registro de cambios (no se suben)
 /notas/
+
+# Archivos de trabajo de Blender (los modelos fuente viven fuera del repo; en Unity solo van los .fbx y las texturas)
+*.blend
+*.blend1
+*.blend2
+*.blend@
+*.fbm/
+
+# Capturas que crean las herramientas de Unity MCP
+/Assets/Screenshots/
+/Assets/Screenshots.meta

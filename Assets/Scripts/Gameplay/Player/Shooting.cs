@@ -47,6 +47,9 @@ public class Shooting : MonoBehaviour
     /// <summary>De dónde salen los disparos mágicos (la punta del bastón). Si es null, del pecho del jugador.</summary>
     public Transform Muzzle { get; set; }
 
+    /// <summary>Armas que lleva en la mano (por ejemplo las dos pistolas). Null si el personaje no lleva modelo.</summary>
+    public HeldGuns HeldGuns { get; set; }
+
     public ManaPool Mana => mana;
     public AbilityCooldown AbilityCooldown => abilityCooldown;
 
@@ -216,8 +219,14 @@ public class Shooting : MonoBehaviour
         // Con varios cañones (dos pistolas) los disparos se turnan: cada clic gasta una bala del cañón que toca.
         if (weapon.UsesAmmo)
         {
-            if (!weapon.Magazines.TryFire(out _)) return;
+            if (!weapon.Magazines.TryFire(out int barrel)) return;
             PublishSlot(currentIndex);
+
+            if (HeldGuns != null)
+            {
+                HeldGuns.Fire(barrel, weapon.Definition.RecoilOf(barrel));
+                Muzzle = HeldGuns.MuzzleOf(barrel);
+            }
         }
 
         AudioManager.Instance.PlaySFX(weapon.Definition.shootSound);

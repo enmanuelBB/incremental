@@ -86,11 +86,16 @@ public class CharacterManager : MonoBehaviour
         if (heldItem != null) Destroy(heldItem);
         heldItem = null;
         shooting.Muzzle = null;
+        shooting.HeldGuns = null;
 
         if (def.heldItemPrefab != null)
         {
             heldItem = Instantiate(def.heldItemPrefab, shooting.transform);
             shooting.Muzzle = heldItem.transform.Find("Muzzle");
+
+            HeldGuns guns = heldItem.GetComponent<HeldGuns>();
+            shooting.HeldGuns = guns;
+            if (guns != null) shooting.Muzzle = guns.MuzzleOf(0);
         }
 
         GameEvents.RaiseCharacterChanged(def);

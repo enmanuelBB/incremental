@@ -22,6 +22,10 @@ public class WeaponDefinition : GameDefinition
     [Tooltip("Punto de la recarga en que el cargador se llena")]
     public float ammoFillPoint = 0.7f;
 
+    [Header("Retroceso")]
+    [Tooltip("Retroceso de cada cañón en cada disparo (posición 0 = primer cañón/pistola izquierda, 1 = segundo/derecha). Si falta uno, ese cañón no retrocede.")]
+    public RecoilSettings[] barrelRecoil = new RecoilSettings[0];
+
     [Header("Audio")]
     public AudioClip shootSound;
     public AudioClip reloadSound;
@@ -42,6 +46,10 @@ public class WeaponDefinition : GameDefinition
     [Min(0)]
     [Tooltip("Pilas de sangrado que aplica cada impacto sin mejoras. 0 = el arma no sangra y no muestra la mejora.")]
     public int baseBleedPerHit = 1;
+
+    /// <summary>Retroceso del cañón indicado (sin retroceso si el arma no lo define).</summary>
+    public RecoilSettings RecoilOf(int barrel) =>
+        barrelRecoil != null && barrel >= 0 && barrel < barrelRecoil.Length ? barrelRecoil[barrel] : RecoilSettings.None;
 
     /// <summary>Falso para armas sin cargador (por ejemplo un bastón).</summary>
     public virtual bool UsesAmmo => true;

@@ -22,6 +22,15 @@ MonoBehaviour:
   range: 100
   isAutomatic: 0
   ammoFillPoint: 0.7
+  barrelRecoil:
+  - kickBack: 0.05
+    kickUp: 5
+    slideBack: 0.04
+    recoverTime: 0.12
+  - kickBack: 0.06
+    kickUp: 6
+    slideBack: 0.04
+    recoverTime: 0.14
   shootSound: {fileID: 8300000, guid: a75c8540144691a419e21974b2937395, type: 3}
   reloadSound: {fileID: 8300000, guid: 6f5fe99ec1b0b2741a8818fb651fddd6, type: 3}
   ownedFromStart: 1
@@ -31,16 +40,27 @@ MonoBehaviour:
     limit: 0.05
     basePrice: 100
     priceIncrease: 50
+    priceGrowth: 0
     maxLevel: 5
   reloadUpgrade:
     step: 0.15
     limit: 0.5
     basePrice: 100
     priceIncrease: 50
+    priceGrowth: 0
     maxLevel: 5
   damageUpgrade:
     step: 1
     limit: 0
     basePrice: 150
     priceIncrease: 75
+    priceGrowth: 0
     maxLevel: 10
+  bleedUpgrade:
+    step: 1
+    limit: 0
+    basePrice: 600
+    priceIncrease: 0
+    priceGrowth: 1.6
+    maxLevel: 10
+  baseBleedPerHit: 1

@@ -27,6 +27,8 @@ public class CameraFollow : MonoBehaviour
 
     private readonly RaycastHit[] hitBuffer = new RaycastHit[8];
 
+    public bool IsFirstPerson => isFirstPerson;
+
     private void Awake()
     {
         cam = GetComponent<Camera>();
