@@ -18,6 +18,14 @@ public abstract class Health : MonoBehaviour, IDamageable
         OnHealthChanged();
     }
 
+    /// <summary>Cambia la vida máxima y la llena. Lo usa el personaje elegido antes de empezar la partida.</summary>
+    public void SetMaxHealth(int value)
+    {
+        maxHealth = Mathf.Max(1, value);
+        CurrentHealth = maxHealth;
+        OnHealthChanged();
+    }
+
     public void TakeDamage(int amount)
     {
         if (IsDead) return;

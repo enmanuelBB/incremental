@@ -10,19 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1ebd573326bcd2f4a8c888080f1711f2, type: 3}
-  m_Name: Alucard
+  m_Name: Maga
   m_EditorClassIdentifier: Game.Core::CharacterDefinition
-  id: alucard
-  displayName: Alucard
-  description: Tirador de rango medio. Cargador, cadencia y recarga; compra el M16 en la tienda.
-  menuOrder: 0
+  id: maga
+  displayName: Frieren
+  description: "Maga de precisi\xF3n. Disparo b\xE1sico sin man\xE1 y un rayo penetrante que atraviesa filas enteras de enemigos. Especialista en hordas."
+  menuOrder: 1
   availability: 0
   maxHealth: 100
   moveSpeed: 5
-  unlockKind: 0
-  unlockPrice: 0
+  unlockKind: 1
+  unlockPrice: 1500
   unlockHint: 
   startingWeapons:
-  - {fileID: 11400000, guid: cd7b31293651b1d42af53796b3f4f5d8, type: 2}
-  - {fileID: 11400000, guid: 6680ee99f12fd6e49bcc4f7e60607c30, type: 2}
-  heldItemPrefab: {fileID: 0}
+  - {fileID: 11400000, guid: c6f87c85ce2800742b20ca4776c54dd2, type: 2}
+  heldItemPrefab: {fileID: 4935944395925541920, guid: 0ff9d57381c8cf349806d73ff145b5ce, type: 3}

@@ -66,10 +66,11 @@ public class UpgradeMenuUI : MenuPanel
         damageText.text = UpgradeLabel(weapon, UpgradeType.Damage);
     }
 
+    // El nombre de cada mejora lo decide el arma (el bastón las llama Cadencia, Maná y Poder).
     private static string UpgradeLabel(WeaponState weapon, UpgradeType type)
     {
         string cost = weapon.IsMaxLevel(type) ? "MAX" : "$" + weapon.GetUpgradeCost(type);
-        return UpgradeTypeInfo.DisplayName(type) + "\nNv " + weapon.GetLevel(type) + "/" + weapon.GetMaxLevel(type) + "\n" + cost;
+        return weapon.GetUpgradeLabel(type) + "\nNv " + weapon.GetLevel(type) + "/" + weapon.GetMaxLevel(type) + "\n" + cost;
     }
 
     // Los botones del panel llaman a estos métodos desde el Inspector.

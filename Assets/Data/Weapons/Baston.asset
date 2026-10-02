@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ee46914a433ac44186ec934f1e8ea3a, type: 3}
+  m_Name: Baston
+  m_EditorClassIdentifier: Game.Core::StaffDefinition
+  id: Baston
+  weaponName: "Bast\xF3n"
+  magazineSize: 1
+  fireRate: 0.35
+  reloadTime: 0
+  damage: 8
+  range: 100
+  isAutomatic: 1
+  ammoFillPoint: 0.7
+  shootSound: {fileID: 0}
+  reloadSound: {fileID: 0}
+  ownedFromStart: 1
+  price: 0
+  fireRateUpgrade:
+    step: 0.03
+    limit: 0.2
+    basePrice: 100
+    priceIncrease: 50
+    maxLevel: 5
+  reloadUpgrade:
+    step: 0.8
+    limit: 0
+    basePrice: 100
+    priceIncrease: 50
+    maxLevel: 5
+  damageUpgrade:
+    step: 0.1
+    limit: 0
+    basePrice: 150
+    priceIncrease: 75
+    maxLevel: 10
+  manaMax: 100
+  manaRegen: 4
+  abilityName: Rayo arcano
+  abilityIcon: {fileID: 21300000, guid: eabf8a2cb8767aa4da8b4ee59a7581ac, type: 3}
+  abilityDamage: 40
+  abilityManaCost: 25
+  abilityCooldown: 3
+  abilityRange: 100
+  abilityBeamRadius: 0.4
+  cooldownStep: 0.3
+  cooldownLimit: 1.5

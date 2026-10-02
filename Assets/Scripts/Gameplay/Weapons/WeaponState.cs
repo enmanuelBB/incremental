@@ -36,26 +36,21 @@ public class WeaponState
     public bool IsMaxLevel(UpgradeType type) => GetLevel(type) >= GetMaxLevel(type);
     public int GetUpgradeCost(UpgradeType type) => Definition.GetUpgrade(type).PriceAt(GetLevel(type));
 
-    public float FireRate
-    {
-        get
-        {
-            UpgradeStat u = Definition.fireRateUpgrade;
-            return Mathf.Max(Definition.fireRate - GetLevel(UpgradeType.FireRate) * u.step, u.limit);
-        }
-    }
+    public bool UsesAmmo => Definition.UsesAmmo;
+    public string GetUpgradeLabel(UpgradeType type) => Definition.UpgradeLabel(type);
 
-    public float ReloadTime
-    {
-        get
-        {
-            UpgradeStat u = Definition.reloadUpgrade;
-            return Mathf.Max(Definition.reloadTime - GetLevel(UpgradeType.Reload) * u.step, u.limit);
-        }
-    }
+    /// <summary>Datos del bastón si esta arma lo es; null para las armas de fuego.</summary>
+    public StaffDefinition Staff => Definition as StaffDefinition;
 
-    public int Damage =>
-        Definition.damage + Mathf.RoundToInt(GetLevel(UpgradeType.Damage) * Definition.damageUpgrade.step);
+    // Las fórmulas viven en las definiciones (Game.Core) para que el balance se pruebe sin abrir Unity.
+    public float FireRate => Definition.FireRateAt(GetLevel(UpgradeType.FireRate));
+    public float ReloadTime => Definition.ReloadTimeAt(GetLevel(UpgradeType.Reload));
+    public int Damage => Definition.DamageAt(GetLevel(UpgradeType.Damage));
+
+    // Solo bastón
+    public int AbilityDamage => Staff.AbilityDamageAt(GetLevel(UpgradeType.Damage));
+    public float ManaRegen => Staff.ManaRegenAt(GetLevel(UpgradeType.Reload));
+    public float AbilityCooldownTime => Staff.AbilityCooldownAt(GetLevel(UpgradeType.Reload));
 
     /// <summary>Cobra el arma. Devuelve false si no alcanza el dinero.</summary>
     public bool TryBuy()

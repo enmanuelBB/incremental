@@ -9,6 +9,9 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float groundCheckDistance = 0.1f;
     [SerializeField] private Transform cameraTransform;
 
+    /// <summary>Velocidad de movimiento; la define el personaje elegido.</summary>
+    public void SetSpeed(float value) => speed = value;
+
     private Rigidbody rb;
     private CapsuleCollider capsule;
     private Vector3 movement;

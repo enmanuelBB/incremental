@@ -13,7 +13,7 @@ public class GameInput : MonoBehaviour
 
     [SerializeField] private InputActionAsset actions;
 
-    private InputAction move, look, lookStick, fire, aim, reload, interact, jump, toggleView, nextWeapon, previousWeapon;
+    private InputAction move, look, lookStick, fire, aim, reload, interact, jump, toggleView, nextWeapon, previousWeapon, ability1;
     private readonly InputAction[] weaponSlots = new InputAction[WeaponSlots];
 
     public Vector2 Move => move.ReadValue<Vector2>();
@@ -28,6 +28,10 @@ public class GameInput : MonoBehaviour
     public bool ToggleViewPressed => toggleView.WasPressedThisFrame();
     public bool NextWeaponPressed => nextWeapon.WasPressedThisFrame();
     public bool PreviousWeaponPressed => previousWeapon.WasPressedThisFrame();
+    public bool Ability1Pressed => ability1.WasPressedThisFrame();
+
+    /// <summary>Tecla de la habilidad 1 tal como está asignada hoy (por ejemplo "Q"), para mostrarla en el HUD.</summary>
+    public string Ability1Label => ability1.GetBindingDisplayString(0);
     public bool WeaponSlotPressed(int slot) => weaponSlots[slot].WasPressedThisFrame();
 
     private void Awake()
@@ -46,6 +50,7 @@ public class GameInput : MonoBehaviour
         toggleView = map.FindAction("ToggleView", true);
         nextWeapon = map.FindAction("NextWeapon", true);
         previousWeapon = map.FindAction("PreviousWeapon", true);
+        ability1 = map.FindAction("Ability1", true);
 
         for (int i = 0; i < WeaponSlots; i++)
             weaponSlots[i] = map.FindAction("Weapon" + (i + 1), true);

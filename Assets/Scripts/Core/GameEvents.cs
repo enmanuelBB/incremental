@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 /// <summary>
 /// Canal de eventos del juego. Quien produce un dato lo publica aquí y quien lo
@@ -17,6 +18,10 @@ public static class GameEvents
     public static event Action GameStarted;
     public static event Action<string> GameOver;
     public static event Action<string> PromptChanged;           // texto del aviso; null o vacío lo oculta
+    public static event Action<CharacterDefinition> CharacterChanged;
+    public static event Action<bool, string, Sprite> ResourceModeChanged; // usa maná (en vez de munición), nombre e icono de la habilidad (null si no tiene)
+    public static event Action<float, float> ManaChanged;       // actual, máximo
+    public static event Action<string, float> AbilityUsed;      // nombre, momento (Time.time) en que vuelve a estar lista
 
     public static void RaisePlayerHealthChanged(int current, int max) => PlayerHealthChanged?.Invoke(current, max);
     public static void RaiseBaseHealthChanged(int current, int max) => BaseHealthChanged?.Invoke(current, max);
@@ -29,4 +34,8 @@ public static class GameEvents
     public static void RaiseGameStarted() => GameStarted?.Invoke();
     public static void RaiseGameOver(string message) => GameOver?.Invoke(message);
     public static void RaisePromptChanged(string message) => PromptChanged?.Invoke(message);
+    public static void RaiseCharacterChanged(CharacterDefinition character) => CharacterChanged?.Invoke(character);
+    public static void RaiseResourceModeChanged(bool usesMana, string abilityName, Sprite abilityIcon) => ResourceModeChanged?.Invoke(usesMana, abilityName, abilityIcon);
+    public static void RaiseManaChanged(float current, float max) => ManaChanged?.Invoke(current, max);
+    public static void RaiseAbilityUsed(string abilityName, float readyAt) => AbilityUsed?.Invoke(abilityName, readyAt);
 }

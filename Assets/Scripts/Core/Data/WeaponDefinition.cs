@@ -31,6 +31,21 @@ public class WeaponDefinition : GameDefinition
     public UpgradeStat reloadUpgrade = new UpgradeStat { step = 0.15f, limit = 0.5f, basePrice = 100, priceIncrease = 50, maxLevel = 5 };
     public UpgradeStat damageUpgrade = new UpgradeStat { step = 1f, limit = 0f, basePrice = 150, priceIncrease = 75, maxLevel = 10 };
 
+    /// <summary>Falso para armas sin cargador (por ejemplo un bastón).</summary>
+    public virtual bool UsesAmmo => true;
+
+    /// <summary>Nombre de cada mejora para el menú; cada tipo de arma puede nombrarlas distinto.</summary>
+    public virtual string UpgradeLabel(UpgradeType type) => UpgradeTypeInfo.DisplayName(type);
+
+    public virtual float FireRateAt(int level) =>
+        Mathf.Max(fireRate - level * fireRateUpgrade.step, fireRateUpgrade.limit);
+
+    public virtual int DamageAt(int level) =>
+        damage + Mathf.RoundToInt(level * damageUpgrade.step);
+
+    public float ReloadTimeAt(int level) =>
+        Mathf.Max(reloadTime - level * reloadUpgrade.step, reloadUpgrade.limit);
+
     public UpgradeStat GetUpgrade(UpgradeType type)
     {
         switch (type)
