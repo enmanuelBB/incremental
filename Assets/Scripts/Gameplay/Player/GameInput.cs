@@ -14,7 +14,7 @@ public class GameInput : MonoBehaviour
 
     [SerializeField] private InputActionAsset actions;
 
-    private InputAction move, look, lookStick, fire, aim, reload, interact, jump, toggleView, nextWeapon, previousWeapon;
+    private InputAction move, look, lookStick, fire, aim, reload, interact, jump, sprint, toggleView, nextWeapon, previousWeapon;
     private readonly InputAction[] weaponSlots = new InputAction[WeaponSlots];
     private readonly InputAction[] abilitySlots = new InputAction[AbilitySlots];
 
@@ -27,6 +27,7 @@ public class GameInput : MonoBehaviour
     public bool ReloadPressed => reload.WasPressedThisFrame();
     public bool InteractPressed => interact.WasPressedThisFrame();
     public bool JumpPressed => jump.WasPressedThisFrame();
+    public bool SprintHeld => sprint.IsPressed();
     public bool ToggleViewPressed => toggleView.WasPressedThisFrame();
     public bool NextWeaponPressed => nextWeapon.WasPressedThisFrame();
     public bool PreviousWeaponPressed => previousWeapon.WasPressedThisFrame();
@@ -51,6 +52,7 @@ public class GameInput : MonoBehaviour
         reload = map.FindAction("Reload", true);
         interact = map.FindAction("Interact", true);
         jump = map.FindAction("Jump", true);
+        sprint = map.FindAction("Sprint", true);
         toggleView = map.FindAction("ToggleView", true);
         nextWeapon = map.FindAction("NextWeapon", true);
         previousWeapon = map.FindAction("PreviousWeapon", true);

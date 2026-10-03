@@ -231,6 +231,7 @@ public class AbilityShopUI : MenuPanel
     private void SetTab(bool tree)
     {
         treeTab = tree;
+        if (tree) treeView.ResetView();
         Refresh();
 
         // Con teclado o mando hace falta algo seleccionado en la pestaña nueva.

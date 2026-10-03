@@ -74,6 +74,46 @@ public class SkillTreeAssetTests
         }
     }
 
+    // Ampliación: el árbol creció (más nodos de stats y una segunda ronda de mejoras de Q, E y F).
+    [TestCase("q5")] [TestCase("q6")] [TestCase("q7")]
+    [TestCase("e5")] [TestCase("e6")] [TestCase("e7")] [TestCase("e8")]
+    [TestCase("f4")] [TestCase("f5")] [TestCase("f6")]
+    [TestCase("v3")] [TestCase("v4")] [TestCase("s3")] [TestCase("s4")] [TestCase("d4")] [TestCase("d5")]
+    public void AlucardTree_HasTheExpansionNodes(string id)
+    {
+        Assert.IsNotNull(Tree.Find(id), "falta el nodo " + id);
+    }
+
+    [Test]
+    public void AlucardTree_HasMoreThan30Nodes()
+    {
+        Assert.GreaterOrEqual(Tree.nodes.Length, 35);
+    }
+
+    [Test]
+    public void AlucardTree_NoTwoNodesOverlapOnScreen()
+    {
+        // Mismo reparto que SkillTreeView (zona de 1800 x 640, nodos de 112 px, escala X e Y por separado).
+        const float areaWidth = 1800f, areaHeight = 640f, nodeSize = 112f, maxScale = 190f, margin = 4f;
+
+        var min = new UnityEngine.Vector2(float.MaxValue, float.MaxValue);
+        var max = new UnityEngine.Vector2(float.MinValue, float.MinValue);
+        foreach (SkillNode n in Tree.nodes) { min = UnityEngine.Vector2.Min(min, n.position); max = UnityEngine.Vector2.Max(max, n.position); }
+        float scaleX = UnityEngine.Mathf.Min(maxScale, (areaWidth - nodeSize) / UnityEngine.Mathf.Max(0.01f, max.x - min.x));
+        float scaleY = UnityEngine.Mathf.Min(maxScale, (areaHeight - nodeSize) / UnityEngine.Mathf.Max(0.01f, max.y - min.y));
+
+        for (int i = 0; i < Tree.nodes.Length; i++)
+        {
+            for (int j = i + 1; j < Tree.nodes.Length; j++)
+            {
+                float dx = UnityEngine.Mathf.Abs(Tree.nodes[i].position.x - Tree.nodes[j].position.x) * scaleX;
+                float dy = UnityEngine.Mathf.Abs(Tree.nodes[i].position.y - Tree.nodes[j].position.y) * scaleY;
+                Assert.IsTrue(dx >= nodeSize + margin || dy >= nodeSize + margin,
+                    "los nodos " + Tree.nodes[i].id + " y " + Tree.nodes[j].id + " se pisan en pantalla (dx=" + dx.ToString("0") + ", dy=" + dy.ToString("0") + ")");
+            }
+        }
+    }
+
     [Test]
     public void AlucardTree_CoversEveryAbilityEffectType()
     {

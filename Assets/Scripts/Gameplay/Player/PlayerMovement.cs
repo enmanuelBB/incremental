@@ -2,14 +2,15 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    [SerializeField] private float speed = 5f;
+    [SerializeField, Tooltip("Velocidad corriendo (con Shift). La define el personaje elegido.")] private float speed = 5f;
+    [SerializeField, Range(0.2f, 1f), Tooltip("Fracción de la velocidad al caminar (sin Shift)")] private float walkFactor = 0.5f;
     [SerializeField] private float jumpForce = 3f;
     [SerializeField, Tooltip("Multiplicador de velocidad mientras está en el aire")] private float jumpDistance = 1.5f;
     [SerializeField, Tooltip("Gravedad extra al caer, para que el salto no se sienta flotante")] private float fallMultiplier = 3f;
     [SerializeField] private float groundCheckDistance = 0.1f;
     [SerializeField] private Transform cameraTransform;
 
-    /// <summary>Velocidad de movimiento; la define el personaje elegido.</summary>
+    /// <summary>Velocidad corriendo (con Shift); la define el personaje elegido. Caminar es una fracción (<c>walkFactor</c>).</summary>
     public void SetSpeed(float value) => speed = value;
 
     /// <summary>Multiplicador temporal de velocidad (1 = normal). Lo usa la niebla de Alucard.</summary>
@@ -20,6 +21,8 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 movement;
     private bool jumpRequested;
     private bool isGrounded;
+    private bool sprintHeld;
+    private float airFactor = 1f;   // caminar o correr al despegar: en el aire no cambia
 
     private void Awake()
     {
@@ -33,6 +36,7 @@ public class PlayerMovement : MonoBehaviour
         {
             movement = Vector3.zero;
             jumpRequested = false;
+            sprintHeld = false;
             return;
         }
 
@@ -48,14 +52,19 @@ public class PlayerMovement : MonoBehaviour
 
         movement = Vector3.ClampMagnitude(forward * move.y + right * move.x, 1f);
 
+        sprintHeld = input.SprintHeld;
+
         if (input.JumpPressed && isGrounded) jumpRequested = true;
     }
 
     private void FixedUpdate()
     {
+        bool wasGrounded = isGrounded;
         isGrounded = CheckGrounded();
 
-        float currentSpeed = (isGrounded ? speed : speed * jumpDistance) * SpeedMultiplier;
+        float groundFactor = sprintHeld ? 1f : walkFactor;
+        if (wasGrounded) airFactor = groundFactor; // al despegar se conserva el paso con el que se venía
+        float currentSpeed = (isGrounded ? speed * groundFactor : speed * airFactor * jumpDistance) * SpeedMultiplier;
         Vector3 velocity = rb.linearVelocity;
         velocity.x = movement.x * currentSpeed;
         velocity.z = movement.z * currentSpeed;

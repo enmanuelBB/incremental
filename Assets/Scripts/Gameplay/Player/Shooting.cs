@@ -51,6 +51,9 @@ public class Shooting : MonoBehaviour
     /// <summary>Armas que lleva en la mano (por ejemplo las dos pistolas). Null si el personaje no lleva modelo.</summary>
     public HeldGuns HeldGuns { get; set; }
 
+    /// <summary>Cuerpo animado del personaje (null si usa el cilindro).</summary>
+    public PlayerBody Body { get; set; }
+
     public ManaPool Mana => mana;
     public AbilityCooldown AbilityCooldown => abilityCooldown;
 
@@ -228,6 +231,7 @@ public class Shooting : MonoBehaviour
                 HeldGuns.Fire(barrel, weapon.Definition.RecoilOf(barrel));
                 Muzzle = HeldGuns.MuzzleOf(barrel);
             }
+            if (Body != null) Body.PlayShoot(barrel);
         }
 
         AudioManager.Instance.PlaySFX(weapon.Definition.shootSound);
@@ -340,6 +344,7 @@ public class Shooting : MonoBehaviour
         float reloadTime = weapon.ReloadTime;
         float fillPoint = weapon.Definition.ammoFillPoint;
 
+        if (Body != null) Body.PlayReload(reloadTime);
         AudioManager.Instance.PlaySFX(weapon.Definition.reloadSound);
         PublishSlot(currentIndex);
 

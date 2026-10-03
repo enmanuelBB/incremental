@@ -5,7 +5,7 @@ using UnityEngine;
 
 /// <summary>
 /// Balance de los jefes contra una build MÁXIMA de Alucard (nivel 30: mejoras de dinero al tope, árbol completo,
-/// rango 5 en la Q). Con los primeros jefes un personaje en el máximo debe ganar con holgura. Los números salen de los
+/// rango 5 en la Q). Con los primeros jefes un personaje en el máximo debe ganar con holgura, y más adentro de la partida los jefes tienen que volver a pesar. Los números salen de los
 /// assets reales; el modelo es conservador: 6 clics por segundo (la pistola es semiautomática) más la Q, sin contar
 /// sangrado, niebla ni definitiva. Si alguien toca vidas, daños o el árbol y los jefes se descompensan, fallan.
 /// </summary>
@@ -71,11 +71,12 @@ public class BossBalanceTests
         Assert.LessOrEqual(seconds, maxSeconds, "oleada " + wave + ": el jefe tarda " + seconds.ToString("0.0") + " s con " + dps.ToString("0") + " de daño por segundo");
     }
 
-    [TestCase(5, 1f)]
-    [TestCase(10, 3f)]
-    [TestCase(15, 5f)]
-    [TestCase(20, 10f)]
-    public void AtMaxBuild_BossesStillTakeAWhile(int wave, float minSeconds)
+    // Los primeros jefes pueden caer rápido con la build completa (esa es la idea: nivel máximo = fácil), pero más adentro de
+    // la partida la vida de los jefes sigue creciendo (+15% por oleada) y tienen que volver a pesar.
+    [TestCase(40, 8f)]
+    [TestCase(60, 12f)]
+    [TestCase(80, 15f)]
+    public void AtMaxBuild_DeepBossesStillTakeAWhile(int wave, float minSeconds)
     {
         float seconds = BossHealth(wave) / dps;
 

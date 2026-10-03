@@ -27,6 +27,10 @@ public class SkillTreeView
     private const float TopOffset = 215f;   // debajo del título, la XP y los puntos
     private const float LineThickness = 9f;
     private const float MaxScale = 190f;
+    private const float MinZoom = 0.6f;
+    private const float MaxZoom = 3f;
+    private const float ZoomStep = 1.15f;
+    private const float PanMargin = 160f;
 
     private class NodeUi
     {
@@ -45,6 +49,8 @@ public class SkillTreeView
 
     public RectTransform Root { get; }
 
+    private readonly RectTransform viewport;   // zona visible (recorta lo que sale al acercar)
+    private readonly RectTransform content;    // lo que se mueve y se escala: líneas y nodos
     private readonly RectTransform linesLayer;
     private readonly RectTransform nodesLayer;
     private readonly TMP_Text detailText;
@@ -55,6 +61,8 @@ public class SkillTreeView
 
     private SkillTreeDefinition builtFor;
     private SkillNode shown;
+    private float zoom = 1f;
+    private Vector2 pan;
 
     /// <param name="parent">Panel donde se coloca la vista (misma zona que la lista de habilidades).</param>
     /// <param name="onChanged">Se llama tras comprar o reiniciar, para que la pantalla se redibuje.</param>
@@ -69,10 +77,21 @@ public class SkillTreeView
         RectTransform area = UiKit.Rect("Area", Root);
         UiKit.Place(area, new Vector2(0.5f, 1f), Vector2.zero, new Vector2(AreaWidth, AreaHeight));
         area.pivot = new Vector2(0.5f, 1f);
-        linesLayer = UiKit.Rect("Lines", area);
+        viewport = area;
+        area.gameObject.AddComponent<RectMask2D>();
+        // Casi transparente pero con 'raycast': recibe el arrastre y la rueda sobre el fondo vacío.
+        area.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.01f);
+        area.gameObject.AddComponent<SkillTreePanZoom>().Init(this);
+
+        content = UiKit.Rect("Content", area);
+        UiKit.Place(content, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(AreaWidth, AreaHeight));
+        content.pivot = new Vector2(0.5f, 0.5f);
+        linesLayer = UiKit.Rect("Lines", content);
         UiKit.Stretch(linesLayer);
-        nodesLayer = UiKit.Rect("Nodes", area);
+        nodesLayer = UiKit.Rect("Nodes", content);
         UiKit.Stretch(nodesLayer);
+
+        BuildViewControls();
 
         Image detail = UiKit.Box("Detail", Root, UiKit.RowColor);
         UiKit.Place(detail.rectTransform, new Vector2(0.5f, 0f), Vector2.zero, new Vector2(AreaWidth, DetailHeight));
@@ -86,6 +105,99 @@ public class SkillTreeView
         Button reset = UiKit.TextButton("ResetTree", detail.transform, "Reiniciar árbol", 32f, ResetClicked, out resetLabel);
         UiKit.Place((RectTransform)reset.transform, new Vector2(1f, 0.5f), new Vector2(-24f, 0f), new Vector2(400f, 84f));
         ((RectTransform)reset.transform).pivot = new Vector2(1f, 0.5f);
+    }
+
+    // Botones de zoom y "Ajustar" (para quien no tiene rueda) y una pista, abajo a la izquierda del área.
+    private void BuildViewControls()
+    {
+        float y = -(AreaHeight - 70f);
+
+        // Fondo oscuro para que los controles se lean sobre los nodos al acercar.
+        Image back = UiKit.Box("ViewControlsBack", Root, new Color(0.04f, 0.05f, 0.1f, 0.88f));
+        UiKit.Place(back.rectTransform, new Vector2(0f, 1f), new Vector2(6f, y + 6f), new Vector2(760f, 70f));
+        back.rectTransform.pivot = new Vector2(0f, 1f);
+        back.raycastTarget = false;
+
+        Button zoomIn = UiKit.TextButton("ZoomIn", Root, "+", 36f, () => ZoomStepBy(1f), out _);
+        UiKit.Place((RectTransform)zoomIn.transform, new Vector2(0f, 1f), new Vector2(12f, y), new Vector2(58f, 58f));
+        ((RectTransform)zoomIn.transform).pivot = new Vector2(0f, 1f);
+
+        Button zoomOut = UiKit.TextButton("ZoomOut", Root, "-", 36f, () => ZoomStepBy(-1f), out _);
+        UiKit.Place((RectTransform)zoomOut.transform, new Vector2(0f, 1f), new Vector2(78f, y), new Vector2(58f, 58f));
+        ((RectTransform)zoomOut.transform).pivot = new Vector2(0f, 1f);
+
+        Button fit = UiKit.TextButton("FitView", Root, "Ajustar", 26f, ResetView, out _);
+        UiKit.Place((RectTransform)fit.transform, new Vector2(0f, 1f), new Vector2(144f, y), new Vector2(150f, 58f));
+        ((RectTransform)fit.transform).pivot = new Vector2(0f, 1f);
+
+        TMP_Text hint = UiKit.Label("ViewHint", Root, "Rueda: zoom  ·  Arrastrar: mover", 22f, TextAlignmentOptions.MidlineLeft, UiKit.Muted);
+        UiKit.Place(hint.rectTransform, new Vector2(0f, 1f), new Vector2(308f, y), new Vector2(450f, 58f));
+        hint.rectTransform.pivot = new Vector2(0f, 1f);
+    }
+
+    // --- Desplazar y zoom ---
+
+    public void PanBy(Vector2 delta)
+    {
+        pan += delta;
+        ApplyView();
+    }
+
+    /// <summary>Acerca (+1) o aleja (-1) manteniendo fijo el punto de la pantalla bajo el cursor.</summary>
+    public void ZoomAt(float direction, Vector2 screenPoint, Camera eventCamera)
+    {
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(viewport, screenPoint, eventCamera, out Vector2 local);
+        ZoomAround(local, direction);
+    }
+
+    private void ZoomStepBy(float direction) => ZoomAround(Vector2.zero, direction);
+
+    private void ZoomAround(Vector2 viewPoint, float direction)
+    {
+        float newZoom = Mathf.Clamp(zoom * (direction > 0f ? ZoomStep : 1f / ZoomStep), MinZoom, MaxZoom);
+        if (Mathf.Approximately(newZoom, zoom)) return;
+
+        // El punto del contenido que está bajo 'viewPoint' tiene que seguir ahí después del zoom.
+        Vector2 contentPoint = (viewPoint - pan) / zoom;
+        zoom = newZoom;
+        pan = viewPoint - contentPoint * zoom;
+        ApplyView();
+    }
+
+    /// <summary>Vuelve a ver todo el árbol, centrado y sin zoom.</summary>
+    public void ResetView()
+    {
+        zoom = 1f;
+        pan = Vector2.zero;
+        ApplyView();
+    }
+
+    // Que el árbol no se pueda arrastrar fuera de la pantalla: siempre queda parte a la vista.
+    private void ApplyView()
+    {
+        float limitX = Mathf.Max(0f, (AreaWidth * zoom - AreaWidth) * 0.5f) + PanMargin;
+        float limitY = Mathf.Max(0f, (AreaHeight * zoom - AreaHeight) * 0.5f) + PanMargin;
+        pan = new Vector2(Mathf.Clamp(pan.x, -limitX, limitX), Mathf.Clamp(pan.y, -limitY, limitY));
+
+        content.localScale = new Vector3(zoom, zoom, 1f);
+        content.anchoredPosition = pan;
+    }
+
+    // Con teclado o mando, el nodo seleccionado tiene que verse: si queda fuera, se mueve el árbol lo justo.
+    private void EnsureVisible(SkillNode node)
+    {
+        if (!nodes.TryGetValue(node.id, out NodeUi ui)) return;
+
+        Vector2 inView = pan + ((RectTransform)ui.Button.transform).anchoredPosition * zoom;
+        float halfX = AreaWidth * 0.5f - NodeSize * 0.7f;
+        float halfY = AreaHeight * 0.5f - NodeSize * 0.7f;
+
+        if (inView.x > halfX) pan.x -= inView.x - halfX;
+        else if (inView.x < -halfX) pan.x += -halfX - inView.x;
+        if (inView.y > halfY) pan.y -= inView.y - halfY;
+        else if (inView.y < -halfY) pan.y += -halfY - inView.y;
+
+        ApplyView();
     }
 
     /// <summary>Dibuja el árbol (lo construye la primera vez o si cambió) y actualiza colores y textos.</summary>
@@ -118,6 +230,7 @@ public class SkillTreeView
         lines.Clear();
         builtFor = tree;
         shown = null;
+        ResetView();
 
         if (tree == null || tree.nodes == null || tree.nodes.Length == 0) return;
 
@@ -171,6 +284,7 @@ public class SkillTreeView
             var focus = button.gameObject.AddComponent<SkillNodeButton>();
             focus.Node = node;
             focus.Focused = ShowDetail;
+            focus.Selected = EnsureVisible;
 
             nodes[node.id] = new NodeUi { Node = node, Image = button.GetComponent<Image>(), Button = button, Label = label };
         }

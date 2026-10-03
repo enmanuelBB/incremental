@@ -250,3 +250,189 @@ MonoBehaviour:
     effects:
     - type: 2
       value: 0.1
+  - id: q5
+    displayName: Cuarta carga (Q)
+    description: El disparo pesado se puede lanzar 4 veces seguidas.
+    cost: 8
+    position: {x: -7, y: 1.4}
+    connections:
+    - q3
+    isRoot: 0
+    effects:
+    - type: 4
+      value: 1
+  - id: q6
+    displayName: Bala triple (Q)
+    description: El disparo pesado lanza 3 balas.
+    cost: 8
+    position: {x: -5.6, y: 0.1}
+    connections:
+    - q4
+    - q3
+    isRoot: 0
+    effects:
+    - type: 3
+      value: 1
+  - id: q7
+    displayName: Recarga veloz II (Q)
+    description: "El disparo pesado se recarga 1 s m\xE1s r\xE1pido."
+    cost: 6
+    position: {x: -7, y: 0.1}
+    connections:
+    - q5
+    - q6
+    isRoot: 0
+    effects:
+    - type: 5
+      value: 1
+  - id: e5
+    displayName: Filo de niebla II (E)
+    description: "Al atravesar a un enemigo, la niebla le deja 2 pilas de sangrado m\xE1s."
+    cost: 6
+    position: {x: 7, y: 1.4}
+    connections:
+    - e3
+    isRoot: 0
+    effects:
+    - type: 6
+      value: 2
+  - id: e6
+    displayName: Escarcha II (E)
+    description: "Los enemigos que atraviesas se mueven un 15% m\xE1s lento."
+    cost: 6
+    position: {x: 5.6, y: 0.1}
+    connections:
+    - e4
+    - e3
+    isRoot: 0
+    effects:
+    - type: 7
+      value: 0.15
+  - id: e7
+    displayName: Niebla densa II (E)
+    description: "La niebla dura 1 s m\xE1s."
+    cost: 7
+    position: {x: 7, y: 0.1}
+    connections:
+    - e5
+    - e6
+    isRoot: 0
+    effects:
+    - type: 8
+      value: 1
+  - id: e8
+    displayName: "Disipaci\xF3n II (E)"
+    description: "La niebla se recarga 2 s m\xE1s r\xE1pido."
+    cost: 6
+    position: {x: 8.4, y: 0.75}
+    connections:
+    - e5
+    - e7
+    isRoot: 0
+    effects:
+    - type: 9
+      value: 2
+  - id: f4
+    displayName: Sangre prolongada II (F)
+    description: "R\xEDo de sangre dura 2 s m\xE1s."
+    cost: 6
+    position: {x: -2.8, y: -2.5}
+    connections:
+    - f1
+    - d2
+    isRoot: 0
+    effects:
+    - type: 10
+      value: 2
+  - id: f5
+    displayName: "Frenes\xED II (F)"
+    description: "R\xEDo de sangre se recarga 8 s m\xE1s r\xE1pido."
+    cost: 8
+    position: {x: 2.8, y: -2.5}
+    connections:
+    - f2
+    - d3
+    isRoot: 0
+    effects:
+    - type: 11
+      value: 8
+  - id: f6
+    displayName: Sed eterna II (F)
+    description: "+15 puntos m\xE1s de robo de vida durante R\xEDo de sangre."
+    cost: 8
+    position: {x: -1.4, y: -3.6}
+    connections:
+    - f1
+    - f3
+    isRoot: 0
+    effects:
+    - type: 12
+      value: 0.15
+  - id: v3
+    displayName: Vitalidad III
+    description: "+8 de vida m\xE1xima."
+    cost: 3
+    position: {x: -4.2, y: -1.3}
+    connections:
+    - d2
+    isRoot: 0
+    effects:
+    - type: 0
+      value: 8
+  - id: v4
+    displayName: Vitalidad IV
+    description: "+8 de vida m\xE1xima."
+    cost: 4
+    position: {x: -5.6, y: -1.3}
+    connections:
+    - v3
+    isRoot: 0
+    effects:
+    - type: 0
+      value: 8
+  - id: s3
+    displayName: Zancada III
+    description: +4% de velocidad de movimiento.
+    cost: 3
+    position: {x: 4.2, y: -1.3}
+    connections:
+    - d3
+    isRoot: 0
+    effects:
+    - type: 1
+      value: 0.04
+  - id: s4
+    displayName: Zancada IV
+    description: +4% de velocidad de movimiento.
+    cost: 4
+    position: {x: 5.6, y: -1.3}
+    connections:
+    - s3
+    isRoot: 0
+    effects:
+    - type: 1
+      value: 0.04
+  - id: d4
+    displayName: Pulso IV
+    description: "+10% de da\xF1o con las balas."
+    cost: 6
+    position: {x: -4.2, y: -2.5}
+    connections:
+    - f4
+    - v3
+    isRoot: 0
+    effects:
+    - type: 2
+      value: 0.1
+  - id: d5
+    displayName: Pulso V
+    description: "+10% de da\xF1o con las balas."
+    cost: 6
+    position: {x: 4.2, y: -2.5}
+    connections:
+    - f5
+    - s3
+    isRoot: 0
+    effects:
+    - type: 2
+      value: 0.1

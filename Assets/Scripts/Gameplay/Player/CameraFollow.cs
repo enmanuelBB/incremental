@@ -10,17 +10,21 @@ public class CameraFollow : MonoBehaviour
     [SerializeField] private float zoomSpeed = 10f;
 
     [Header("Posición")]
-    [SerializeField] private Vector3 thirdPersonOffset = new Vector3(2f, 1f, -5f);
-    [SerializeField] private Vector3 firstPersonOffset = new Vector3(0f, 1.5f, 0f);
+    [SerializeField] private Vector3 thirdPersonOffset = new Vector3(1.3f, 0.8f, -3.2f);
+    [SerializeField, Tooltip("Respecto al centro del jugador (a 1 m del suelo): 0,7 pone los ojos a 1,7 m, a la altura de la cabeza del modelo")]
+    private Vector3 firstPersonOffset = new Vector3(0f, 0.7f, 0f);
     [SerializeField, Tooltip("Punto del jugador desde el que se mide la colisión de la cámara")]
     private Vector3 pivotOffset = new Vector3(0f, 1.5f, 0f);
     [SerializeField] private float collisionRadius = 0.25f;
+    [SerializeField, Tooltip("Plano de recorte cercano en primera persona: las pistolas quedan cerca del ojo y con 0,3 se cortan al mirar arriba")]
+    private float firstPersonNearClip = 0.03f;
 
     [Header("Sensibilidad")]
     [SerializeField] private float mouseSensitivity = 0.15f;
     [SerializeField, Tooltip("Grados por segundo con el stick del gamepad")] private float stickSensitivity = 150f;
 
     private Camera cam;
+    private float thirdPersonNearClip;
     private bool isFirstPerson;
     private float rotationX;   // vertical
     private float rotationY;   // horizontal
@@ -44,6 +48,7 @@ public class CameraFollow : MonoBehaviour
     private void Awake()
     {
         cam = GetComponent<Camera>();
+        thirdPersonNearClip = cam.nearClipPlane;
     }
 
     private void Start()
@@ -143,6 +148,8 @@ public class CameraFollow : MonoBehaviour
             UpdateDeath();
             return;
         }
+
+        cam.nearClipPlane = isFirstPerson ? firstPersonNearClip : thirdPersonNearClip;
 
         Quaternion rotation = Quaternion.Euler(rotationX, rotationY, 0f);
 

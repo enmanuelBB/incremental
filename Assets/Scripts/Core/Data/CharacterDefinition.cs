@@ -54,4 +54,7 @@ public class CharacterDefinition : GameDefinition
 
     [Tooltip("Objeto que lleva en la mano (por ejemplo el bastón). Si tiene un hijo llamado 'Muzzle', de ahí salen los disparos.")]
     public GameObject heldItemPrefab;
+
+    [Tooltip("Cuerpo animado del personaje (modelo con Animator y PlayerBody). Si lo tiene, reemplaza al cilindro y lleva sus armas en las manos.")]
+    public GameObject bodyPrefab;
 }

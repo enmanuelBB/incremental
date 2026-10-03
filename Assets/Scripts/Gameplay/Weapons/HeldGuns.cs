@@ -24,6 +24,10 @@ public class HeldGuns : MonoBehaviour
     [SerializeField, Tooltip("Distancia del punto de la mira al que apuntan las pistolas")]
     private float aimDistance = 40f;
 
+    [Header("Cuerpo animado")]
+    [SerializeField, Tooltip("Si las pistolas están en las manos del modelo, se mueven con él: no se sueltan ni se colocan por código")]
+    private bool attachedToBody;
+
     private Transform player;
     private Camera cam;
     private CameraFollow cameraFollow;
@@ -32,6 +36,8 @@ public class HeldGuns : MonoBehaviour
 
     private void Awake()
     {
+        if (attachedToBody) return;
+
         player = transform.parent;
         // Las pistolas se colocan en el mundo cada frame; sin padre no heredan la escala del jugador.
         transform.SetParent(null, true);
@@ -48,6 +54,8 @@ public class HeldGuns : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (attachedToBody) return;
+
         if (cam == null)
         {
             cam = Camera.main;

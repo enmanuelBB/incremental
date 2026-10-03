@@ -22,6 +22,7 @@ public class CharacterManager : MonoBehaviour
 
     private List<CharacterDefinition> ordered = new List<CharacterDefinition>();
     private GameObject heldItem;
+    private GameObject body;
 
     public IReadOnlyList<CharacterDefinition> Roster => ordered;
     public CharacterDefinition Current { get; private set; }
@@ -89,6 +90,13 @@ public class CharacterManager : MonoBehaviour
         if (Current != null) ApplyStats(Current);
     }
 
+    // El cilindro es el cuerpo provisional: con un modelo se oculta, pero su collider y su física siguen siendo el jugador.
+    private void ShowCylinder(bool visible)
+    {
+        MeshRenderer cylinder = shooting.GetComponent<MeshRenderer>();
+        if (cylinder != null) cylinder.enabled = visible;
+    }
+
     private void Apply(CharacterDefinition def)
     {
         Current = def;
@@ -101,8 +109,25 @@ public class CharacterManager : MonoBehaviour
         heldItem = null;
         shooting.Muzzle = null;
         shooting.HeldGuns = null;
+        shooting.Body = null;
+        if (body != null) Destroy(body);
+        body = null;
+        ShowCylinder(def.bodyPrefab == null);
 
-        if (def.heldItemPrefab != null)
+        if (def.bodyPrefab != null)
+        {
+            // El modelo reemplaza al cilindro: los pies quedan en el suelo (el cilindro mide 2 m con el centro a 1 m).
+            body = Instantiate(def.bodyPrefab, shooting.transform);
+            body.transform.localPosition = new Vector3(0f, PlayerBody.FeetLocalY, 0f);
+            body.transform.localRotation = Quaternion.identity;
+
+            shooting.Body = body.GetComponent<PlayerBody>();
+            HeldGuns bodyGuns = body.GetComponent<HeldGuns>();
+            shooting.HeldGuns = bodyGuns;
+            if (bodyGuns != null) shooting.Muzzle = bodyGuns.MuzzleOf(0);
+        }
+
+        if (def.bodyPrefab == null && def.heldItemPrefab != null)
         {
             heldItem = Instantiate(def.heldItemPrefab, shooting.transform);
             shooting.Muzzle = heldItem.transform.Find("Muzzle");

@@ -50,13 +50,15 @@ public class GameOverManager : MonoBehaviour
         Shooting shooting = Shooting.Instance;
 
         // Las pistolas siguen a la cámara; durante la animación solo estorbarían.
-        if (shooting != null && shooting.HeldGuns != null) shooting.HeldGuns.gameObject.SetActive(false);
+        // Con el modelo animado las pistolas van en sus manos y caen con él.
+        if (shooting != null && shooting.HeldGuns != null && shooting.Body == null) shooting.HeldGuns.gameObject.SetActive(false);
 
         Transform focus = null;
         if (cause == GameOverCause.PlayerDied && shooting != null)
         {
             focus = shooting.transform;
-            TipOver(shooting.GetComponent<Rigidbody>());
+            if (shooting.Body != null) shooting.Body.PlayDeath();
+            else TipOver(shooting.GetComponent<Rigidbody>());
         }
         else
         {

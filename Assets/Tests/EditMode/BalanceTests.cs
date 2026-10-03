@@ -116,6 +116,13 @@ public class BalanceTests
     }
 
     [Test]
+    public void DamageUpgrade_HasTwentyLevels_ForGunsAndStaffAlike()
+    {
+        Assert.AreEqual(20, dualPistols.GetUpgrade(UpgradeType.Damage).maxLevel, "pistolas");
+        Assert.AreEqual(20, staff.GetUpgrade(UpgradeType.Damage).maxLevel, "bastón (misma cantidad de niveles que el arma de fuego)");
+    }
+
+    [Test]
     public void ManaMatters_AbilityCannotBeSpammedForever()
     {
         // Si la regeneración fuera tan alta que el maná nunca limita, el maná sería decoración.

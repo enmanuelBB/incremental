@@ -47,7 +47,7 @@ MonoBehaviour:
     basePrice: 150
     priceIncrease: 75
     priceGrowth: 0
-    maxLevel: 10
+    maxLevel: 20
   bleedUpgrade:
     step: 1
     limit: 0
