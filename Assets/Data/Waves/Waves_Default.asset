@@ -31,6 +31,16 @@ MonoBehaviour:
     - enemy: {fileID: 11400000, guid: 6302a053ad8bf7c488d01b0bb3b54104, type: 2}
       count: 5
     spawnInterval: 1.5
+  bosses:
+  - wave: 5
+    boss: {fileID: 11400000, guid: e5164a07ed342164c9409ccdf30ea4a1, type: 2}
+  - wave: 10
+    boss: {fileID: 11400000, guid: 23908676d239edf43af8af72bdc3641a, type: 2}
+  - wave: 15
+    boss: {fileID: 11400000, guid: b0649f41611ce534988b48930c75904e, type: 2}
+  - wave: 20
+    boss: {fileID: 11400000, guid: 72f60d2cb2c1ec44cac0c576589362d8, type: 2}
+  bossCycleLength: 20
   healthMultiplierPerWave: 0.15
   extraEnemiesPerWave: 2
   infiniteSpawnInterval: 1

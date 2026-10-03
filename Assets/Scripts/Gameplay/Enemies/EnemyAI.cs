@@ -27,8 +27,63 @@ public class EnemyAI : MonoBehaviour, IDamageable
     private float ignorePlayerUntil;
     private bool isDead;
     private EnemyBleed bleed;
+    private Collider bodyCollider;
+    private float slowMultiplier = 1f;
+    private float slowUntil;
+    private BossController boss;
+    private int maxHealthScaled;
+    private float enrageSpeed = 1f;
+    private float enrageDamage = 1f;
+    private float invulnerableUntil;
 
     public bool IsDead => isDead;
+
+    // --- Lo que necesita un jefe (BossController) ---
+    public EnemyDefinition Definition => def;
+    public int CurrentHealth => currentHealth;
+    public int MaxHealthScaled => maxHealthScaled;
+    public float HealthFraction => maxHealthScaled > 0 ? Mathf.Clamp01((float)currentHealth / maxHealthScaled) : 0f;
+    public float HealthScale { get; private set; } = 1f;
+    public float BodyRadius => bodyRadius;
+
+    /// <summary>Mientras es true la IA normal no mueve ni ataca (el jefe se mueve por su cuenta, por ejemplo al embestir).</summary>
+    public bool IsControlled { get; private set; }
+
+    public void SetControlled(bool controlled)
+    {
+        IsControlled = controlled;
+        if (controlled && agent.enabled && agent.isOnNavMesh) agent.isStopped = true;
+    }
+
+    /// <summary>Gana velocidad y daño de forma permanente (hasta que muera): 0,4 = +40%.</summary>
+    public void Enrage(float speedBonus, float damageBonus)
+    {
+        enrageSpeed += speedBonus;
+        enrageDamage += damageBonus;
+        ApplySpeed();
+    }
+
+    public void SetInvulnerable(float seconds) => invulnerableUntil = Time.time + seconds;
+
+    /// <summary>Mueve al enemigo respetando el NavMesh (embestida).</summary>
+    public void MoveForced(Vector3 delta)
+    {
+        if (agent.enabled && agent.isOnNavMesh) agent.Move(delta);
+        else transform.position += delta;
+    }
+
+    public void FaceDirection(Vector3 flatDirection)
+    {
+        flatDirection.y = 0f;
+        if (flatDirection.sqrMagnitude > 0.001f) transform.rotation = Quaternion.LookRotation(flatDirection);
+    }
+
+    // Velocidad = la del tipo x enfurecer x ralentización (la ralentización no acumula con otra: vale la última).
+    private void ApplySpeed()
+    {
+        float slow = Time.time < slowUntil ? slowMultiplier : 1f;
+        agent.speed = def.speed * enrageSpeed * slow;
+    }
 
     /// <summary>Lo llama el pool una sola vez, al crear la instancia.</summary>
     public void Init(ObjectPool<EnemyAI> ownerPool, EnemyDefinition definition)
@@ -41,10 +96,12 @@ public class EnemyAI : MonoBehaviour, IDamageable
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
+        boss = GetComponent<BossController>();
         agent.acceleration = 30f;
         agent.stoppingDistance = 0f;
 
         Collider body = GetComponent<Collider>();
+        bodyCollider = body;
         if (body != null)
         {
             Vector3 extents = body.bounds.extents;
@@ -61,12 +118,26 @@ public class EnemyAI : MonoBehaviour, IDamageable
         isDead = false;
         if (bleed != null) bleed.Clear(); // viene del pool: sin sangrado ni tinte de su vida anterior
         currentHealth = Mathf.CeilToInt(def.maxHealth * healthScale);
+        maxHealthScaled = currentHealth;
+        HealthScale = healthScale;
+        enrageSpeed = 1f;
+        enrageDamage = 1f;
+        invulnerableUntil = 0f;
+        IsControlled = false;
         chaseTimer = 0f;
         ignorePlayerUntil = 0f;
         nextAttackTime = 0f;
         nextRepathTime = 0f;
+        slowUntil = 0f;
+        slowMultiplier = 1f;
+        ApplySpeed();
 
         ResolveTargets();
+
+        // La niebla de Alucard ignora las colisiones con los enemigos cercanos; un enemigo que vuelve del pool
+        // no debe arrastrar ese estado.
+        if (playerCollider != null && bodyCollider != null)
+            Physics.IgnoreCollision(playerCollider, bodyCollider, false);
 
         if (NavMesh.SamplePosition(position, out NavMeshHit hit, 5f, NavMesh.AllAreas))
             position = hit.position;
@@ -84,6 +155,8 @@ public class EnemyAI : MonoBehaviour, IDamageable
 
         agent.isStopped = false;
         FaceBase();
+
+        if (boss != null) boss.Begin(this, def);
     }
 
     // Sin esto el enemigo aparece con la orientación que tenía en el pool (o la del prefab) y el
@@ -99,18 +172,36 @@ public class EnemyAI : MonoBehaviour, IDamageable
 
     public void TakeDamage(int damage)
     {
-        if (isDead) return;
+        if (isDead || Time.time < invulnerableUntil) return;
 
         currentHealth -= damage;
         if (currentHealth > 0) return;
+
+        // Un jefe que resucita se levanta en vez de morir.
+        if (boss != null && boss.TryRevive(out int revivedHealth))
+        {
+            currentHealth = revivedHealth;
+            return;
+        }
 
         isDead = true;
         if (bleed != null) bleed.Clear();
         GameEvents.RaiseEnemyKilled(def.moneyReward);
         GameEvents.RaiseXpGained(def.xpReward);
+        if (def.treePointsReward > 0) GameEvents.RaiseBossDefeated(def.treePointsReward);
 
         if (pool != null) pool.Release(this);
         else gameObject.SetActive(false);
+    }
+
+    /// <summary>Le quita una fracción de velocidad durante unos segundos (0,3 = -30%). No acumula: vale la última.</summary>
+    public void ApplySlow(float fraction, float seconds)
+    {
+        if (isDead || fraction <= 0f || seconds <= 0f) return;
+
+        slowMultiplier = Mathf.Clamp(1f - fraction, 0.1f, 1f);
+        slowUntil = Time.time + seconds;
+        ApplySpeed();
     }
 
     /// <summary>Suma pilas de sangrado (permanentes hasta que muera). No hace nada si ya está muerto.</summary>
@@ -129,6 +220,16 @@ public class EnemyAI : MonoBehaviour, IDamageable
     private void Update()
     {
         if (isDead || !agent.isOnNavMesh) return;
+
+        // Termina la ralentización: vuelve a su velocidad normal.
+        if (slowUntil > 0f && Time.time >= slowUntil)
+        {
+            slowUntil = 0f;
+            slowMultiplier = 1f;
+            ApplySpeed();
+        }
+
+        if (IsControlled) return;
 
         if (GameState.IsGameOver || baseTarget == null || playerTarget == null)
         {
@@ -209,8 +310,8 @@ public class EnemyAI : MonoBehaviour, IDamageable
         if (Time.time < nextAttackTime) return;
         nextAttackTime = Time.time + def.damageInterval;
 
-        if (targetIsPlayer) playerTarget.TakeDamage(def.damageToPlayer);
-        else baseTarget.TakeDamage(def.damageToBase);
+        if (targetIsPlayer) playerTarget.TakeDamage(Mathf.RoundToInt(def.damageToPlayer * enrageDamage));
+        else baseTarget.TakeDamage(Mathf.RoundToInt(def.damageToBase * enrageDamage));
     }
 
     private static void ResolveTargets()

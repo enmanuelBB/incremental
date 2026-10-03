@@ -98,7 +98,7 @@ public class XpBarUI : MonoBehaviour
     private void BuildToast(Transform canvas)
     {
         toast = UiKit.Label("LevelUpToast", canvas, "", 38f, TextAlignmentOptions.Center, UiKit.Gold);
-        UiKit.Place(toast.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -190f), new Vector2(1400f, 60f));
+        UiKit.Place(toast.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -245f), new Vector2(1400f, 60f));
         toast.transform.SetAsFirstSibling(); // detrás de los menús: no debe tapar los textos de la estación
         toast.gameObject.SetActive(false);
     }
@@ -107,12 +107,16 @@ public class XpBarUI : MonoBehaviour
     {
         GameEvents.XpChanged += OnXpChanged;
         GameEvents.LevelUp += OnLevelUp;
+        GameEvents.SkillPointsGained += OnSkillPointsGained;
+        GameEvents.BossAppeared += Toast;
     }
 
     private void OnDisable()
     {
         GameEvents.XpChanged -= OnXpChanged;
         GameEvents.LevelUp -= OnLevelUp;
+        GameEvents.SkillPointsGained -= OnSkillPointsGained;
+        GameEvents.BossAppeared -= Toast;
     }
 
     private void OnXpChanged(XpInfo info)
@@ -125,12 +129,18 @@ public class XpBarUI : MonoBehaviour
         pointsText.text = info.Points > 0 ? info.Points + (info.Points == 1 ? " punto" : " puntos") : "";
     }
 
-    private void OnLevelUp(string characterName, int level, int points)
+    private void OnLevelUp(string characterName, int level, int points) =>
+        Toast("¡" + characterName + " sube al nivel " + level + "!  " + points
+            + (points == 1 ? " punto para gastar" : " puntos para gastar"));
+
+    private void OnSkillPointsGained(string characterName, int amount) =>
+        Toast("+" + amount + (amount == 1 ? " punto" : " puntos") + " de " + characterName + " para su árbol");
+
+    private void Toast(string message)
     {
         if (toast == null) return;
 
-        toast.text = "¡" + characterName + " sube al nivel " + level + "!  " + points
-            + (points == 1 ? " punto para gastar" : " puntos para gastar");
+        toast.text = message;
 
         if (toastRoutine != null) StopCoroutine(toastRoutine);
         toastRoutine = StartCoroutine(ShowToast());

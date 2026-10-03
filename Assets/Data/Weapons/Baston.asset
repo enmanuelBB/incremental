@@ -15,12 +15,14 @@ MonoBehaviour:
   id: Baston
   weaponName: "Bast\xF3n"
   magazineSize: 1
+  barrels: 1
   fireRate: 0.35
   reloadTime: 0
   damage: 8
   range: 100
   isAutomatic: 1
   ammoFillPoint: 0.7
+  barrelRecoil: []
   shootSound: {fileID: 0}
   reloadSound: {fileID: 0}
   ownedFromStart: 1
@@ -30,19 +32,30 @@ MonoBehaviour:
     limit: 0.2
     basePrice: 100
     priceIncrease: 50
+    priceGrowth: 0
     maxLevel: 5
   reloadUpgrade:
     step: 0.8
     limit: 0
     basePrice: 100
     priceIncrease: 50
+    priceGrowth: 0
     maxLevel: 5
   damageUpgrade:
-    step: 0.1
+    step: 0.3
     limit: 0
     basePrice: 150
     priceIncrease: 75
+    priceGrowth: 0
     maxLevel: 10
+  bleedUpgrade:
+    step: 1
+    limit: 0
+    basePrice: 600
+    priceIncrease: 0
+    priceGrowth: 1.6
+    maxLevel: 10
+  baseBleedPerHit: 1
   manaMax: 100
   manaRegen: 4
   abilityName: Rayo arcano

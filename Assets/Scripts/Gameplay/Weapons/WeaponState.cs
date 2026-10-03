@@ -47,7 +47,16 @@ public class WeaponState
     // Las fórmulas viven en las definiciones (Game.Core) para que el balance se pruebe sin abrir Unity.
     public float FireRate => Definition.FireRateAt(GetLevel(UpgradeType.FireRate));
     public float ReloadTime => Definition.ReloadTimeAt(GetLevel(UpgradeType.Reload));
-    public int Damage => Definition.DamageAt(GetLevel(UpgradeType.Damage));
+    /// <summary>Daño de una bala: el del arma con sus mejoras de dinero, multiplicado por el bono de daño del árbol.</summary>
+    public int Damage
+    {
+        get
+        {
+            int baseDamage = Definition.DamageAt(GetLevel(UpgradeType.Damage));
+            float multiplier = SkillTreeManager.Instance != null ? SkillTreeManager.Instance.Bonuses.DamageMultiplier : 1f;
+            return Mathf.Max(baseDamage, Mathf.RoundToInt(baseDamage * multiplier));
+        }
+    }
 
     /// <summary>Pilas de sangrado que aplica cada impacto (0 si el arma no sangra).</summary>
     public int BleedPerHit => Definition.BleedPerHitAt(GetLevel(UpgradeType.Bleed));

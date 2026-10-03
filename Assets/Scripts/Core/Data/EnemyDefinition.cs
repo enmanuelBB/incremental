@@ -11,8 +11,17 @@ public class EnemyDefinition : GameDefinition
     public string displayName = "Enemigo";
     public GameObject prefab;
 
-    [Tooltip("Solo una etiqueta por ahora; la lógica de jefes se agrega cuando se implementen")]
+    [Header("Jefe")]
+    public EnemyTier tier = EnemyTier.Normal;
+    [Tooltip("Obsoleto: usa 'tier'. Si está marcado, cuenta como jefe igualmente")]
     public bool isBoss;
+    [Tooltip("Puntos del árbol del personaje que da al morir (jefes y minijefes)")]
+    public int treePointsReward;
+    [Tooltip("Habilidades del jefe; se ejecutan con BossController (el prefab del jefe debe llevarlo)")]
+    public BossAbility[] abilities = new BossAbility[0];
+
+    /// <summary>Minijefe o jefe.</summary>
+    public bool IsBoss => tier != EnemyTier.Normal || isBoss;
 
     [Header("Stats")]
     public float speed = 2f;

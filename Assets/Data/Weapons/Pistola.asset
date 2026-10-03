@@ -50,7 +50,7 @@ MonoBehaviour:
     priceGrowth: 0
     maxLevel: 5
   damageUpgrade:
-    step: 1
+    step: 3
     limit: 0
     basePrice: 150
     priceIncrease: 75

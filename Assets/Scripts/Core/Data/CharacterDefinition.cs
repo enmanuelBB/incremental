@@ -49,6 +49,9 @@ public class CharacterDefinition : GameDefinition
     [Tooltip("Habilidades en el orden de las casillas del HUD: la 1.ª con Q, la 2.ª con E, la 3.ª con F. Máximo 3. Frieren aún usa la habilidad de su bastón.")]
     public AbilityDefinition[] abilities;
 
+    [Tooltip("Árbol de mejoras del personaje (se compra con los puntos que gana por oleada). Vacío = sin árbol.")]
+    public SkillTreeDefinition skillTree;
+
     [Tooltip("Objeto que lleva en la mano (por ejemplo el bastón). Si tiene un hijo llamado 'Muzzle', de ahí salen los disparos.")]
     public GameObject heldItemPrefab;
 }

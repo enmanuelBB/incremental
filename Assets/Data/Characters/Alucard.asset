@@ -28,4 +28,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f23e85061cd98cf4a973ddd61e8fd4ca, type: 2}
   - {fileID: 11400000, guid: b0fa4afa517b7d94098671bbc2a3153f, type: 2}
   - {fileID: 11400000, guid: 729d4a6d98cc92c4392240e0563186f5, type: 2}
+  skillTree: {fileID: 11400000, guid: be8b7c02d6bd8ba4ea4fae08da6415cf, type: 2}
   heldItemPrefab: {fileID: 1834205478422332479, guid: 1b177c03532fe4f4d81cb381e4dff251, type: 3}

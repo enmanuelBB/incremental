@@ -32,6 +32,10 @@ public class CharacterSave
     public int[] abilityRanks = new int[Progression.AbilitySlots];
     [Tooltip("Nivel de sangrado: el 1 es gratis; tope de pilas = 4 + nivel")]
     public int bleedLevel = 1;
+    [Tooltip("Saldo de puntos del árbol de este personaje (se ganan por oleada completada; no dependen del nivel)")]
+    public int skillPoints;
+    [Tooltip("Ids de los nodos comprados del árbol de este personaje")]
+    public List<string> skillNodes = new List<string>();
     public List<WeaponSave> weapons = new List<WeaponSave>();
 
     /// <summary>Deja los datos de progresión dentro de rangos válidos (por ejemplo tras leer un guardado viejo o editado a mano).</summary>
@@ -40,6 +44,14 @@ public class CharacterSave
         level = Math.Max(1, Math.Min(Progression.MaxLevel, level));
         xp = level >= Progression.MaxLevel ? 0 : Math.Max(0, Math.Min(xp, Progression.XpForNextLevel(level) - 1));
         bleedLevel = Math.Max(1, Math.Min(Progression.MaxBleedLevel, bleedLevel));
+
+        skillPoints = Math.Max(0, skillPoints);
+        if (skillNodes == null) skillNodes = new List<string>();
+        else
+        {
+            var seen = new HashSet<string>();
+            skillNodes.RemoveAll(id => string.IsNullOrEmpty(id) || !seen.Add(id));
+        }
 
         if (abilityRanks == null) abilityRanks = new int[Progression.AbilitySlots];
         else if (abilityRanks.Length != Progression.AbilitySlots) Array.Resize(ref abilityRanks, Progression.AbilitySlots);
@@ -81,7 +93,7 @@ public class CharacterSave
 [Serializable]
 public class SaveData
 {
-    public const int CurrentVersion = 3;
+    public const int CurrentVersion = 4;
     public const string DefaultCharacterId = "alucard";
 
     public int version = CurrentVersion;

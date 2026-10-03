@@ -105,7 +105,7 @@ Armadura roja (cambio de color con brillo), río de sangre (disco rojo en el sue
 ## 11. Diferencias entre lo diseñado y lo implementado (fase 2)
 - **Hecho:** XP y nivel por personaje, puntos (1 por nivel), rangos de habilidad con las compuertas del diseño, nivel de sangrado, estación de puntos en el objeto `shop`, barra de XP para todos los personajes y guardado v3. Detalle en `notas/DECISIONES.md`, D29.
 - **Las habilidades empiezan en rango 0** (hay que gastar el punto del nivel 1 para tener la primera). El diseño de los totales (13 + 14 puntos útiles) lo daba a entender.
-- **Falta:** la pantalla de resumen al morir (sección 6) y el nivel en el menú de personajes.
+- **Hecho el 2026-10-03:** la pantalla de resumen al morir (sección 6), con cámara de muerte y título animado; ver `notas/DECISIONES.md` D31. **Falta:** el nivel en el menú de personajes.
 - **Valores por rango** (estimados, en los assets de `Assets/Data/Abilities/`): ver D29.
 
 ## 10. Diferencias entre lo diseñado y lo implementado (fase 1)

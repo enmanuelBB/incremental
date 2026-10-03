@@ -4,9 +4,10 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
-/// Estación de mejora de habilidades: se gastan los puntos de personaje (1 por nivel) en subir el rango de cada
-/// habilidad y el nivel de sangrado del personaje activo. Se arma sola por código. Solo se abre antes de la
-/// primera oleada (lo garantiza InteractableStation).
+/// Estación de mejora de habilidades. Pestaña "Habilidades": se gastan los puntos de personaje (1 por nivel) en
+/// subir el rango de cada habilidad y el nivel de sangrado. Pestaña "Árbol": se gastan los puntos del árbol del
+/// personaje (los gana por oleada) en sus nodos. Se arma sola por código. Solo se abre antes de la primera oleada
+/// (lo garantiza InteractableStation).
 /// </summary>
 public class AbilityShopUI : MenuPanel
 {
@@ -25,6 +26,15 @@ public class AbilityShopUI : MenuPanel
     private TMP_Text xpText;
     private TMP_Text pointsText;
     private TMP_Text emptyText;
+    private TMP_Text footerText;
+    private RectTransform abilityList;
+    private Button tabAbilities;
+    private Button tabTree;
+    private SkillTreeView treeView;
+    private bool treeTab;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    private GameObject debugTreeButtons;
+#endif
     private readonly Row[] abilityRows = new Row[Progression.AbilitySlots];
     private Row bleedRow;
     private bool pendingFirstChoice;
@@ -46,6 +56,7 @@ public class AbilityShopUI : MenuPanel
     {
         firstChoice = pendingFirstChoice;
         pendingFirstChoice = false;
+        treeTab = false;
         Refresh();
     }
 
@@ -91,6 +102,7 @@ public class AbilityShopUI : MenuPanel
         RectTransform list = UiKit.Rect("Rows", root);
         UiKit.Place(list, new Vector2(0.5f, 0.5f), new Vector2(0f, -40f), new Vector2(1500f, 700f));
         list.pivot = new Vector2(0.5f, 0.5f);
+        abilityList = list;
         var layout = list.gameObject.AddComponent<VerticalLayoutGroup>();
         layout.spacing = 14f;
         layout.childAlignment = TextAnchor.UpperCenter;
@@ -111,10 +123,19 @@ public class AbilityShopUI : MenuPanel
         UiKit.Place(emptyText.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, 100f), new Vector2(1400f, 60f));
         emptyText.rectTransform.pivot = new Vector2(0.5f, 0.5f);
 
-        TMP_Text footer = UiKit.Label("Footer", root,
-            "1 punto por nivel. Se gastan solo antes de empezar la primera oleada.", 24f, TextAlignmentOptions.Center, UiKit.Muted);
-        UiKit.Place(footer.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 60f), new Vector2(1400f, 36f));
-        footer.rectTransform.pivot = new Vector2(0.5f, 0f);
+        footerText = UiKit.Label("Footer", root, "", 24f, TextAlignmentOptions.Center, UiKit.Muted);
+        UiKit.Place(footerText.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 60f), new Vector2(1500f, 36f));
+        footerText.rectTransform.pivot = new Vector2(0.5f, 0f);
+
+        treeView = new SkillTreeView(root, Refresh);
+
+        tabAbilities = UiKit.TextButton("TabAbilities", root, "Habilidades", 28f, () => SetTab(false), out _);
+        UiKit.Place((RectTransform)tabAbilities.transform, new Vector2(0f, 1f), new Vector2(130f, -40f), new Vector2(210f, 64f));
+        ((RectTransform)tabAbilities.transform).pivot = new Vector2(0f, 1f);
+
+        tabTree = UiKit.TextButton("TabTree", root, "Árbol", 28f, () => SetTab(true), out _);
+        UiKit.Place((RectTransform)tabTree.transform, new Vector2(0f, 1f), new Vector2(355f, -40f), new Vector2(210f, 64f));
+        ((RectTransform)tabTree.transform).pivot = new Vector2(0f, 1f);
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         BuildDebugButtons(root);
@@ -136,6 +157,30 @@ public class AbilityShopUI : MenuPanel
         Button reset = UiKit.TextButton("DebugReset", root, "Volver a nivel 1", 28f, () => DebugAction(false), out _);
         UiKit.Place((RectTransform)reset.transform, new Vector2(1f, 1f), new Vector2(-30f, -115f), new Vector2(260f, 70f));
         ((RectTransform)reset.transform).pivot = new Vector2(1f, 1f);
+
+        // Solo en la pestaña del árbol: sumar un punto de personaje o dejar el árbol en cero. Abajo a la izquierda,
+        // donde no tapan ningún nodo.
+        RectTransform group = UiKit.Rect("DebugTreeButtons", root);
+        UiKit.Stretch(group);
+        debugTreeButtons = group.gameObject;
+
+        Button addPoint = UiKit.TextButton("DebugAddPoint", group, "+1 punto", 26f, () => DebugTree(false), out _);
+        UiKit.Place((RectTransform)addPoint.transform, new Vector2(0f, 0f), new Vector2(30f, 20f), new Vector2(180f, 64f));
+        ((RectTransform)addPoint.transform).pivot = new Vector2(0f, 0f);
+
+        Button zero = UiKit.TextButton("DebugTreeZero", group, "Árbol a 0", 26f, () => DebugTree(true), out _);
+        UiKit.Place((RectTransform)zero.transform, new Vector2(0f, 0f), new Vector2(225f, 20f), new Vector2(180f, 64f));
+        ((RectTransform)zero.transform).pivot = new Vector2(0f, 0f);
+    }
+
+    private void DebugTree(bool clear)
+    {
+        if (SkillTreeManager.Instance == null) return;
+
+        if (clear) SkillTreeManager.Instance.DebugClearTree();
+        else SkillTreeManager.Instance.DebugAddPoints(1);
+
+        Refresh();
     }
 
     private void DebugAction(bool levelUp)
@@ -183,6 +228,16 @@ public class AbilityShopUI : MenuPanel
         return new Row { Root = back.gameObject, Icon = icon, Info = info, Button = button, ButtonLabel = buttonLabel };
     }
 
+    private void SetTab(bool tree)
+    {
+        treeTab = tree;
+        Refresh();
+
+        // Con teclado o mando hace falta algo seleccionado en la pestaña nueva.
+        if (tree && EventSystem.current != null && Character.skillTree != null)
+            EventSystem.current.SetSelectedGameObject(treeView.FirstFocusable(Character.skillTree, Save));
+    }
+
     private CharacterDefinition Character => Shooting.Instance.Character;
     private CharacterSave Save => SaveSystem.Data.GetCharacter(Character.Id);
 
@@ -199,6 +254,29 @@ public class AbilityShopUI : MenuPanel
         CharacterDefinition character = Character;
         CharacterSave save = Save;
 
+        bool hasTree = character.skillTree != null;
+        if (!hasTree) treeTab = false;
+
+        tabTree.gameObject.SetActive(hasTree);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (debugTreeButtons != null) debugTreeButtons.SetActive(treeTab);
+#endif
+        tabAbilities.GetComponent<Image>().color = treeTab ? UiKit.RowColor : UiKit.ButtonColor;
+        tabTree.GetComponent<Image>().color = treeTab ? UiKit.ButtonColor : UiKit.RowColor;
+        abilityList.gameObject.SetActive(!treeTab);
+        treeView.Root.gameObject.SetActive(treeTab);
+
+        if (treeTab)
+        {
+            titleText.text = "Árbol de habilidades · " + character.displayName;
+            xpText.text = "Cada oleada completada da puntos: 1 en las oleadas 1-4, 2 en las 5-9, 3 en las 10-14...";
+            pointsText.text = "Puntos de " + character.displayName + ": " + save.skillPoints;
+            footerText.text = "Los puntos del árbol son de este personaje y no se pierden al prestigiar. Reiniciar el árbol es gratis.";
+            emptyText.gameObject.SetActive(false);
+            treeView.Show(character.skillTree, save);
+            return;
+        }
+
         int availablePoints = Progression.PointsAvailable(save);
         titleText.text = (firstChoice && availablePoints > 0 ? "Elige tu habilidad principal" : "Mejora de habilidades")
             + " · " + character.displayName;
@@ -208,6 +286,7 @@ public class AbilityShopUI : MenuPanel
 
         int points = Progression.PointsAvailable(save);
         pointsText.text = "Puntos disponibles: " + points;
+        footerText.text = "1 punto por nivel. Se gastan solo antes de empezar la primera oleada.";
 
         int shown = 0;
         for (int i = 0; i < abilityRows.Length; i++)

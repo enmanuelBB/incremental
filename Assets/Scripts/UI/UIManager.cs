@@ -65,6 +65,7 @@ public class UIManager : MonoBehaviour
         GameEvents.ManaChanged += SetMana;
         GameEvents.AbilitiesChanged += SetAbilities;
         GameEvents.AbilityUsed += OnAbilityUsed;
+        GameEvents.AbilityChargesChanged += OnAbilityCharges;
     }
 
     private void OnDisable()
@@ -79,6 +80,7 @@ public class UIManager : MonoBehaviour
         GameEvents.ManaChanged -= SetMana;
         GameEvents.AbilitiesChanged -= SetAbilities;
         GameEvents.AbilityUsed -= OnAbilityUsed;
+        GameEvents.AbilityChargesChanged -= OnAbilityCharges;
     }
 
     // La cuenta atrás de cada habilidad la dibuja la propia UI a partir del momento en que queda lista;
@@ -146,6 +148,13 @@ public class UIManager : MonoBehaviour
 
         abilityReadyAt[slot] = readyAt;
         abilityCooldownTotal[slot] = Mathf.Max(0.01f, readyAt - Time.time);
+    }
+
+    private void OnAbilityCharges(int slot, int available, int max)
+    {
+        if (abilitySlots == null || slot < 0 || slot >= abilitySlots.Length || abilitySlots[slot] == null) return;
+
+        abilitySlots[slot].SetCharges(available, max);
     }
 
     private void SetPlayerHealth(int current, int max)

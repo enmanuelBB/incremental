@@ -7,6 +7,6 @@ public class PlayerHealth : Health
 
     protected override void OnDeath()
     {
-        GameEvents.RaiseGameOver("¡¡¡¡Has muerto!!!!");
+        GameEvents.RaiseGameOver("Has muerto", GameOverCause.PlayerDied);
     }
 }

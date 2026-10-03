@@ -50,7 +50,7 @@ public static class SaveMigrations
 
         migrated = version < SaveData.CurrentVersion;
 
-        // v1 (sin versión) tiene otra forma. v2 y v3 comparten forma: la v3 solo agrega campos de progresión,
+        // v1 (sin versión) tiene otra forma. v2, v3 y v4 comparten forma: cada versión solo agrega campos (progresión, árbol),
         // que JsonUtility deja en su valor inicial (nivel 1, sin XP ni rangos) si el archivo no los trae.
         SaveData data = version < 2
             ? FromV1(JsonUtility.FromJson<SaveDataV1>(json))

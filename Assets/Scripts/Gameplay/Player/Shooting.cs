@@ -389,8 +389,15 @@ public class Shooting : MonoBehaviour
         GameEvents.RaiseManaChanged(mana.Current, mana.Max);
     }
 
+    /// <summary>Reconfigura las habilidades con el rango y los bonos del árbol actuales (cargas, enfriamientos).</summary>
+    public void RefreshBuild() => abilities.RefreshBuild();
+
     /// <summary>Vuelve a dibujar las casillas de habilidad (al aprender una habilidad en la estación de mejoras).</summary>
-    public void RefreshAbilityHud() => GameEvents.RaiseAbilitiesChanged(BuildAbilityHud());
+    public void RefreshAbilityHud()
+    {
+        abilities.RefreshBuild();
+        GameEvents.RaiseAbilitiesChanged(BuildAbilityHud());
+    }
 
     private void PublishHud()
     {

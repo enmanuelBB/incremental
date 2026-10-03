@@ -41,6 +41,8 @@ public class AbilityDefinition : GameDefinition
     public float speedMultiplier = 1.6f;
     [Tooltip("Radio de efecto, en metros")]
     public float radius = 3f;
+    [Tooltip("Niebla: segundos que dura la ralentización que deja a los enemigos que atraviesa (si el árbol la da)")]
+    public float mistSlowSeconds = 2f;
 
     [Header("Definitiva")]
     [Range(0f, 1f), Tooltip("Fracción del daño directo que se convierte en vida")]

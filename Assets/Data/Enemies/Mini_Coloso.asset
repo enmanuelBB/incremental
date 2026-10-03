@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0112d453558d3b247a0c0494c156a999, type: 3}
+  m_Name: Mini_Coloso
+  m_EditorClassIdentifier: Game.Core::EnemyDefinition
+  id: mini_coloso
+  displayName: Coloso
+  prefab: {fileID: 2940424348818179243, guid: 631ff06c598b4f74ebb17cac59d0851d, type: 3}
+  tier: 1
+  isBoss: 0
+  treePointsReward: 2
+  abilities:
+  - kind: 2
+    minHealthFraction: 0
+    maxHealthFraction: 0.5
+    interval: 8
+    telegraphSeconds: 1
+    chargeSeconds: 1.2
+    chargeSpeed: 14
+    chargeDamage: 25
+    chargeRange: 30
+    summon: {fileID: 0}
+    summonCount: 3
+    speedBonus: 0.6
+    damageBonus: 0.5
+    reviveHealth: 0.5
+    reviveInvulnerableSeconds: 1
+    projectileDamage: 15
+    projectileSpeed: 12
+    burst: 1
+    burstSpacing: 0.18
+  speed: 1.2
+  maxHealth: 2500
+  moneyReward: 150
+  xpReward: 120
+  damageToBase: 45
+  damageToPlayer: 30
+  damageInterval: 1
+  attackReach: 0.6
+  detectionRange: 8
+  chaseGiveUpTime: 5
+  giveUpCooldown: 3
+  directionTolerance: 0
+  repathInterval: 0.25

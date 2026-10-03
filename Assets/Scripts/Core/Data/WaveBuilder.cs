@@ -13,6 +13,8 @@ public class WavePlan
     public List<WaveGroup> Groups = new List<WaveGroup>();
     public float SpawnInterval;
     public float HealthScale = 1f;
+    /// <summary>Jefe o minijefe que sale al inicio de esta oleada (null si no toca).</summary>
+    public EnemyDefinition Boss;
 }
 
 /// <summary>
@@ -42,7 +44,21 @@ public static class WaveBuilder
             plan.HealthScale = 1f + set.healthMultiplierPerWave * wavesPastEnd;
         }
 
+        plan.Boss = BossFor(set, waveIndex + 1);
         return plan;
+    }
+
+    /// <summary>El jefe de una oleada (número desde 1), o null. Si hay ciclo, pasada su longitud se repite.</summary>
+    public static EnemyDefinition BossFor(WaveSet set, int waveNumber)
+    {
+        if (set == null || set.bosses == null || waveNumber < 1) return null;
+
+        int number = waveNumber;
+        if (set.bossCycleLength > 0 && number > set.bossCycleLength) number = ((number - 1) % set.bossCycleLength) + 1;
+
+        foreach (WaveSet.BossWave entry in set.bosses)
+            if (entry != null && entry.wave == number && entry.boss != null) return entry.boss;
+        return null;
     }
 
     /// <summary>Suma los grupos extra a los base, juntando los del mismo tipo de enemigo.</summary>

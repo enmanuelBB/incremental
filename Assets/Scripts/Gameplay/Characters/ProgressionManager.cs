@@ -53,6 +53,7 @@ public class ProgressionManager : MonoBehaviour
         if (save == null) return;
 
         int levels = Progression.AddXp(save, amount);
+        if (amount > 0) GameEvents.RaiseXpEarned(amount);
         Refresh();
 
         if (levels > 0)

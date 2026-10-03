@@ -75,13 +75,27 @@ public class CharacterManager : MonoBehaviour
         SaveSystem.Save();
     }
 
+    /// <summary>Vida y velocidad del personaje con los bonos de su árbol.</summary>
+    private void ApplyStats(CharacterDefinition def)
+    {
+        TreeBonuses bonuses = SkillTreeManager.Instance != null ? SkillTreeManager.Instance.Bonuses : TreeBonuses.None;
+        playerHealth.SetMaxHealth(def.maxHealth + bonuses.MaxHealthBonus);
+        playerMovement.SetSpeed(def.moveSpeed * bonuses.SpeedMultiplier);
+    }
+
+    /// <summary>Vuelve a aplicar vida y velocidad (tras comprar o reiniciar nodos del árbol).</summary>
+    public void ReapplyStats()
+    {
+        if (Current != null) ApplyStats(Current);
+    }
+
     private void Apply(CharacterDefinition def)
     {
         Current = def;
 
         shooting.SetCharacter(def);
-        playerHealth.SetMaxHealth(def.maxHealth);
-        playerMovement.SetSpeed(def.moveSpeed);
+        if (SkillTreeManager.Instance != null) SkillTreeManager.Instance.Recompute();
+        ApplyStats(def);
 
         if (heldItem != null) Destroy(heldItem);
         heldItem = null;

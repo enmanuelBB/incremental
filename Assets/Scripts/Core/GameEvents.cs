@@ -65,8 +65,15 @@ public static class GameEvents
     public static event Action<int> XpGained;                   // experiencia ganada (la recibe el personaje activo)
     public static event Action<XpInfo> XpChanged;               // estado de nivel/experiencia del personaje activo
     public static event Action<string, int, int> LevelUp;       // nombre del personaje, nivel nuevo, puntos disponibles
+    public static event Action<int> SkillPointsChanged;         // saldo de puntos del árbol del personaje activo
+    public static event Action<string, int> SkillPointsGained;  // nombre del personaje, puntos ganados al completar una oleada
+    public static event Action<int, int, int> AbilityChargesChanged; // casilla (0 a 2), cargas disponibles, cargas máximas
+    public static event Action<string> BossAppeared;            // texto completo del aviso ("¡Llegó el jefe: X!")
+    public static event Action<string, int, int> BossHealthChanged; // nombre, vida actual, vida máxima (actual 0 = murió o se fue)
+    public static event Action<int> BossDefeated;               // puntos del árbol que da el jefe al morir
     public static event Action GameStarted;
-    public static event Action<string> GameOver;
+    public static event Action<string, GameOverCause> GameOver;  // mensaje y causa
+    public static event Action<int> XpEarned;                   // experiencia que de verdad recibió el personaje (bajas y bono de oleada)
     public static event Action<string> PromptChanged;           // texto del aviso; null o vacío lo oculta
     public static event Action<CharacterDefinition> CharacterChanged;
     public static event Action<bool> ResourceModeChanged;       // true = usa maná (en vez de munición)
@@ -86,8 +93,15 @@ public static class GameEvents
     public static void RaiseXpGained(int amount) => XpGained?.Invoke(amount);
     public static void RaiseXpChanged(XpInfo info) => XpChanged?.Invoke(info);
     public static void RaiseLevelUp(string characterName, int level, int points) => LevelUp?.Invoke(characterName, level, points);
+    public static void RaiseSkillPointsChanged(int total) => SkillPointsChanged?.Invoke(total);
+    public static void RaiseSkillPointsGained(string characterName, int amount) => SkillPointsGained?.Invoke(characterName, amount);
+    public static void RaiseAbilityChargesChanged(int slot, int charges, int max) => AbilityChargesChanged?.Invoke(slot, charges, max);
+    public static void RaiseBossAppeared(string message) => BossAppeared?.Invoke(message);
+    public static void RaiseBossHealthChanged(string name, int current, int max) => BossHealthChanged?.Invoke(name, current, max);
+    public static void RaiseBossDefeated(int treePoints) => BossDefeated?.Invoke(treePoints);
     public static void RaiseGameStarted() => GameStarted?.Invoke();
-    public static void RaiseGameOver(string message) => GameOver?.Invoke(message);
+    public static void RaiseGameOver(string message, GameOverCause cause) => GameOver?.Invoke(message, cause);
+    public static void RaiseXpEarned(int amount) => XpEarned?.Invoke(amount);
     public static void RaisePromptChanged(string message) => PromptChanged?.Invoke(message);
     public static void RaiseCharacterChanged(CharacterDefinition character) => CharacterChanged?.Invoke(character);
     public static void RaiseResourceModeChanged(bool usesMana) => ResourceModeChanged?.Invoke(usesMana);

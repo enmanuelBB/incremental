@@ -7,6 +7,6 @@ public class BaseHealth : Health
 
     protected override void OnDeath()
     {
-        GameEvents.RaiseGameOver("¡Han destruido la base!");
+        GameEvents.RaiseGameOver("¡Han destruido la base!", GameOverCause.BaseDestroyed);
     }
 }

@@ -25,6 +25,31 @@ public class AbilitySlotUI : MonoBehaviour
     [SerializeField, Tooltip("Círculo que se va llenando")]
     private Color fillColor = new Color(0.3f, 0.62f, 1f, 0.6f);
 
+    private TMP_Text chargesText;
+
+    /// <summary>Cargas disponibles de una habilidad que se lanza varias veces seguidas. Con una sola carga no se muestra nada.</summary>
+    public void SetCharges(int available, int max)
+    {
+        if (max <= 1)
+        {
+            if (chargesText != null) chargesText.gameObject.SetActive(false);
+            return;
+        }
+
+        if (chargesText == null)
+        {
+            chargesText = UiKit.Label("Charges", iconImage.transform, "", 26f, TextAlignmentOptions.BottomRight, Color.white);
+            UiKit.Place(chargesText.rectTransform, new Vector2(1f, 0f), new Vector2(-4f, 2f), new Vector2(70f, 34f));
+            chargesText.fontStyle = FontStyles.Bold;
+            chargesText.outlineWidth = 0.25f;
+            chargesText.outlineColor = new Color32(10, 10, 20, 255);
+        }
+
+        chargesText.gameObject.SetActive(true);
+        chargesText.text = "x" + available;
+        chargesText.color = available > 0 ? UiKit.Gold : new Color(1f, 0.4f, 0.4f);
+    }
+
     /// <param name="icon">Icono de la habilidad; si es null se deja el que ya tenga la casilla.</param>
     /// <param name="key">Texto de la tecla que se muestra debajo (por ejemplo "Q").</param>
     public void Show(Sprite icon, string key)

@@ -1,0 +1,252 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: Alucard_Tree
+  m_EditorClassIdentifier: Game.Core::SkillTreeDefinition
+  id: alucard_tree
+  nodes:
+  - id: core
+    displayName: Sed de sangre
+    description: "+5% de da\xF1o con las balas."
+    cost: 1
+    position: {x: 0, y: 0}
+    connections:
+    - v1
+    - s1
+    - d1
+    isRoot: 1
+    effects:
+    - type: 2
+      value: 0.05
+  - id: v1
+    displayName: Vitalidad I
+    description: "+5 de vida m\xE1xima."
+    cost: 1
+    position: {x: -1.3, y: 0.9}
+    connections:
+    - core
+    - q1
+    - v2
+    isRoot: 0
+    effects:
+    - type: 0
+      value: 5
+  - id: s1
+    displayName: Zancada I
+    description: +4% de velocidad de movimiento.
+    cost: 1
+    position: {x: 1.3, y: 0.9}
+    connections:
+    - core
+    - e1
+    - s2
+    isRoot: 0
+    effects:
+    - type: 1
+      value: 0.04
+  - id: d1
+    displayName: Pulso I
+    description: "+10% de da\xF1o con las balas."
+    cost: 1
+    position: {x: 0, y: -1.3}
+    connections:
+    - core
+    - f1
+    - f2
+    - d2
+    - d3
+    isRoot: 0
+    effects:
+    - type: 2
+      value: 0.1
+  - id: q1
+    displayName: Bala gemela (Q)
+    description: El disparo pesado lanza 2 balas en vez de 1.
+    cost: 3
+    position: {x: -2.8, y: 1.4}
+    connections:
+    - v1
+    - q2
+    isRoot: 0
+    effects:
+    - type: 3
+      value: 1
+  - id: q2
+    displayName: Doble carga (Q)
+    description: El disparo pesado se puede lanzar 2 veces seguidas.
+    cost: 4
+    position: {x: -4.2, y: 1.4}
+    connections:
+    - q1
+    - q3
+    - q4
+    isRoot: 0
+    effects:
+    - type: 4
+      value: 1
+  - id: q3
+    displayName: Triple carga (Q)
+    description: El disparo pesado se puede lanzar 3 veces seguidas.
+    cost: 6
+    position: {x: -5.6, y: 1.4}
+    connections:
+    - q2
+    isRoot: 0
+    effects:
+    - type: 4
+      value: 1
+  - id: q4
+    displayName: Recarga veloz (Q)
+    description: "El disparo pesado se recarga 1,5 s m\xE1s r\xE1pido."
+    cost: 3
+    position: {x: -4.2, y: 0.1}
+    connections:
+    - q2
+    - v2
+    isRoot: 0
+    effects:
+    - type: 5
+      value: 1.5
+  - id: v2
+    displayName: Vitalidad II
+    description: "+5 de vida m\xE1xima."
+    cost: 2
+    position: {x: -2.8, y: 0.1}
+    connections:
+    - v1
+    - q4
+    - d2
+    isRoot: 0
+    effects:
+    - type: 0
+      value: 5
+  - id: e1
+    displayName: Filo de niebla (E)
+    description: Al atravesar a un enemigo, la niebla le deja 2 pilas de sangrado.
+    cost: 3
+    position: {x: 2.8, y: 1.4}
+    connections:
+    - s1
+    - e2
+    isRoot: 0
+    effects:
+    - type: 6
+      value: 2
+  - id: e2
+    displayName: Escarcha (E)
+    description: "Los enemigos que atraviesas se mueven un 30% m\xE1s lento durante 2 s."
+    cost: 3
+    position: {x: 4.2, y: 1.4}
+    connections:
+    - e1
+    - e3
+    - e4
+    isRoot: 0
+    effects:
+    - type: 7
+      value: 0.3
+  - id: e3
+    displayName: Niebla densa (E)
+    description: "La niebla dura 1 s m\xE1s."
+    cost: 4
+    position: {x: 5.6, y: 1.4}
+    connections:
+    - e2
+    isRoot: 0
+    effects:
+    - type: 8
+      value: 1
+  - id: e4
+    displayName: "Disipaci\xF3n (E)"
+    description: "La niebla se recarga 2 s m\xE1s r\xE1pido."
+    cost: 3
+    position: {x: 4.2, y: 0.1}
+    connections:
+    - e2
+    - s2
+    isRoot: 0
+    effects:
+    - type: 9
+      value: 2
+  - id: s2
+    displayName: Zancada II
+    description: +4% de velocidad de movimiento.
+    cost: 2
+    position: {x: 2.8, y: 0.1}
+    connections:
+    - s1
+    - e4
+    - d3
+    isRoot: 0
+    effects:
+    - type: 1
+      value: 0.04
+  - id: f1
+    displayName: Sangre prolongada (F)
+    description: "R\xEDo de sangre dura 1,5 s m\xE1s."
+    cost: 4
+    position: {x: -1.4, y: -2.5}
+    connections:
+    - d1
+    - f3
+    isRoot: 0
+    effects:
+    - type: 10
+      value: 1.5
+  - id: f2
+    displayName: "Frenes\xED (F)"
+    description: "R\xEDo de sangre se recarga 8 s m\xE1s r\xE1pido."
+    cost: 5
+    position: {x: 1.4, y: -2.5}
+    connections:
+    - d1
+    - f3
+    isRoot: 0
+    effects:
+    - type: 11
+      value: 8
+  - id: f3
+    displayName: Sed eterna (F)
+    description: "+15 puntos de robo de vida durante R\xEDo de sangre."
+    cost: 6
+    position: {x: 0, y: -3.6}
+    connections:
+    - f1
+    - f2
+    isRoot: 0
+    effects:
+    - type: 12
+      value: 0.15
+  - id: d2
+    displayName: Pulso II
+    description: "+10% de da\xF1o con las balas."
+    cost: 2
+    position: {x: -2.8, y: -1.3}
+    connections:
+    - d1
+    - v2
+    isRoot: 0
+    effects:
+    - type: 2
+      value: 0.1
+  - id: d3
+    displayName: Pulso III
+    description: "+10% de da\xF1o con las balas."
+    cost: 2
+    position: {x: 2.8, y: -1.3}
+    connections:
+    - d1
+    - s2
+    isRoot: 0
+    effects:
+    - type: 2
+      value: 0.1

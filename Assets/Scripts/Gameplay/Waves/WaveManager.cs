@@ -11,7 +11,10 @@ public class WaveManager : MonoBehaviour
     public static WaveManager Instance { get; private set; }
 
     [SerializeField] private WaveSet waveSet;
-    [SerializeField] private Transform[] spawnPoints;
+    [SerializeField, Tooltip("Zona donde aparecen los enemigos, dispersos. Si está vacía se usan los puntos de abajo")]
+    private SpawnZone spawnZone;
+    [SerializeField, Tooltip("Puntos fijos de aparición (se usan solo si no hay zona)")]
+    private Transform[] spawnPoints;
 
     [Header("Ritmo")]
     [SerializeField] private float timeBetweenWaves = 5f;
@@ -55,9 +58,10 @@ public class WaveManager : MonoBehaviour
     public void BeginGame()
     {
         if (HasStarted) return;
-        if (waveSet == null || waveSet.waves == null || waveSet.waves.Length == 0 || spawnPoints == null || spawnPoints.Length == 0)
+        bool hasSpawn = spawnZone != null || (spawnPoints != null && spawnPoints.Length > 0);
+        if (waveSet == null || waveSet.waves == null || waveSet.waves.Length == 0 || !hasSpawn)
         {
-            Debug.LogError("WaveManager necesita un WaveSet con al menos una oleada y un punto de spawn.", this);
+            Debug.LogError("WaveManager necesita un WaveSet con al menos una oleada y una zona o un punto de spawn.", this);
             return;
         }
 
@@ -66,7 +70,7 @@ public class WaveManager : MonoBehaviour
         waveRoutine = StartCoroutine(StartWave());
     }
 
-    private void OnGameOver(string message)
+    private void OnGameOver(string message, GameOverCause cause)
     {
         StopAllCoroutines();
         waveActive = false;
@@ -79,6 +83,9 @@ public class WaveManager : MonoBehaviour
         GameEvents.RaiseWaveStarted(currentWave + 1);
 
         WavePlan plan = WaveBuilder.Build(waveSet, currentWave);
+
+        // El jefe sale al inicio de su oleada, por el centro de la zona; los enemigos normales son su escolta.
+        if (plan.Boss != null) SpawnBoss(plan.Boss, plan.HealthScale);
 
         currentGroups = WaveBuilder.Merge(plan.Groups, pendingCarryOver);
         pendingCarryOver.Clear();
@@ -99,12 +106,31 @@ public class WaveManager : MonoBehaviour
         TryCompleteWave();
     }
 
+    private void SpawnBoss(EnemyDefinition boss, float healthScale)
+    {
+        Vector3 position = spawnZone != null ? spawnZone.CenterPoint() : spawnPoints[spawnPoints.Length / 2].position;
+
+        EnemyPool.Instance.Spawn(boss, position, healthScale);
+        enemiesAlive++;
+    }
+
+    /// <summary>Un enemigo que aparece por una habilidad de jefe (invocar): cuenta para cerrar la oleada.</summary>
+    public void RegisterSummoned() => enemiesAlive++;
+
     private void SpawnEnemy(EnemyDefinition enemy, float healthScale)
     {
-        Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
-        Vector3 randomOffset = new Vector3(Random.Range(-1f, 1f), 0f, Random.Range(-1f, 1f));
+        Vector3 position;
+        if (spawnZone != null)
+        {
+            position = spawnZone.RandomPoint();
+        }
+        else
+        {
+            Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
+            position = spawnPoint.position + new Vector3(Random.Range(-1f, 1f), 0f, Random.Range(-1f, 1f));
+        }
 
-        EnemyPool.Instance.Spawn(enemy, spawnPoint.position + randomOffset, healthScale);
+        EnemyPool.Instance.Spawn(enemy, position, healthScale);
         enemiesAlive++;
     }
 

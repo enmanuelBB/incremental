@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -16,7 +17,11 @@ public class PlayerAbilities : MonoBehaviour
     private static readonly Color ArmorTint = new Color(0.65f, 0.04f, 0.06f);
 
     private readonly AbilityDefinition[] slots = new AbilityDefinition[GameInput.AbilitySlots];
-    private readonly AbilityCooldown[] cooldowns = CreateCooldowns();
+    private readonly AbilityCharges[] charges = CreateCharges();
+    private readonly float[] nextCastAllowed = new float[GameInput.AbilitySlots];
+    private readonly int[] publishedCharges = new int[GameInput.AbilitySlots];
+    private readonly HashSet<EnemyAI> mistTouched = new HashSet<EnemyAI>();
+    private readonly HashSet<Collider> mistIgnored = new HashSet<Collider>();
     private readonly TimedEffect mist = new TimedEffect();
     private readonly TimedEffect ultimate = new TimedEffect();
     private readonly Collider[] overlapBuffer = new Collider[64];
@@ -27,6 +32,7 @@ public class PlayerAbilities : MonoBehaviour
     private Shooting shooting;
     private PlayerHealth health;
     private PlayerMovement movement;
+    private Collider bodyCollider;
     private ParticleSystem mistVfx;
     private GameObject river;
     private AbilityDefinition ultimateDef;
@@ -35,12 +41,23 @@ public class PlayerAbilities : MonoBehaviour
     private float riverNextTick;
     private bool combatStarted;
 
-    private static AbilityCooldown[] CreateCooldowns()
+    // Pausa mínima entre dos lanzamientos seguidos de una habilidad con varias cargas.
+    private const float ConsecutiveCastGap = 0.35f;
+    // Separación entre las balas de un disparo pesado con balas extra.
+    private const float HeavyBulletSpacing = 0.12f;
+    // Niebla: a esta distancia se ignoran las colisiones con los enemigos; a la segunda se les aplica el efecto.
+    private const float MistIgnoreRadius = 3f;
+    private const float MistTouchRadius = 1.2f;
+
+    private static AbilityCharges[] CreateCharges()
     {
-        var result = new AbilityCooldown[GameInput.AbilitySlots];
-        for (int i = 0; i < result.Length; i++) result[i] = new AbilityCooldown();
+        var result = new AbilityCharges[GameInput.AbilitySlots];
+        for (int i = 0; i < result.Length; i++) result[i] = new AbilityCharges();
         return result;
     }
+
+    private static TreeBonuses Bonuses =>
+        SkillTreeManager.Instance != null ? SkillTreeManager.Instance.Bonuses : TreeBonuses.None;
 
     /// <summary>Verdadero mientras es niebla: no puede disparar ni lanzar otras habilidades.</summary>
     public bool IsMist => mist.IsActive(Time.time);
@@ -52,6 +69,7 @@ public class PlayerAbilities : MonoBehaviour
         shooting = GetComponent<Shooting>();
         health = GetComponent<PlayerHealth>();
         movement = GetComponent<PlayerMovement>();
+        bodyCollider = GetComponent<Collider>();
         block = new MaterialPropertyBlock();
     }
 
@@ -78,8 +96,45 @@ public class PlayerAbilities : MonoBehaviour
         {
             bool hasOne = character != null && character.abilities != null && i < character.abilities.Length;
             slots[i] = hasOne ? character.abilities[i] : null;
-            cooldowns[i].Reset();
         }
+
+        RefreshBuild();
+    }
+
+    /// <summary>
+    /// Reconfigura las cargas y los enfriamientos de cada casilla con el rango y los bonos del árbol. Se llama al
+    /// cambiar de personaje y al comprar o reiniciar algo (siempre antes de la primera oleada), y deja todo listo.
+    /// </summary>
+    public void RefreshBuild()
+    {
+        TreeBonuses bonuses = Bonuses;
+        float now = Time.time;
+
+        for (int i = 0; i < slots.Length; i++)
+        {
+            AbilityDefinition ability = slots[i];
+            int rank = Mathf.Max(1, RankOf(i));
+            int max = ability != null && ability.kind == AbilityKind.HeavyShot ? 1 + bonuses.HeavyShotExtraCharges : 1;
+            float cooldown = ability != null ? EffectiveCooldown(ability, rank, bonuses) : 1f;
+
+            charges[i].Configure(max, cooldown, now);
+            nextCastAllowed[i] = 0f;
+            publishedCharges[i] = max;
+            GameEvents.RaiseAbilityChargesChanged(i, max, max);
+        }
+    }
+
+    // Enfriamiento del rango menos lo que da el árbol; nunca baja de 1 s.
+    private static float EffectiveCooldown(AbilityDefinition ability, int rank, TreeBonuses bonuses)
+    {
+        float reduction = 0f;
+        switch (ability.kind)
+        {
+            case AbilityKind.HeavyShot: reduction = bonuses.HeavyShotCooldownReduction; break;
+            case AbilityKind.Mist: reduction = bonuses.MistCooldownReduction; break;
+            case AbilityKind.Ultimate: reduction = bonuses.UltCooldownReduction; break;
+        }
+        return Mathf.Max(1f, ability.CooldownAt(rank) - reduction);
     }
 
     public bool HasAbility(int slot) => slots[slot] != null;
@@ -113,6 +168,8 @@ public class PlayerAbilities : MonoBehaviour
         if (mist.TryFinish(now)) EndMist();
         if (ultimate.TryFinish(now)) EndUltimate();
         if (ultimate.IsActive(now)) TickRiver(now);
+        if (mist.IsActive(now)) TickMist();
+        PublishChargeChanges(now);
 
         if (!combatStarted || GameState.InputBlocked || mist.IsActive(now)) return;
 
@@ -123,11 +180,27 @@ public class PlayerAbilities : MonoBehaviour
         }
     }
 
+    // Con varias cargas, el HUD muestra cuántas quedan y se actualiza solo al recuperar una.
+    private void PublishChargeChanges(float now)
+    {
+        for (int i = 0; i < slots.Length; i++)
+        {
+            if (charges[i].Max <= 1) continue;
+
+            int available = charges[i].Available(now);
+            if (available == publishedCharges[i]) continue;
+
+            publishedCharges[i] = available;
+            GameEvents.RaiseAbilityChargesChanged(i, available, charges[i].Max);
+        }
+    }
+
     private void TryCast(int slot)
     {
         AbilityDefinition ability = slots[slot];
         int rank = RankOf(slot);
-        if (rank < 1 || !cooldowns[slot].IsReady(Time.time)) return;
+        float now = Time.time;
+        if (rank < 1 || now < nextCastAllowed[slot] || charges[slot].Available(now) <= 0) return;
 
         bool cast;
         switch (ability.kind)
@@ -140,15 +213,43 @@ public class PlayerAbilities : MonoBehaviour
 
         if (!cast) return;
 
-        float cooldown = ability.CooldownAt(rank);
-        cooldowns[slot].Start(Time.time, cooldown);
-        GameEvents.RaiseAbilityUsed(slot, Time.time + cooldown);
+        charges[slot].TryUse(now);
+
+        int left = charges[slot].Available(now);
+        bool chained = charges[slot].Max > 1;
+        nextCastAllowed[slot] = chained ? now + ConsecutiveCastGap : 0f;
+        publishedCharges[slot] = left;
+
+        // Si quedan cargas, el HUD solo muestra la pausa corta entre lanzamientos; si no, lo que falta para recargar una.
+        float readyAt = left > 0 ? now + ConsecutiveCastGap : now + charges[slot].RechargeRemaining(now);
+        GameEvents.RaiseAbilityUsed(slot, readyAt);
+        if (chained) GameEvents.RaiseAbilityChargesChanged(slot, left, charges[slot].Max);
     }
 
     // --- Disparo pesado ---
 
-    // Una bala enorme contra lo primero que haya en la mira. No gasta munición.
+    // Una bala enorme contra lo primero que haya en la mira. No gasta munición. Con balas extra del árbol salen
+    // varias, una tras otra, cada una con su daño y su sangrado.
     private bool CastHeavyShot(AbilityDefinition ability, int rank)
+    {
+        FireHeavyBullet(ability, rank);
+
+        int extra = Bonuses.HeavyShotExtraBullets;
+        if (extra > 0) StartCoroutine(HeavyBurst(ability, rank, extra));
+        return true;
+    }
+
+    private IEnumerator HeavyBurst(AbilityDefinition ability, int rank, int extra)
+    {
+        for (int i = 0; i < extra; i++)
+        {
+            yield return new WaitForSeconds(HeavyBulletSpacing);
+            if (GameState.IsGameOver) yield break;
+            FireHeavyBullet(ability, rank);
+        }
+    }
+
+    private void FireHeavyBullet(AbilityDefinition ability, int rank)
     {
         int bullet = shooting.CurrentWeapon.Damage;
 
@@ -156,16 +257,15 @@ public class PlayerAbilities : MonoBehaviour
         Vector3 end = found ? hit.point : shooting.AimRay().GetPoint(ability.range);
         shooting.ShowBolt(end, HeavyShotColor, 0.2f, 0.18f);
 
-        if (!found) return true;
+        if (!found) return;
 
         EnemyAI enemy = hit.collider.GetComponentInParent<EnemyAI>();
-        if (enemy == null) return true;
+        if (enemy == null) return;
 
         int damage = ability.DamageFor(bullet, rank);
         enemy.TakeDamage(damage);
         enemy.ApplyBleed(ability.bleedStacks, shooting.BleedCap, BleedStacks.DamagePerStack(bullet));
         HealFromDamage(damage);
-        return true;
     }
 
     // --- Niebla ---
@@ -174,7 +274,8 @@ public class PlayerAbilities : MonoBehaviour
     private bool CastMist(AbilityDefinition ability, int rank)
     {
         mistDef = ability;
-        mist.Start(Time.time, ability.DurationAt(rank));
+        mist.Start(Time.time, ability.DurationAt(rank) + Bonuses.MistDurationBonus);
+        mistTouched.Clear();
 
         health.Invulnerable = true;
         movement.SpeedMultiplier = ability.SpeedMultiplierAt(rank);
@@ -190,8 +291,47 @@ public class PlayerAbilities : MonoBehaviour
         return true;
     }
 
+    // Mientras es niebla atraviesa a los enemigos cercanos y, la primera vez que toca a cada uno, le deja el sangrado
+    // y la ralentización que dé el árbol.
+    private void TickMist()
+    {
+        if (mistDef == null) return;
+
+        TreeBonuses bonuses = Bonuses;
+        int perStack = BleedStacks.DamagePerStack(shooting.CurrentWeapon.Damage);
+
+        CollectEnemies(transform.position, MistIgnoreRadius, null);
+        foreach (EnemyAI enemy in nearby)
+        {
+            Collider body = enemy.GetComponent<Collider>();
+            if (body != null && bodyCollider != null && mistIgnored.Add(body))
+                Physics.IgnoreCollision(bodyCollider, body, true);
+
+            Vector3 offset = enemy.transform.position - transform.position;
+            offset.y = 0f;
+            if (offset.magnitude > MistTouchRadius || !mistTouched.Add(enemy)) continue;
+
+            if (bonuses.MistBleedOnPass > 0) enemy.ApplyBleed(bonuses.MistBleedOnPass, shooting.BleedCap, perStack);
+            if (bonuses.MistSlow > 0f) enemy.ApplySlow(bonuses.MistSlow, mistDef.mistSlowSeconds);
+        }
+    }
+
+    // Devuelve las colisiones con los enemigos. Los que ya murieron y están desactivados se arreglan solos al
+    // reaparecer (EnemyAI.Spawn).
+    private void RestoreMistCollisions()
+    {
+        foreach (Collider body in mistIgnored)
+        {
+            if (body != null && bodyCollider != null && body.gameObject.activeInHierarchy)
+                Physics.IgnoreCollision(bodyCollider, body, false);
+        }
+        mistIgnored.Clear();
+        mistTouched.Clear();
+    }
+
     private void EndMist()
     {
+        RestoreMistCollisions();
         if (health != null) health.Invulnerable = false;
         if (movement != null) movement.SpeedMultiplier = 1f;
         if (mistVfx != null) mistVfx.Stop(true, ParticleSystemStopBehavior.StopEmitting);
@@ -206,7 +346,7 @@ public class PlayerAbilities : MonoBehaviour
     {
         ultimateDef = ability;
         ultimateRank = rank;
-        ultimate.Start(Time.time, ability.DurationAt(rank));
+        ultimate.Start(Time.time, ability.DurationAt(rank) + Bonuses.UltDurationBonus);
         riverNextTick = Time.time + ability.riverTickSeconds;
 
         if (river != null) Destroy(river);
@@ -292,7 +432,8 @@ public class PlayerAbilities : MonoBehaviour
     {
         if (!UltimateActive || ultimateDef == null) return;
 
-        health.Heal(ultimateDef.LifeStealFor(damage, ultimateRank));
+        float fraction = Mathf.Clamp01(ultimateDef.LifeStealAt(ultimateRank) + Bonuses.UltLifeStealBonus);
+        health.Heal(Mathf.Max(0, Mathf.RoundToInt(damage * fraction)));
     }
 
     // --- Ayudas ---
