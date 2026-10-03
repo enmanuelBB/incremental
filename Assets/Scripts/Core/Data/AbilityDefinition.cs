@@ -56,8 +56,45 @@ public class AbilityDefinition : GameDefinition
     [Min(0.1f), Tooltip("Cada cuántos segundos el río de sangre suma pilas a los enemigos dentro del radio")]
     public float riverTickSeconds = 2f;
 
-    /// <summary>Vida que se recupera por un daño directo (50% con la definitiva).</summary>
-    public int LifeStealFor(int damage) => Mathf.Max(0, Mathf.RoundToInt(damage * lifeSteal));
+    [Header("Mejoras por rango (cada rango sobre el 1.º)")]
+    [Tooltip("Segundos que baja el enfriamiento por cada rango extra")]
+    public float cooldownPerRank = 0f;
+    [Tooltip("Disparo pesado: cuánto sube el multiplicador de daño por rango")]
+    public float damagePerRank = 0f;
+    [Tooltip("Niebla y definitiva: segundos extra de duración por rango")]
+    public float durationPerRank = 0f;
+    [Tooltip("Niebla: cuánto sube el multiplicador de velocidad por rango (0,1 = +10%)")]
+    public float speedPerRank = 0f;
+    [Tooltip("Definitiva: cuánto sube el robo de vida por rango (0,1 = +10 puntos)")]
+    public float lifeStealPerRank = 0f;
+
+    private static int Steps(int rank) => Mathf.Max(0, rank - 1);
+
+    public float CooldownAt(int rank) => Mathf.Max(0.1f, cooldown - Steps(rank) * cooldownPerRank);
+    public float DamageMultiplierAt(int rank) => damageMultiplier + Steps(rank) * damagePerRank;
+    public float DurationAt(int rank) => duration + Steps(rank) * durationPerRank;
+    public float SpeedMultiplierAt(int rank) => speedMultiplier + Steps(rank) * speedPerRank;
+    public float LifeStealAt(int rank) => Mathf.Clamp01(lifeSteal + Steps(rank) * lifeStealPerRank);
+
+    /// <summary>Texto corto de lo que hace la habilidad en un rango (para la estación de mejoras).</summary>
+    public string DescribeRank(int rank)
+    {
+        if (rank < 1) return "Sin aprender";
+
+        string cd = CooldownAt(rank).ToString("0.#") + " s de enfriamiento";
+        switch (kind)
+        {
+            case AbilityKind.HeavyShot:
+                return "Daño x" + DamageMultiplierAt(rank).ToString("0.#") + " · " + cd;
+            case AbilityKind.Mist:
+                return DurationAt(rank).ToString("0.#") + " s · velocidad +" + Mathf.RoundToInt((SpeedMultiplierAt(rank) - 1f) * 100f) + "% · " + cd;
+            default:
+                return DurationAt(rank).ToString("0.#") + " s · robo de vida " + Mathf.RoundToInt(LifeStealAt(rank) * 100f) + "% · " + cd;
+        }
+    }
+
+    /// <summary>Vida que se recupera por un daño directo (50% con la definitiva en rango 1).</summary>
+    public int LifeStealFor(int damage, int rank = 1) => Mathf.Max(0, Mathf.RoundToInt(damage * LifeStealAt(rank)));
 
     /// <summary>Daño que reciben los vecinos de la explosión (mínimo 1).</summary>
     public int ExplosionDamageFor(int bulletDamage) => Mathf.Max(1, Mathf.RoundToInt(bulletDamage * explosionFraction));
@@ -66,6 +103,6 @@ public class AbilityDefinition : GameDefinition
     public int BoostedBleed(int stacksPerHit) => Mathf.Max(0, Mathf.RoundToInt(stacksPerHit * bleedMultiplier));
 
     /// <summary>Daño de la habilidad a partir del daño de una bala del arma equipada (mínimo 1).</summary>
-    public int DamageFor(int bulletDamage) =>
-        Mathf.Max(1, Mathf.RoundToInt(bulletDamage * damageMultiplier));
+    public int DamageFor(int bulletDamage, int rank = 1) =>
+        Mathf.Max(1, Mathf.RoundToInt(bulletDamage * DamageMultiplierAt(rank)));
 }

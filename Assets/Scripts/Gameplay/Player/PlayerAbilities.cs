@@ -31,6 +31,7 @@ public class PlayerAbilities : MonoBehaviour
     private GameObject river;
     private AbilityDefinition ultimateDef;
     private AbilityDefinition mistDef;
+    private int ultimateRank = 1;
     private float riverNextTick;
     private bool combatStarted;
 
@@ -83,13 +84,22 @@ public class PlayerAbilities : MonoBehaviour
 
     public bool HasAbility(int slot) => slots[slot] != null;
 
-    /// <summary>Lo que el HUD dibuja en cada casilla (vacía si el personaje no tiene esa habilidad).</summary>
+    /// <summary>Rango que el personaje activo tiene en la habilidad de esa casilla (0 = sin aprender). Sale del guardado.</summary>
+    public int RankOf(int slot)
+    {
+        CharacterDefinition character = shooting.Character;
+        if (character == null || slots[slot] == null) return 0;
+
+        return SaveSystem.Data.GetCharacter(character.Id).abilityRanks[slot];
+    }
+
+    /// <summary>Lo que el HUD dibuja en cada casilla (vacía si no hay habilidad o todavía no se aprendió).</summary>
     public AbilityHudInfo[] HudInfo()
     {
         var info = new AbilityHudInfo[slots.Length];
         for (int i = 0; i < slots.Length; i++)
         {
-            if (slots[i] == null) continue;
+            if (slots[i] == null || RankOf(i) < 1) continue;
             info[i] = new AbilityHudInfo { Name = slots[i].abilityName, Icon = slots[i].icon };
         }
         return info;
@@ -116,27 +126,29 @@ public class PlayerAbilities : MonoBehaviour
     private void TryCast(int slot)
     {
         AbilityDefinition ability = slots[slot];
-        if (!cooldowns[slot].IsReady(Time.time)) return;
+        int rank = RankOf(slot);
+        if (rank < 1 || !cooldowns[slot].IsReady(Time.time)) return;
 
         bool cast;
         switch (ability.kind)
         {
-            case AbilityKind.HeavyShot: cast = CastHeavyShot(ability); break;
-            case AbilityKind.Mist: cast = CastMist(ability); break;
-            case AbilityKind.Ultimate: cast = CastUltimate(ability); break;
+            case AbilityKind.HeavyShot: cast = CastHeavyShot(ability, rank); break;
+            case AbilityKind.Mist: cast = CastMist(ability, rank); break;
+            case AbilityKind.Ultimate: cast = CastUltimate(ability, rank); break;
             default: cast = false; break;
         }
 
         if (!cast) return;
 
-        cooldowns[slot].Start(Time.time, ability.cooldown);
-        GameEvents.RaiseAbilityUsed(slot, Time.time + ability.cooldown);
+        float cooldown = ability.CooldownAt(rank);
+        cooldowns[slot].Start(Time.time, cooldown);
+        GameEvents.RaiseAbilityUsed(slot, Time.time + cooldown);
     }
 
     // --- Disparo pesado ---
 
     // Una bala enorme contra lo primero que haya en la mira. No gasta munición.
-    private bool CastHeavyShot(AbilityDefinition ability)
+    private bool CastHeavyShot(AbilityDefinition ability, int rank)
     {
         int bullet = shooting.CurrentWeapon.Damage;
 
@@ -149,7 +161,7 @@ public class PlayerAbilities : MonoBehaviour
         EnemyAI enemy = hit.collider.GetComponentInParent<EnemyAI>();
         if (enemy == null) return true;
 
-        int damage = ability.DamageFor(bullet);
+        int damage = ability.DamageFor(bullet, rank);
         enemy.TakeDamage(damage);
         enemy.ApplyBleed(ability.bleedStacks, shooting.BleedCap, BleedStacks.DamagePerStack(bullet));
         HealFromDamage(damage);
@@ -159,13 +171,13 @@ public class PlayerAbilities : MonoBehaviour
     // --- Niebla ---
 
     // Invulnerable y más rápido unos segundos; no puede disparar ni usar otras habilidades. Sangra a los cercanos.
-    private bool CastMist(AbilityDefinition ability)
+    private bool CastMist(AbilityDefinition ability, int rank)
     {
         mistDef = ability;
-        mist.Start(Time.time, ability.duration);
+        mist.Start(Time.time, ability.DurationAt(rank));
 
         health.Invulnerable = true;
-        movement.SpeedMultiplier = ability.speedMultiplier;
+        movement.SpeedMultiplier = ability.SpeedMultiplierAt(rank);
 
         if (mistVfx == null) mistVfx = AbilityVfx.CreateMist(transform);
         mistVfx.Play();
@@ -190,10 +202,11 @@ public class PlayerAbilities : MonoBehaviour
     // --- Definitiva ---
 
     // Armadura roja, río de sangre, robo de vida y disparos con explosión mientras dura.
-    private bool CastUltimate(AbilityDefinition ability)
+    private bool CastUltimate(AbilityDefinition ability, int rank)
     {
         ultimateDef = ability;
-        ultimate.Start(Time.time, ability.duration);
+        ultimateRank = rank;
+        ultimate.Start(Time.time, ability.DurationAt(rank));
         riverNextTick = Time.time + ability.riverTickSeconds;
 
         if (river != null) Destroy(river);
@@ -279,7 +292,7 @@ public class PlayerAbilities : MonoBehaviour
     {
         if (!UltimateActive || ultimateDef == null) return;
 
-        health.Heal(ultimateDef.LifeStealFor(damage));
+        health.Heal(ultimateDef.LifeStealFor(damage, ultimateRank));
     }
 
     // --- Ayudas ---

@@ -166,7 +166,11 @@ public class CharacterSelectUI : MenuPanel
         switch (CharacterRules.StatusOf(browsed, SaveSystem.Data))
         {
             case CharacterStatus.Unlocked:
-                if (manager.TrySelect(browsed)) Close();
+                if (manager.TrySelect(browsed))
+                {
+                    Close();
+                    if (AbilityShopUI.Instance != null) AbilityShopUI.Instance.OpenIfFirstChoice();
+                }
                 break;
 
             case CharacterStatus.Locked:

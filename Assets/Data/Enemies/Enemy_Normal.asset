@@ -19,6 +19,7 @@ MonoBehaviour:
   speed: 2
   maxHealth: 30
   moneyReward: 10
+  xpReward: 10
   damageToBase: 10
   damageToPlayer: 10
   damageInterval: 1

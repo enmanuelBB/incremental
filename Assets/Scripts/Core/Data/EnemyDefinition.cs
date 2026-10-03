@@ -18,6 +18,8 @@ public class EnemyDefinition : GameDefinition
     public float speed = 2f;
     public int maxHealth = 30;
     public int moneyReward = 10;
+    [Tooltip("Experiencia que da al morir (la gana el personaje que se está jugando)")]
+    public int xpReward = 10;
 
     [Header("Ataque")]
     public int damageToBase = 10;

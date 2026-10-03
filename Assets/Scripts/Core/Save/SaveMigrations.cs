@@ -34,17 +34,25 @@ public static class SaveMigrations
         public int version;
     }
 
+    /// <summary>Versión del formato que declara el JSON (0 si no trae el campo: formato original).</summary>
+    public static int ReadVersion(string json)
+    {
+        VersionProbe probe = JsonUtility.FromJson<VersionProbe>(json);
+        return probe != null ? probe.version : 0;
+    }
+
     /// <summary>Lee el JSON, lo migra hasta la versión actual y lo valida.</summary>
     public static SaveData Parse(string json, out bool migrated)
     {
-        VersionProbe probe = JsonUtility.FromJson<VersionProbe>(json);
-        int version = probe != null ? probe.version : 0;
+        int version = ReadVersion(json);
 
         if (version > SaveData.CurrentVersion) throw new NewerSaveVersionException(version);
 
         migrated = version < SaveData.CurrentVersion;
 
-        SaveData data = migrated
+        // v1 (sin versión) tiene otra forma. v2 y v3 comparten forma: la v3 solo agrega campos de progresión,
+        // que JsonUtility deja en su valor inicial (nivel 1, sin XP ni rangos) si el archivo no los trae.
+        SaveData data = version < 2
             ? FromV1(JsonUtility.FromJson<SaveDataV1>(json))
             : JsonUtility.FromJson<SaveData>(json);
 
@@ -80,7 +88,7 @@ public static class SaveMigrations
 
         foreach (CharacterSave character in data.characters)
         {
-            character.level = Mathf.Max(1, character.level);
+            character.NormalizeProgress();
             if (character.weapons == null) character.weapons = new List<WeaponSave>();
             foreach (WeaponSave weapon in character.weapons) weapon.Normalize();
         }

@@ -33,8 +33,9 @@ public class Shooting : MonoBehaviour
     private readonly RaycastHit[] hitBuffer = new RaycastHit[16];
     private PlayerAbilities abilities;
 
-    // Nivel de sangrado del personaje (sube el tope de pilas). Hasta la fase de progresión es siempre 1: tope de 5.
-    private const int BleedLevel = 1;
+    // Nivel de sangrado del personaje (sube el tope de pilas con puntos de personaje). Sale del guardado.
+    private int BleedLevel =>
+        character == null ? 1 : Mathf.Max(1, SaveSystem.Data.GetCharacter(character.Id).bleedLevel);
 
     /// <summary>Tope de pilas de sangrado por enemigo con el nivel de sangrado actual.</summary>
     public int BleedCap => BleedStacks.CapForLevel(BleedLevel);
@@ -387,6 +388,9 @@ public class Shooting : MonoBehaviour
         lastPublishedMana = whole;
         GameEvents.RaiseManaChanged(mana.Current, mana.Max);
     }
+
+    /// <summary>Vuelve a dibujar las casillas de habilidad (al aprender una habilidad en la estación de mejoras).</summary>
+    public void RefreshAbilityHud() => GameEvents.RaiseAbilitiesChanged(BuildAbilityHud());
 
     private void PublishHud()
     {

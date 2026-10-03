@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 [Serializable]
 public class WeaponSave
@@ -25,7 +26,26 @@ public class CharacterSave
     public string id;
     public bool unlocked;
     public int level = 1;
+    [Tooltip("Experiencia acumulada hacia el siguiente nivel (no el total histórico)")]
+    public int xp;
+    [Tooltip("Rango de cada habilidad por casilla (0 = sin aprender)")]
+    public int[] abilityRanks = new int[Progression.AbilitySlots];
+    [Tooltip("Nivel de sangrado: el 1 es gratis; tope de pilas = 4 + nivel")]
+    public int bleedLevel = 1;
     public List<WeaponSave> weapons = new List<WeaponSave>();
+
+    /// <summary>Deja los datos de progresión dentro de rangos válidos (por ejemplo tras leer un guardado viejo o editado a mano).</summary>
+    public void NormalizeProgress()
+    {
+        level = Math.Max(1, Math.Min(Progression.MaxLevel, level));
+        xp = level >= Progression.MaxLevel ? 0 : Math.Max(0, Math.Min(xp, Progression.XpForNextLevel(level) - 1));
+        bleedLevel = Math.Max(1, Math.Min(Progression.MaxBleedLevel, bleedLevel));
+
+        if (abilityRanks == null) abilityRanks = new int[Progression.AbilitySlots];
+        else if (abilityRanks.Length != Progression.AbilitySlots) Array.Resize(ref abilityRanks, Progression.AbilitySlots);
+        for (int i = 0; i < abilityRanks.Length; i++)
+            abilityRanks[i] = Math.Max(0, Math.Min(Progression.MaxNormalRank, abilityRanks[i]));
+    }
 
     public WeaponSave GetWeapon(string weaponId)
     {
@@ -61,7 +81,7 @@ public class CharacterSave
 [Serializable]
 public class SaveData
 {
-    public const int CurrentVersion = 2;
+    public const int CurrentVersion = 3;
     public const string DefaultCharacterId = "alucard";
 
     public int version = CurrentVersion;

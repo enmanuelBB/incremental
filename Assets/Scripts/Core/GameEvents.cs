@@ -34,6 +34,19 @@ public struct AbilityHudInfo
     public bool HasAbility => !string.IsNullOrEmpty(Name);
 }
 
+/// <summary>Lo que la barra de experiencia necesita del personaje activo. XpNeeded = 0 en el nivel máximo.</summary>
+public struct XpInfo
+{
+    public string CharacterName;
+    public int Level;
+    public int Xp;
+    public int XpNeeded;
+    public int Points;
+
+    public bool IsMaxLevel => XpNeeded <= 0;
+    public float Fraction => IsMaxLevel ? 1f : Mathf.Clamp01((float)Xp / XpNeeded);
+}
+
 /// <summary>
 /// Canal de eventos del juego. Quien produce un dato lo publica aquí y quien lo
 /// necesita se suscribe (OnEnable) y se desuscribe (OnDisable), sin conocerse entre sí.
@@ -49,6 +62,9 @@ public static class GameEvents
     public static event Action<WeaponSlotInfo> WeaponSlotChanged; // estado de una arma (munición, si está comprada, si es la equipada)
     public static event Action<int> EnemyKilled;                // recompensa en dinero
     public static event Action<Vector3, int> BleedTick;         // posición sobre el enemigo y daño del tick de sangrado
+    public static event Action<int> XpGained;                   // experiencia ganada (la recibe el personaje activo)
+    public static event Action<XpInfo> XpChanged;               // estado de nivel/experiencia del personaje activo
+    public static event Action<string, int, int> LevelUp;       // nombre del personaje, nivel nuevo, puntos disponibles
     public static event Action GameStarted;
     public static event Action<string> GameOver;
     public static event Action<string> PromptChanged;           // texto del aviso; null o vacío lo oculta
@@ -67,6 +83,9 @@ public static class GameEvents
     public static void RaiseWeaponSlotChanged(WeaponSlotInfo slot) => WeaponSlotChanged?.Invoke(slot);
     public static void RaiseEnemyKilled(int reward) => EnemyKilled?.Invoke(reward);
     public static void RaiseBleedTick(Vector3 worldPosition, int damage) => BleedTick?.Invoke(worldPosition, damage);
+    public static void RaiseXpGained(int amount) => XpGained?.Invoke(amount);
+    public static void RaiseXpChanged(XpInfo info) => XpChanged?.Invoke(info);
+    public static void RaiseLevelUp(string characterName, int level, int points) => LevelUp?.Invoke(characterName, level, points);
     public static void RaiseGameStarted() => GameStarted?.Invoke();
     public static void RaiseGameOver(string message) => GameOver?.Invoke(message);
     public static void RaisePromptChanged(string message) => PromptChanged?.Invoke(message);

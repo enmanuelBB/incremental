@@ -107,6 +107,7 @@ public class EnemyAI : MonoBehaviour, IDamageable
         isDead = true;
         if (bleed != null) bleed.Clear();
         GameEvents.RaiseEnemyKilled(def.moneyReward);
+        GameEvents.RaiseXpGained(def.xpReward);
 
         if (pool != null) pool.Release(this);
         else gameObject.SetActive(false);

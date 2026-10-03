@@ -24,3 +24,13 @@ MonoBehaviour:
   speedMultiplier: 1.6
   radius: 3
   lifeSteal: 0.5
+  bleedMultiplier: 2
+  explosionRadius: 2.5
+  explosionFraction: 0.6
+  explosionBleedStacks: 2
+  riverTickSeconds: 2
+  cooldownPerRank: 0.75
+  damagePerRank: 1.5
+  durationPerRank: 0
+  speedPerRank: 0
+  lifeStealPerRank: 0

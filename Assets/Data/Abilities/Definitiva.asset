@@ -29,3 +29,8 @@ MonoBehaviour:
   explosionFraction: 0.6
   explosionBleedStacks: 2
   riverTickSeconds: 2
+  cooldownPerRank: 7.5
+  damagePerRank: 0
+  durationPerRank: 2
+  speedPerRank: 0
+  lifeStealPerRank: 0.1

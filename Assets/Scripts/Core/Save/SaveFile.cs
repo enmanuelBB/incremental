@@ -19,11 +19,12 @@ public static class SaveFile
 
     private static string BackupPath(string path) => path + ".bak";
     private static string TempPath(string path) => path + ".tmp";
-    private static string PreMigrationPath(string path) => Path.Combine(Path.GetDirectoryName(path), "save.v1.bak");
+    private static string PreMigrationPath(string path, int fromVersion) =>
+        Path.Combine(Path.GetDirectoryName(path), "save.v" + Math.Max(1, fromVersion) + ".bak");
 
     /// <summary>
     /// Lee el guardado. Si el principal está dañado prueba con el .bak. Si viene de un formato viejo,
-    /// guarda una única copia previa a la migración (save.v1.bak) que nunca se sobrescribe.
+    /// guarda una única copia previa a la migración (save.vN.bak, con N la versión de origen) que nunca se sobrescribe.
     /// </summary>
     public static ReadResult Read(string path)
     {
@@ -38,8 +39,9 @@ public static class SaveFile
 
             try
             {
-                SaveData data = SaveMigrations.Parse(File.ReadAllText(candidate), out bool migrated);
-                if (migrated) KeepPreMigrationCopy(path, candidate);
+                string text = File.ReadAllText(candidate);
+                SaveData data = SaveMigrations.Parse(text, out bool migrated);
+                if (migrated) KeepPreMigrationCopy(path, candidate, SaveMigrations.ReadVersion(text));
 
                 return new ReadResult
                 {
@@ -81,9 +83,9 @@ public static class SaveFile
             if (File.Exists(file)) File.Delete(file);
     }
 
-    private static void KeepPreMigrationCopy(string path, string source)
+    private static void KeepPreMigrationCopy(string path, string source, int fromVersion)
     {
-        string copy = PreMigrationPath(path);
+        string copy = PreMigrationPath(path, fromVersion);
         if (File.Exists(copy)) return;
 
         try { File.Copy(source, copy); }
