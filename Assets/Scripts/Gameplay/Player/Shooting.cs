@@ -134,6 +134,13 @@ public class Shooting : MonoBehaviour
 
         GameInput input = GameInput.Instance;
 
+        // Sin armas (Guts, mientras no exista el cuerpo a cuerpo): el clic solo reproduce el corte, sin daño.
+        if (states.Length == 0)
+        {
+            if (input.FirePressed && Body != null) Body.PlayAttack();
+            return;
+        }
+
         for (int i = 0; i < states.Length && i < GameInput.WeaponSlots; i++)
         {
             if (input.WeaponSlotPressed(i)) SwitchWeapon(i);
@@ -406,7 +413,13 @@ public class Shooting : MonoBehaviour
 
     private void PublishHud()
     {
-        if (states.Length == 0) return;
+        if (states.Length == 0)
+        {
+            // Sin armas: ni munición ni maná en el HUD, solo las habilidades del personaje (si tiene).
+            GameEvents.RaiseResourceModeChanged(false);
+            GameEvents.RaiseAbilitiesChanged(abilities.HudInfo());
+            return;
+        }
 
         bool usesMana = !CurrentWeapon.UsesAmmo;
         GameEvents.RaiseResourceModeChanged(usesMana);
@@ -419,7 +432,7 @@ public class Shooting : MonoBehaviour
     // Casillas del HUD: con bastón la 1.ª es la habilidad del bastón (Frieren); si no, las del personaje.
     private AbilityHudInfo[] BuildAbilityHud()
     {
-        StaffDefinition staff = CurrentWeapon.Staff;
+        StaffDefinition staff = states.Length > 0 ? CurrentWeapon.Staff : null;
         if (staff == null) return abilities.HudInfo();
 
         var info = new AbilityHudInfo[GameInput.AbilitySlots];

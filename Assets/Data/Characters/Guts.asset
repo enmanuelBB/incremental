@@ -10,17 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1ebd573326bcd2f4a8c888080f1711f2, type: 3}
-  m_Name: Slot_Principal_3
+  m_Name: Guts
   m_EditorClassIdentifier: Game.Core::CharacterDefinition
-  id: slot_principal_3
-  displayName: ???
-  description: Personaje principal por revelar.
+  id: guts
+  displayName: Guts
+  description: "El Espadach\xEDn Negro, con la Dragonslayer. Lento y resistente. Su combate cuerpo a cuerpo est\xE1 en desarrollo: por ahora el clic solo hace el corte, sin da\xF1o."
   menuOrder: 2
-  availability: 1
-  maxHealth: 100
-  moveSpeed: 5
-  unlockKind: 3
+  availability: 0
+  maxHealth: 150
+  moveSpeed: 4.5
+  unlockKind: 0
   unlockPrice: 0
-  unlockHint: "Pr\xF3ximamente"
+  unlockHint: 
   startingWeapons: []
+  abilities: []
+  skillTree: {fileID: 0}
   heldItemPrefab: {fileID: 0}
+  bodyPrefab: {fileID: 3523368839967746950, guid: b0df3b757c68c1049a6a9a699ce54f8b, type: 3}

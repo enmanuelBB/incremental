@@ -1,0 +1,162 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &4333848892756465367
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+      propertyPath: m_Name
+      value: Guts_Character
+      objectReference: {fileID: 0}
+    - target: {fileID: 3236273921813415586, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7185437
+      objectReference: {fileID: 0}
+    - target: {fileID: 3236273921813415586, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.03563662
+      objectReference: {fileID: 0}
+    - target: {fileID: 3236273921813415586, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.6944949
+      objectReference: {fileID: 0}
+    - target: {fileID: 3236273921813415586, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.010090073
+      objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 42e4bb1a9434e89478321637bd2a08ba, type: 2}
+    - target: {fileID: 5866666021909216657, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+      propertyPath: m_CullingMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+      propertyPath: m_ApplyRootMotion
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2690392681374292314}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 446052831469069868}
+  m_SourcePrefab: {fileID: 100100000, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+--- !u!4 &1210730971779076213 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3236273921813415586, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+  m_PrefabInstance: {fileID: 4333848892756465367}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &3523368839967746950 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+  m_PrefabInstance: {fileID: 4333848892756465367}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2690392681374292314
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3523368839967746950}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca4d390cd39dc044ebd5d792c438170c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::PlayerBody
+  animator: {fileID: 7876366057348836166}
+  pitchWeight: 1
+  jumpVelocity: 1.5
+  reloadClipLength: 1.6
+  firstPersonWalkAmount: 0
+  firstPersonHiddenBones:
+  - {fileID: 8383862493867021711}
+  alignHeadToCamera: 1
+  cameraFromHead: {x: -0.1, y: 0.16, z: 0.02}
+  firstPersonTilt: -28
+  attackCameraFromHead: {x: -0.1, y: 0.28, z: 0}
+  attackFirstPersonTilt: -22
+  firstPersonLayer: FirstPerson
+  firstPersonLayerSpeed: 8
+  faceAimWhenAttacking: 1
+  meleeAimRange: 15
+  meleeAimFallback: 3
+  aimTurnSpeed: 720
+  maxAimYaw: 60
+  attackYawOffset: 10
+--- !u!114 &446052831469069868
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3523368839967746950}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a760bc9bb17ca0649b0ed807c0973f36, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::SwordGrip
+  animator: {fileID: 7876366057348836166}
+  weapon: {fileID: 1210730971779076213}
+  moveRotation: {x: 0.38286477, y: 0.46071833, z: 0.44203722, w: 0.6676498}
+  attackRotation: {x: -0.03563662, y: 0.6944949, z: 0.010090073, w: 0.7185437}
+  attackState: Attack
+--- !u!95 &7876366057348836166 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+  m_PrefabInstance: {fileID: 4333848892756465367}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &8383862493867021711 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -3999871432035007656, guid: c308fd36ff6a35541b91e7799c8c9882, type: 3}
+  m_PrefabInstance: {fileID: 4333848892756465367}
+  m_PrefabAsset: {fileID: 0}
