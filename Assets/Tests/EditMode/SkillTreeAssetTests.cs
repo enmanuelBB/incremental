@@ -119,7 +119,11 @@ public class SkillTreeAssetTests
     {
         var present = Tree.nodes.SelectMany(n => n.effects).Select(e => e.type).Distinct().ToList();
 
+        // Los efectos de Guts (desde StunChance en adelante) son de su árbol, no del de Alucard.
         foreach (SkillEffectType type in System.Enum.GetValues(typeof(SkillEffectType)))
+        {
+            if (type >= SkillEffectType.StunChance) continue;
             Assert.Contains(type, present, "El árbol de Alucard no usa " + type);
+        }
     }
 }

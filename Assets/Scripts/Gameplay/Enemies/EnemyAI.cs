@@ -27,9 +27,11 @@ public class EnemyAI : MonoBehaviour, IDamageable
     private float ignorePlayerUntil;
     private bool isDead;
     private EnemyBleed bleed;
+    private EnemyBurn burn;
     private Collider bodyCollider;
     private float slowMultiplier = 1f;
     private float slowUntil;
+    private readonly StunTimer stun = new StunTimer();
     private BossController boss;
     private int maxHealthScaled;
     private float enrageSpeed = 1f;
@@ -37,6 +39,7 @@ public class EnemyAI : MonoBehaviour, IDamageable
     private float invulnerableUntil;
 
     public bool IsDead => isDead;
+    public bool IsStunned => stun.IsStunned(Time.time);
 
     // --- Lo que necesita un jefe (BossController) ---
     public EnemyDefinition Definition => def;
@@ -117,6 +120,7 @@ public class EnemyAI : MonoBehaviour, IDamageable
     {
         isDead = false;
         if (bleed != null) bleed.Clear(); // viene del pool: sin sangrado ni tinte de su vida anterior
+        if (burn != null) burn.Clear();   // ni quemadura
         currentHealth = Mathf.CeilToInt(def.maxHealth * healthScale);
         maxHealthScaled = currentHealth;
         HealthScale = healthScale;
@@ -130,6 +134,7 @@ public class EnemyAI : MonoBehaviour, IDamageable
         nextRepathTime = 0f;
         slowUntil = 0f;
         slowMultiplier = 1f;
+        stun.Clear();
         ApplySpeed();
 
         ResolveTargets();
@@ -186,7 +191,9 @@ public class EnemyAI : MonoBehaviour, IDamageable
 
         isDead = true;
         if (bleed != null) bleed.Clear();
+        if (burn != null) burn.Clear();
         GameEvents.RaiseEnemyKilled(def.moneyReward);
+        GameEvents.RaiseEnemyDied(transform.position, IsBoss);
         GameEvents.RaiseXpGained(def.xpReward);
         if (def.treePointsReward > 0) GameEvents.RaiseBossDefeated(def.treePointsReward);
 
@@ -203,6 +210,31 @@ public class EnemyAI : MonoBehaviour, IDamageable
         slowUntil = Time.time + seconds;
         ApplySpeed();
     }
+
+    /// <summary>Lo deja quieto y sin atacar unos segundos. Los jefes son inmunes. No acorta uno que ya dure más.</summary>
+    public void ApplyStun(float seconds)
+    {
+        if (isDead || seconds <= 0f || IsBoss) return;
+
+        stun.Apply(Time.time, seconds);
+        if (agent.enabled && agent.isOnNavMesh) agent.isStopped = true;
+    }
+
+    /// <summary>Lo deja ardiendo unos segundos (daño cada tick). Renueva y conserva el mayor daño. No hace nada si ya murió.</summary>
+    public void ApplyBurn(float seconds, int damagePerTick, float tickSeconds)
+    {
+        if (isDead || seconds <= 0f || damagePerTick <= 0) return;
+
+        if (burn == null)
+        {
+            burn = GetComponent<EnemyBurn>();
+            if (burn == null) burn = gameObject.AddComponent<EnemyBurn>();
+        }
+
+        burn.Apply(seconds, damagePerTick, tickSeconds);
+    }
+
+    private bool IsBoss => def != null && def.IsBoss;
 
     /// <summary>Suma pilas de sangrado (permanentes hasta que muera). No hace nada si ya está muerto.</summary>
     public void ApplyBleed(int stacks, int cap, int damagePerStack)
@@ -227,6 +259,13 @@ public class EnemyAI : MonoBehaviour, IDamageable
             slowUntil = 0f;
             slowMultiplier = 1f;
             ApplySpeed();
+        }
+
+        // Aturdido: quieto y sin atacar hasta que pase el tiempo (el movimiento se reanuda más abajo).
+        if (stun.IsStunned(Time.time))
+        {
+            agent.isStopped = true;
+            return;
         }
 
         if (IsControlled) return;

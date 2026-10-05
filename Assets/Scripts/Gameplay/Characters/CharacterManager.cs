@@ -97,6 +97,14 @@ public class CharacterManager : MonoBehaviour
         if (cylinder != null) cylinder.enabled = visible;
     }
 
+    // Primer hijo (a cualquier profundidad) con ese nombre, o null.
+    private static Transform FindDeep(Transform root, string childName)
+    {
+        foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
+            if (t.name == childName) return t;
+        return null;
+    }
+
     private void Apply(CharacterDefinition def)
     {
         Current = def;
@@ -125,6 +133,7 @@ public class CharacterManager : MonoBehaviour
             HeldGuns bodyGuns = body.GetComponent<HeldGuns>();
             shooting.HeldGuns = bodyGuns;
             if (bodyGuns != null) shooting.Muzzle = bodyGuns.MuzzleOf(0);
+            else shooting.Muzzle = FindDeep(body.transform, "Muzzle");   // el bastón de Frieren lleva un "Muzzle" en la punta
         }
 
         if (def.bodyPrefab == null && def.heldItemPrefab != null)

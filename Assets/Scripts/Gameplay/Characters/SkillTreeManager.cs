@@ -9,6 +9,9 @@ public class SkillTreeManager : MonoBehaviour
 {
     public static SkillTreeManager Instance { get; private set; }
 
+    /// <summary>Los bonos del árbol del personaje activo (neutros si no hay árbol o todavía no existe el administrador).</summary>
+    public static TreeBonuses CurrentBonuses => Instance != null ? Instance.Bonuses : TreeBonuses.None;
+
     private CharacterDefinition Current => Shooting.Instance != null ? Shooting.Instance.Character : null;
 
     /// <summary>Árbol del personaje activo (null si no tiene).</summary>

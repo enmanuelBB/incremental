@@ -187,6 +187,39 @@ public class CharacterInfoTests
     }
 
     [Test]
+    public void Describe_Sword_ShowsHitStatsAndFury_WithoutAmmoOrReload()
+    {
+        var sword = ScriptableObject.CreateInstance<SwordDefinition>();
+        sword.name = "Espada"; sword.weaponName = "Espada"; sword.damage = 30; sword.fireRate = 1.2f; sword.range = 3f; sword.arcDegrees = 120f;
+        sword.fireRateUpgrade = new UpgradeStat { step = 0.12f, limit = 0.6f, maxLevel = 5 };
+        sword.reloadUpgrade = new UpgradeStat { step = 0.03f, maxLevel = 5 };
+        sword.damageUpgrade = new UpgradeStat { step = 5f, maxLevel = 10 };
+        sword.furyMax = 100f; sword.furyPerEnemyHit = 5f; sword.furyMaxPerSwing = 20f; sword.furyDamageMultiplier = 2f;
+
+        var character = ScriptableObject.CreateInstance<CharacterDefinition>();
+        character.startingWeapons = new WeaponDefinition[] { sword };
+
+        var save = new CharacterSave { id = "x" };
+        WeaponSave progress = save.GetWeapon("Espada");
+        progress.upgradeLevels[(int)UpgradeType.FireRate] = 5;
+        progress.upgradeLevels[(int)UpgradeType.Reload] = 5;
+        progress.upgradeLevels[(int)UpgradeType.Damage] = 10;
+
+        List<StatLine> lines = CharacterInfo.Describe(character, save);
+
+        string value = lines.First(l => l.Label == "Espada").Value;
+        StringAssert.Contains("daño 80", value);
+        StringAssert.Contains("0.60 s", value);
+        StringAssert.Contains("aturdir 15%", value);
+        StringAssert.DoesNotContain("cargador", value);
+        StringAssert.DoesNotContain("recarga", value);
+        StringAssert.Contains("x2", lines.First(l => l.Label == "Furia").Value);
+
+        Object.DestroyImmediate(sword);
+        Object.DestroyImmediate(character);
+    }
+
+    [Test]
     public void Describe_NoWeapons_StillShowsHealthAndSpeed()
     {
         var character = ScriptableObject.CreateInstance<CharacterDefinition>();

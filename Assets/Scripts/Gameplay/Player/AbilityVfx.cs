@@ -22,6 +22,7 @@ public class AbilityVfx : MonoBehaviour
 
     private readonly Flash[] flashes = new Flash[FlashCount];
     private int nextFlash;
+    private ParticleSystem flameCone;
 
     [SerializeField, Tooltip("Cuánto dura el destello de una explosión")] private float flashSeconds = 0.25f;
 
@@ -80,13 +81,13 @@ public class AbilityVfx : MonoBehaviour
     }
 
     /// <summary>Esfera roja translúcida que se expande y se desvanece en el punto de una explosión.</summary>
-    public static void ExplosionFlash(Vector3 position, float radius)
+    public static void ExplosionFlash(Vector3 position, float radius, Color? tint = null)
     {
         AbilityVfx vfx = Instance;
         Flash flash = vfx.flashes[vfx.nextFlash];
         vfx.nextFlash = (vfx.nextFlash + 1) % FlashCount;
 
-        flash.color = new Color(0.9f, 0.05f, 0.05f, 0.45f);
+        flash.color = tint ?? new Color(0.9f, 0.05f, 0.05f, 0.45f);
         flash.radius = radius;
         flash.timer = 0f;
         flash.transform.position = position;
@@ -137,6 +138,110 @@ public class AbilityVfx : MonoBehaviour
             new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
             new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.2f), new GradientAlphaKey(0f, 1f) });
         fade.color = gradient;
+
+        var rend = go.GetComponent<ParticleSystemRenderer>();
+        Material material = NewMaterial(Color.white);
+        material.mainTexture = SoftCircle();
+        rend.sharedMaterial = material;
+
+        return ps;
+    }
+
+    /// <summary>Humo rojo alrededor del jugador mientras lleva la armadura Berserker. Quien lo crea lo enciende y lo apaga.</summary>
+    public static ParticleSystem CreateBerserkAura(Transform parent)
+    {
+        var go = new GameObject("BerserkAura");
+        go.transform.SetParent(parent, false);
+
+        var ps = go.AddComponent<ParticleSystem>();
+        ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
+        var main = ps.main;
+        main.loop = true;
+        main.playOnAwake = false;
+        main.startLifetime = 0.8f;
+        main.startSpeed = 0.5f;
+        main.startSize = new ParticleSystem.MinMaxCurve(0.8f, 1.5f);
+        main.startColor = new Color(0.85f, 0.05f, 0.05f, 0.5f);
+        main.simulationSpace = ParticleSystemSimulationSpace.World;
+
+        var emission = ps.emission;
+        emission.rateOverTime = 35f;
+
+        var shape = ps.shape;
+        shape.shapeType = ParticleSystemShapeType.Sphere;
+        shape.radius = 0.6f;
+
+        var fade = ps.colorOverLifetime;
+        fade.enabled = true;
+        var gradient = new Gradient();
+        gradient.SetKeys(
+            new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+            new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.2f), new GradientAlphaKey(0f, 1f) });
+        fade.color = gradient;
+
+        var rend = go.GetComponent<ParticleSystemRenderer>();
+        Material material = NewMaterial(Color.white);
+        material.mainTexture = SoftCircle();
+        rend.sharedMaterial = material;
+
+        return ps;
+    }
+
+    /// <summary>Chorro de fuego naranja en un cono (la llamarada de Guts). Provisional, por código.</summary>
+    public static void FlameCone(Vector3 origin, Vector3 forward, float range, float coneDegrees)
+    {
+        AbilityVfx vfx = Instance;
+        if (vfx.flameCone == null) vfx.flameCone = vfx.BuildFlameCone();
+
+        Transform t = vfx.flameCone.transform;
+        t.position = origin;
+        t.rotation = Quaternion.LookRotation(forward);
+
+        var main = vfx.flameCone.main;
+        main.startSpeed = range / main.startLifetime.constant;   // llega al alcance justo al terminar su vida
+
+        var shape = vfx.flameCone.shape;
+        shape.angle = coneDegrees * 0.5f;
+
+        vfx.flameCone.Emit(90);
+    }
+
+    private ParticleSystem BuildFlameCone()
+    {
+        var go = new GameObject("FlameConeVfx");
+        go.transform.SetParent(transform, false);
+
+        var ps = go.AddComponent<ParticleSystem>();
+        ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
+        var main = ps.main;
+        main.loop = false;
+        main.playOnAwake = false;
+        main.startLifetime = 0.4f;
+        main.startSize = new ParticleSystem.MinMaxCurve(0.5f, 1.1f);
+        main.startColor = new Color(1f, 0.5f, 0.08f, 0.85f);
+        main.simulationSpace = ParticleSystemSimulationSpace.World;
+
+        var emission = ps.emission;
+        emission.rateOverTime = 0f;
+
+        var shape = ps.shape;
+        shape.shapeType = ParticleSystemShapeType.Cone;
+        shape.radius = 0.15f;
+        shape.angle = 45f;
+
+        var fade = ps.colorOverLifetime;
+        fade.enabled = true;
+        var gradient = new Gradient();
+        gradient.SetKeys(
+            new[] { new GradientColorKey(new Color(1f, 0.85f, 0.3f), 0f), new GradientColorKey(new Color(0.9f, 0.15f, 0.02f), 1f) },
+            new[] { new GradientAlphaKey(0.9f, 0f), new GradientAlphaKey(0.6f, 0.5f), new GradientAlphaKey(0f, 1f) });
+        fade.color = gradient;
+
+        var grow = ps.sizeOverLifetime;
+        grow.enabled = true;
+        grow.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 0.6f, 1f, 1.6f));
 
         var rend = go.GetComponent<ParticleSystemRenderer>();
         Material material = NewMaterial(Color.white);

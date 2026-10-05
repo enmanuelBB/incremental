@@ -192,6 +192,93 @@ public class ProgressionTests
         Assert.AreEqual(UpgradeBlock.None, Progression.CanUpgradeAbility(c, 2, AbilityKind.Ultimate));
     }
 
+    // --- La armadura Berserker de Guts es una definitiva: mismas reglas que la de Alucard ---
+
+    [TestCase(AbilityKind.Ultimate, 3)]
+    [TestCase(AbilityKind.Berserk, 3)]
+    [TestCase(AbilityKind.HeavyShot, 5)]
+    [TestCase(AbilityKind.Mist, 5)]
+    [TestCase(AbilityKind.FlameBurst, 5)]
+    [TestCase(AbilityKind.Dash, 5)]
+    public void MaxRank_UltimatesHaveThree_OthersFive(AbilityKind kind, int expected)
+    {
+        Assert.AreEqual(expected, Progression.MaxRank(kind));
+    }
+
+    [TestCase(1, 0)]
+    [TestCase(5, 0)]
+    [TestCase(6, 1)]
+    [TestCase(11, 1)]
+    [TestCase(12, 2)]
+    [TestCase(18, 3)]
+    [TestCase(30, 3)]
+    public void RankCap_Berserk_UnlocksAtLevels6_12_18(int level, int expected)
+    {
+        Assert.AreEqual(expected, Progression.RankCapForLevel(AbilityKind.Berserk, level));
+    }
+
+    [Test]
+    public void Berserk_AtRankThree_IsAtMaxRank()
+    {
+        CharacterSave c = NewCharacter();
+        c.level = Progression.MaxLevel;
+        c.abilityRanks = new[] { 0, 0, 3 };
+
+        Assert.AreEqual(UpgradeBlock.MaxRank, Progression.CanUpgradeAbility(c, 2, AbilityKind.Berserk));
+    }
+
+    [Test]
+    public void ClampAbilityRanks_BringsAnUltimateDownToItsMax_AndSaysSo()
+    {
+        var character = ScriptableObject.CreateInstance<CharacterDefinition>();
+        var flame = NewAbility(AbilityKind.FlameBurst);
+        var dash = NewAbility(AbilityKind.Dash);
+        var armor = NewAbility(AbilityKind.Berserk);
+        character.abilities = new[] { flame, dash, armor };
+
+        CharacterSave c = NewCharacter();
+        c.abilityRanks = new[] { 5, 5, 5 };   // la armadura llegó a un rango que no existe (guardado hecho antes de la corrección)
+
+        Assert.IsTrue(Progression.ClampAbilityRanks(c, character));
+        CollectionAssert.AreEqual(new[] { 5, 5, 3 }, c.abilityRanks);
+        Assert.IsFalse(Progression.ClampAbilityRanks(c, character), "la segunda vez no cambia nada");
+
+        Object.DestroyImmediate(flame);
+        Object.DestroyImmediate(dash);
+        Object.DestroyImmediate(armor);
+        Object.DestroyImmediate(character);
+    }
+
+    [Test]
+    public void ClampAbilityRanks_IgnoresSlotsWithoutAnAbility()
+    {
+        var character = ScriptableObject.CreateInstance<CharacterDefinition>();
+        var flame = NewAbility(AbilityKind.FlameBurst);
+        character.abilities = new[] { flame };   // solo la casilla 0
+
+        CharacterSave c = NewCharacter();
+        c.abilityRanks = new[] { 4, 5, 5 };
+
+        Assert.IsFalse(Progression.ClampAbilityRanks(c, character));
+        CollectionAssert.AreEqual(new[] { 4, 5, 5 }, c.abilityRanks);
+
+        Object.DestroyImmediate(flame);
+        Object.DestroyImmediate(character);
+    }
+
+    [Test]
+    public void ClampAbilityRanks_NullCharacterOrAbilities_IsSafe()
+    {
+        CharacterSave c = NewCharacter();
+        c.abilityRanks = new[] { 5, 5, 5 };
+
+        Assert.IsFalse(Progression.ClampAbilityRanks(c, null));
+        var character = ScriptableObject.CreateInstance<CharacterDefinition>();
+        character.abilities = null;
+        Assert.IsFalse(Progression.ClampAbilityRanks(c, character));
+        Object.DestroyImmediate(character);
+    }
+
     [Test]
     public void UpgradeAbility_AtMaxRank_IsBlocked()
     {

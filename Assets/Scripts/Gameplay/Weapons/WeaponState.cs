@@ -44,6 +44,9 @@ public class WeaponState
     /// <summary>Datos del bastón si esta arma lo es; null para las armas de fuego.</summary>
     public StaffDefinition Staff => Definition as StaffDefinition;
 
+    /// <summary>Datos de la espada si esta arma lo es; null para armas de fuego y bastones.</summary>
+    public SwordDefinition Sword => Definition as SwordDefinition;
+
     // Las fórmulas viven en las definiciones (Game.Core) para que el balance se pruebe sin abrir Unity.
     public float FireRate => Definition.FireRateAt(GetLevel(UpgradeType.FireRate));
     public float ReloadTime => Definition.ReloadTimeAt(GetLevel(UpgradeType.Reload));
@@ -53,7 +56,8 @@ public class WeaponState
         get
         {
             int baseDamage = Definition.DamageAt(GetLevel(UpgradeType.Damage));
-            float multiplier = SkillTreeManager.Instance != null ? SkillTreeManager.Instance.Bonuses.DamageMultiplier : 1f;
+            float multiplier = (SkillTreeManager.Instance != null ? SkillTreeManager.Instance.Bonuses.DamageMultiplier : 1f)
+                * BerserkArmor.DamageMultiplier;
             return Mathf.Max(baseDamage, Mathf.RoundToInt(baseDamage * multiplier));
         }
     }
@@ -61,8 +65,29 @@ public class WeaponState
     /// <summary>Pilas de sangrado que aplica cada impacto (0 si el arma no sangra).</summary>
     public int BleedPerHit => Definition.BleedPerHitAt(GetLevel(UpgradeType.Bleed));
 
+    /// <summary>Probabilidad de aturdir a cada enemigo golpeado (solo la espada): nivel de Aturdir más el bono del árbol.</summary>
+    public float StunChance
+    {
+        get
+        {
+            SwordDefinition sword = Sword;
+            if (sword == null) return 0f;
+
+            float treeBonus = SkillTreeManager.Instance != null ? SkillTreeManager.Instance.Bonuses.StunChanceBonus : 0f;
+            return sword.StunChanceAt(GetLevel(UpgradeType.Reload), treeBonus);
+        }
+    }
+
     // Solo bastón
     public int AbilityDamage => Staff.AbilityDamageAt(GetLevel(UpgradeType.Damage));
+    /// <summary>Daño de un Zoltraak con esa carga (0 a 1): el del bastón con el Poder de la tienda, por el bono de daño del árbol.</summary>
+    public int ZoltraakDamage(float charge)
+    {
+        int baseDamage = Staff.ZoltraakDamageAt(GetLevel(UpgradeType.Damage), charge);
+        float multiplier = SkillTreeManager.Instance != null ? SkillTreeManager.Instance.Bonuses.DamageMultiplier : 1f;
+        return Mathf.Max(baseDamage, Mathf.RoundToInt(baseDamage * multiplier));
+    }
+
     public float ManaRegen => Staff.ManaRegenAt(GetLevel(UpgradeType.Reload));
     public float AbilityCooldownTime => Staff.AbilityCooldownAt(GetLevel(UpgradeType.Reload));
 

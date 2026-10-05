@@ -67,3 +67,12 @@ MonoBehaviour:
   abilityBeamRadius: 0.4
   cooldownStep: 0.3
   cooldownLimit: 1.5
+  zoltraakDamage: 45
+  zoltraakChargeSeconds: 1.2
+  zoltraakMinDamageFraction: 0.4
+  zoltraakMinRadius: 2.5
+  zoltraakMaxRadius: 4
+  zoltraakManaCost: 0
+  zoltraakPause: 0.4
+  zoltraakInstantPause: 0.35
+  zoltraakRange: 60

@@ -19,7 +19,24 @@ public enum SkillEffectType
 
     [Tooltip("F: segundos de duración que suma")] UltDuration,
     [Tooltip("F: segundos que baja el enfriamiento")] UltCooldown,
-    [Tooltip("F: fracción de robo de vida que suma (0,15 = +15 puntos)")] UltLifeSteal
+    [Tooltip("F: fracción de robo de vida que suma (0,15 = +15 puntos)")] UltLifeSteal,
+
+    [Tooltip("Guts: suma a la probabilidad de aturdir (0,03 = +3 puntos)")] StunChance,
+    [Tooltip("Guts: fracción extra de daño a enemigos aturdidos (0,15 = +15%)")] StunnedDamagePercent,
+    [Tooltip("Guts: fracción extra de Furia por golpe (0,25 = +25%)")] FuryGainPercent,
+    [Tooltip("Guts: suma a la fracción de vida que curan las almas (0,01 = +1 punto)")] SoulHealBonus,
+    [Tooltip("Guts Q: segundos extra de quemadura")] FlameBurnSeconds,
+    [Tooltip("Guts Q: grados extra del cono")] FlameCone,
+    [Tooltip("Guts Q: fracción extra de daño de la quemadura (0,5 = +50%)")] FlameBurnDamagePercent,
+    [Tooltip("Guts Q: metros extra de alcance")] FlameRange,
+    [Tooltip("Guts E: cargas extra")] DashExtraCharges,
+    [Tooltip("Guts E: disparos extra tras el dash")] DashExtraShots,
+    [Tooltip("Guts E: metros extra de dash")] DashDistance,
+    [Tooltip("Guts E: segundos que baja el enfriamiento")] DashCooldown,
+    [Tooltip("Guts F: suma al multiplicador de daño de la armadura (0,1 = +10 puntos)")] BerserkDamage,
+    [Tooltip("Guts F: resta al multiplicador de daño recibido de la armadura (0,1 = -10 puntos)")] BerserkDamageTaken,
+    [Tooltip("Guts F: segundos extra de aturdimiento del rugido")] RoarStun,
+    [Tooltip("Guts F: metros extra de radio del rugido")] RoarRadius
 }
 
 [Serializable]

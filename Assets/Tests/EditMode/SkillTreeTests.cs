@@ -225,6 +225,63 @@ public class SkillTreeTests
         Object.DestroyImmediate(all);
     }
 
+    [Test]
+    public void Compute_MapsEveryGutsEffectToItsField()
+    {
+        var all = ScriptableObject.CreateInstance<SkillTreeDefinition>();
+        all.nodes = new[]
+        {
+            Node("g1", 1, true, new SkillEffect { type = SkillEffectType.StunChance, value = 0.03f }),
+            Node("g2", 1, true, new SkillEffect { type = SkillEffectType.StunnedDamagePercent, value = 0.15f }),
+            Node("g3", 1, true, new SkillEffect { type = SkillEffectType.FuryGainPercent, value = 0.25f }),
+            Node("g4", 1, true, new SkillEffect { type = SkillEffectType.SoulHealBonus, value = 0.01f }),
+            Node("g5", 1, true, new SkillEffect { type = SkillEffectType.FlameBurnSeconds, value = 2f }),
+            Node("g6", 1, true, new SkillEffect { type = SkillEffectType.FlameCone, value = 30f }),
+            Node("g7", 1, true, new SkillEffect { type = SkillEffectType.FlameBurnDamagePercent, value = 0.5f }),
+            Node("g8", 1, true, new SkillEffect { type = SkillEffectType.FlameRange, value = 2f }),
+            Node("g9", 1, true, new SkillEffect { type = SkillEffectType.DashExtraCharges, value = 1f }),
+            Node("g10", 1, true, new SkillEffect { type = SkillEffectType.DashExtraShots, value = 1f }),
+            Node("g11", 1, true, new SkillEffect { type = SkillEffectType.DashDistance, value = 1.5f }),
+            Node("g12", 1, true, new SkillEffect { type = SkillEffectType.DashCooldown, value = 1f }),
+            Node("g13", 1, true, new SkillEffect { type = SkillEffectType.BerserkDamage, value = 0.1f }),
+            Node("g14", 1, true, new SkillEffect { type = SkillEffectType.BerserkDamageTaken, value = 0.1f }),
+            Node("g15", 1, true, new SkillEffect { type = SkillEffectType.RoarStun, value = 1f }),
+            Node("g16", 1, true, new SkillEffect { type = SkillEffectType.RoarRadius, value = 1.5f }),
+        };
+        var ids = new List<string>();
+        foreach (SkillNode n in all.nodes) ids.Add(n.id);
+
+        TreeBonuses b = SkillTreeRules.Compute(all, ids);
+
+        Assert.AreEqual(0.03f, b.StunChanceBonus, 1e-4f);
+        Assert.AreEqual(0.15f, b.StunnedDamagePercent, 1e-4f);
+        Assert.AreEqual(0.25f, b.FuryGainPercent, 1e-4f);
+        Assert.AreEqual(0.01f, b.SoulHealBonus, 1e-4f);
+        Assert.AreEqual(2f, b.FlameBurnSecondsBonus, 1e-4f);
+        Assert.AreEqual(30f, b.FlameConeBonus, 1e-4f);
+        Assert.AreEqual(0.5f, b.FlameBurnDamagePercent, 1e-4f);
+        Assert.AreEqual(2f, b.FlameRangeBonus, 1e-4f);
+        Assert.AreEqual(1, b.DashExtraCharges);
+        Assert.AreEqual(1, b.DashExtraShots);
+        Assert.AreEqual(1.5f, b.DashDistanceBonus, 1e-4f);
+        Assert.AreEqual(1f, b.DashCooldownReduction, 1e-4f);
+        Assert.AreEqual(0.1f, b.BerserkDamageBonus, 1e-4f);
+        Assert.AreEqual(0.1f, b.BerserkDamageTakenReduction, 1e-4f);
+        Assert.AreEqual(1f, b.RoarStunBonus, 1e-4f);
+        Assert.AreEqual(1.5f, b.RoarRadiusBonus, 1e-4f);
+        Object.DestroyImmediate(all);
+    }
+
+    [Test]
+    public void ScaleVsStunned_RaisesTheDamageOnlyOnStunnedTargets()
+    {
+        var b = new TreeBonuses { StunnedDamagePercent = 0.15f };
+
+        Assert.AreEqual(115, b.ScaleVsStunned(100, true));
+        Assert.AreEqual(100, b.ScaleVsStunned(100, false));
+        Assert.AreEqual(100, TreeBonuses.None.ScaleVsStunned(100, true), "sin bono no cambia nada");
+    }
+
     // --- Guardado v4 ---
 
     [Test]

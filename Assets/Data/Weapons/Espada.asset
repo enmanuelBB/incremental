@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 455172c9c8563ba468b9a7bf300b537b, type: 3}
+  m_Name: Espada
+  m_EditorClassIdentifier: Game.Core::SwordDefinition
+  id: Espada
+  weaponName: Espada
+  magazineSize: 12
+  barrels: 1
+  fireRate: 1.2
+  reloadTime: 1.5
+  damage: 30
+  range: 3
+  isAutomatic: 1
+  ammoFillPoint: 0.7
+  barrelRecoil: []
+  shootSound: {fileID: 0}
+  reloadSound: {fileID: 0}
+  ownedFromStart: 1
+  price: 0
+  fireRateUpgrade:
+    step: 0.12
+    limit: 0.6
+    basePrice: 100
+    priceIncrease: 50
+    priceGrowth: 0
+    maxLevel: 5
+  reloadUpgrade:
+    step: 0.03
+    limit: 0
+    basePrice: 150
+    priceIncrease: 75
+    priceGrowth: 0
+    maxLevel: 5
+  damageUpgrade:
+    step: 5
+    limit: 0
+    basePrice: 150
+    priceIncrease: 75
+    priceGrowth: 0
+    maxLevel: 10
+  bleedUpgrade:
+    step: 1
+    limit: 0
+    basePrice: 600
+    priceIncrease: 0
+    priceGrowth: 1.6
+    maxLevel: 10
+  baseBleedPerHit: 1
+  arcDegrees: 120
+  hitDelay: 0.12
+  attackAnimSpeed: 2.6
+  stunSeconds: 1.5
+  stunChanceCap: 0.3
+  furyMax: 100
+  furyPerEnemyHit: 5
+  furyMaxPerSwing: 20
+  furyDamageMultiplier: 2

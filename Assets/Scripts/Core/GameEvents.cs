@@ -61,7 +61,9 @@ public static class GameEvents
     public static event Action<int> WaveCompleted;              // número de oleada (desde 1)
     public static event Action<WeaponSlotInfo> WeaponSlotChanged; // estado de una arma (munición, si está comprada, si es la equipada)
     public static event Action<int> EnemyKilled;                // recompensa en dinero
+    public static event Action<Vector3, bool> EnemyDied;        // dónde murió y si era jefe o minijefe (solo la muerte real: un jefe que resucita no lo publica)
     public static event Action<Vector3, int> BleedTick;         // posición sobre el enemigo y daño del tick de sangrado
+    public static event Action<Vector3, int> BurnTick;          // posición sobre el enemigo y daño del tick de quemadura
     public static event Action<int> XpGained;                   // experiencia ganada (la recibe el personaje activo)
     public static event Action<XpInfo> XpChanged;               // estado de nivel/experiencia del personaje activo
     public static event Action<string, int, int> LevelUp;       // nombre del personaje, nivel nuevo, puntos disponibles
@@ -78,6 +80,7 @@ public static class GameEvents
     public static event Action<CharacterDefinition> CharacterChanged;
     public static event Action<bool> ResourceModeChanged;       // true = usa maná (en vez de munición)
     public static event Action<float, float> ManaChanged;       // actual, máximo
+    public static event Action<float, float> FuryChanged;       // actual, máximo (máximo 0 = el personaje no tiene Furia: ocultar la barra)
     public static event Action<AbilityHudInfo[]> AbilitiesChanged; // las 3 casillas de habilidad del personaje (por posición: Q, E, F)
     public static event Action<int, float> AbilityUsed;         // casilla (0 a 2), momento (Time.time) en que vuelve a estar lista
 
@@ -89,7 +92,9 @@ public static class GameEvents
     public static void RaiseWaveCompleted(int wave) => WaveCompleted?.Invoke(wave);
     public static void RaiseWeaponSlotChanged(WeaponSlotInfo slot) => WeaponSlotChanged?.Invoke(slot);
     public static void RaiseEnemyKilled(int reward) => EnemyKilled?.Invoke(reward);
+    public static void RaiseEnemyDied(Vector3 position, bool isBoss) => EnemyDied?.Invoke(position, isBoss);
     public static void RaiseBleedTick(Vector3 worldPosition, int damage) => BleedTick?.Invoke(worldPosition, damage);
+    public static void RaiseBurnTick(Vector3 worldPosition, int damage) => BurnTick?.Invoke(worldPosition, damage);
     public static void RaiseXpGained(int amount) => XpGained?.Invoke(amount);
     public static void RaiseXpChanged(XpInfo info) => XpChanged?.Invoke(info);
     public static void RaiseLevelUp(string characterName, int level, int points) => LevelUp?.Invoke(characterName, level, points);
@@ -106,6 +111,7 @@ public static class GameEvents
     public static void RaiseCharacterChanged(CharacterDefinition character) => CharacterChanged?.Invoke(character);
     public static void RaiseResourceModeChanged(bool usesMana) => ResourceModeChanged?.Invoke(usesMana);
     public static void RaiseManaChanged(float current, float max) => ManaChanged?.Invoke(current, max);
+    public static void RaiseFuryChanged(float current, float max) => FuryChanged?.Invoke(current, max);
     public static void RaiseAbilitiesChanged(AbilityHudInfo[] slots) => AbilitiesChanged?.Invoke(slots);
     public static void RaiseAbilityUsed(int slot, float readyAt) => AbilityUsed?.Invoke(slot, readyAt);
 }

@@ -40,6 +40,10 @@ public class PlayerAbilities : MonoBehaviour
     private int ultimateRank = 1;
     private float riverNextTick;
     private bool combatStarted;
+    private GutsDash dash;
+    private BerserkArmor berserk;
+    private FlowerField field;
+    private ManaPulseEffect pulse;
 
     // Pausa mínima entre dos lanzamientos seguidos de una habilidad con varias cargas.
     private const float ConsecutiveCastGap = 0.35f;
@@ -63,6 +67,15 @@ public class PlayerAbilities : MonoBehaviour
     public bool IsMist => mist.IsActive(Time.time);
 
     public bool UltimateActive => ultimate.IsActive(Time.time);
+
+    /// <summary>Verdadero mientras dura el pulso de maná de Frieren (el Zoltraak sale sin carga y gratis).</summary>
+    public bool PulseActive => pulse != null && pulse.IsActive;
+
+    /// <summary>Verdadero mientras se coloca el campo de flores y en el fotograma en que se confirma o cancela (el clic no debe disparar).</summary>
+    public bool BlocksFire => field != null && (field.IsPlacing || field.ClosedFrame == Time.frameCount);
+
+    /// <summary>El campo de flores de Frieren (null si todavía no se creó). Para pruebas.</summary>
+    public FlowerField Field => field;
 
     private void Awake()
     {
@@ -91,6 +104,10 @@ public class PlayerAbilities : MonoBehaviour
         ultimate.Cancel();
         EndMist();
         EndUltimate();
+        if (dash != null) dash.Cancel();
+        if (berserk != null) berserk.ForceOff();
+        if (field != null) field.ForceEnd();
+        if (pulse != null) pulse.ForceOff();
 
         for (int i = 0; i < slots.Length; i++)
         {
@@ -114,14 +131,25 @@ public class PlayerAbilities : MonoBehaviour
         {
             AbilityDefinition ability = slots[i];
             int rank = Mathf.Max(1, RankOf(i));
-            int max = ability != null && ability.kind == AbilityKind.HeavyShot ? 1 + bonuses.HeavyShotExtraCharges : 1;
-            float cooldown = ability != null ? EffectiveCooldown(ability, rank, bonuses) : 1f;
+            int max = 1;
+            if (ability != null && ability.kind == AbilityKind.HeavyShot) max = 1 + bonuses.HeavyShotExtraCharges;
+            else if (ability != null && ability.kind == AbilityKind.Dash) max = 1 + bonuses.DashExtraCharges;
+            float cooldown = ability != null ? CooldownFor(ability, rank, bonuses) : 1f;
 
             charges[i].Configure(max, cooldown, now);
             nextCastAllowed[i] = 0f;
             publishedCharges[i] = max;
             GameEvents.RaiseAbilityChargesChanged(i, max, max);
         }
+    }
+
+    // El rayo de maná usa el enfriamiento del bastón (baja con "Maná" de la tienda); las demás, el de su rango y el árbol.
+    private float CooldownFor(AbilityDefinition ability, int rank, TreeBonuses bonuses)
+    {
+        if (ability.kind == AbilityKind.ManaBeam && shooting.WeaponCount > 0 && shooting.CurrentWeapon.Staff != null)
+            return shooting.CurrentWeapon.AbilityCooldownTime;
+
+        return EffectiveCooldown(ability, rank, bonuses);
     }
 
     // Enfriamiento del rango menos lo que da el árbol; nunca baja de 1 s.
@@ -133,6 +161,7 @@ public class PlayerAbilities : MonoBehaviour
             case AbilityKind.HeavyShot: reduction = bonuses.HeavyShotCooldownReduction; break;
             case AbilityKind.Mist: reduction = bonuses.MistCooldownReduction; break;
             case AbilityKind.Ultimate: reduction = bonuses.UltCooldownReduction; break;
+            case AbilityKind.Dash: reduction = bonuses.DashCooldownReduction; break;
         }
         return Mathf.Max(1f, ability.CooldownAt(rank) - reduction);
     }
@@ -171,6 +200,17 @@ public class PlayerAbilities : MonoBehaviour
         if (mist.IsActive(now)) TickMist();
         PublishChargeChanges(now);
 
+        // Pulso de maná: las otras habilidades se recargan más rápido (el pulso no se acelera a sí mismo).
+        if (pulse != null && pulse.IsActive)
+        {
+            float extra = Time.deltaTime * (pulse.CooldownBoost - 1f);
+            for (int i = 0; i < slots.Length; i++)
+            {
+                if (slots[i] == null || slots[i].kind == AbilityKind.ManaPulse) continue;
+                charges[i].SpeedUp(extra);
+            }
+        }
+
         if (!combatStarted || GameState.InputBlocked || mist.IsActive(now)) return;
 
         GameInput input = GameInput.Instance;
@@ -198,6 +238,21 @@ public class PlayerAbilities : MonoBehaviour
     private void TryCast(int slot)
     {
         AbilityDefinition ability = slots[slot];
+
+        // La armadura de Guts es un interruptor: con ella puesta la tecla la apaga (siempre se puede, aunque haya enfriamiento).
+        if (ability.kind == AbilityKind.Berserk && berserk != null && berserk.IsActive)
+        {
+            berserk.Deactivate();
+            return;
+        }
+
+        // El campo de flores: con la colocación abierta, la misma tecla confirma.
+        if (ability.kind == AbilityKind.FlowerField && field != null && field.IsPlacing)
+        {
+            field.Confirm();
+            return;
+        }
+
         int rank = RankOf(slot);
         float now = Time.time;
         if (rank < 1 || now < nextCastAllowed[slot] || charges[slot].Available(now) <= 0) return;
@@ -208,10 +263,19 @@ public class PlayerAbilities : MonoBehaviour
             case AbilityKind.HeavyShot: cast = CastHeavyShot(ability, rank); break;
             case AbilityKind.Mist: cast = CastMist(ability, rank); break;
             case AbilityKind.Ultimate: cast = CastUltimate(ability, rank); break;
+            case AbilityKind.FlameBurst: cast = FlameBurst.Cast(ability, rank, shooting); break;
+            case AbilityKind.ManaBeam: cast = ManaBeam.Cast(ability, rank, shooting); break;
+            case AbilityKind.FlowerField: cast = EnsureField().Begin(ability, rank, () => StartCooldown(slot)); break;
+            case AbilityKind.ManaPulse: cast = EnsurePulse().Activate(ability, rank, shooting); break;
+            case AbilityKind.Dash: cast = EnsureDash().TryStart(ability, rank); break;
+            case AbilityKind.Berserk: cast = EnsureBerserk().Activate(ability, rank, () => StartCooldown(slot)); break;
             default: cast = false; break;
         }
 
         if (!cast) return;
+
+        // La armadura y el campo de flores no enfrían al lanzarlas: la armadura, al apagarla (StartCooldown); el campo, al confirmar su colocación.
+        if (ability.kind == AbilityKind.Berserk || ability.kind == AbilityKind.FlowerField) return;
 
         charges[slot].TryUse(now);
 
@@ -224,6 +288,56 @@ public class PlayerAbilities : MonoBehaviour
         float readyAt = left > 0 ? now + ConsecutiveCastGap : now + charges[slot].RechargeRemaining(now);
         GameEvents.RaiseAbilityUsed(slot, readyAt);
         if (chained) GameEvents.RaiseAbilityChargesChanged(slot, left, charges[slot].Max);
+    }
+
+    private GutsDash EnsureDash()
+    {
+        if (dash == null)
+        {
+            dash = GetComponent<GutsDash>();
+            if (dash == null) dash = gameObject.AddComponent<GutsDash>();
+        }
+        return dash;
+    }
+
+    private FlowerField EnsureField()
+    {
+        if (field == null)
+        {
+            field = GetComponent<FlowerField>();
+            if (field == null) field = gameObject.AddComponent<FlowerField>();
+        }
+        return field;
+    }
+
+    private ManaPulseEffect EnsurePulse()
+    {
+        if (pulse == null)
+        {
+            pulse = GetComponent<ManaPulseEffect>();
+            if (pulse == null) pulse = gameObject.AddComponent<ManaPulseEffect>();
+        }
+        return pulse;
+    }
+
+    private BerserkArmor EnsureBerserk()
+    {
+        if (berserk == null)
+        {
+            berserk = GetComponent<BerserkArmor>();
+            if (berserk == null) berserk = gameObject.AddComponent<BerserkArmor>();
+        }
+        return berserk;
+    }
+
+    // Enfriamiento de una habilidad que no empieza al lanzarla (la armadura: al apagarla). Avisa al HUD.
+    private void StartCooldown(int slot)
+    {
+        float now = Time.time;
+        if (!charges[slot].TryUse(now)) return;
+
+        publishedCharges[slot] = charges[slot].Available(now);
+        GameEvents.RaiseAbilityUsed(slot, now + charges[slot].RechargeRemaining(now));
     }
 
     // --- Disparo pesado ---

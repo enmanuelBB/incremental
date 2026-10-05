@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 91bf552f84e9df84b944d7d089976707, type: 3}
   m_Name: Alucard_Tree
   m_EditorClassIdentifier: Game.Core::SkillTreeDefinition
   id: alucard_tree
@@ -31,7 +31,7 @@ MonoBehaviour:
     displayName: Vitalidad I
     description: "+5 de vida m\xE1xima."
     cost: 1
-    position: {x: -1.3, y: 0.9}
+    position: {x: -1.625, y: 1.125}
     connections:
     - core
     - q1
@@ -44,7 +44,7 @@ MonoBehaviour:
     displayName: Zancada I
     description: +4% de velocidad de movimiento.
     cost: 1
-    position: {x: 1.3, y: 0.9}
+    position: {x: 1.625, y: 1.125}
     connections:
     - core
     - e1
@@ -57,7 +57,7 @@ MonoBehaviour:
     displayName: Pulso I
     description: "+10% de da\xF1o con las balas."
     cost: 1
-    position: {x: 0, y: -1.3}
+    position: {x: 0, y: -1.625}
     connections:
     - core
     - f1
@@ -72,7 +72,7 @@ MonoBehaviour:
     displayName: Bala gemela (Q)
     description: El disparo pesado lanza 2 balas en vez de 1.
     cost: 3
-    position: {x: -2.8, y: 1.4}
+    position: {x: -3.5, y: 1.75}
     connections:
     - v1
     - q2
@@ -84,7 +84,7 @@ MonoBehaviour:
     displayName: Doble carga (Q)
     description: El disparo pesado se puede lanzar 2 veces seguidas.
     cost: 4
-    position: {x: -4.2, y: 1.4}
+    position: {x: -5.25, y: 1.75}
     connections:
     - q1
     - q3
@@ -97,7 +97,7 @@ MonoBehaviour:
     displayName: Triple carga (Q)
     description: El disparo pesado se puede lanzar 3 veces seguidas.
     cost: 6
-    position: {x: -5.6, y: 1.4}
+    position: {x: -7, y: 1.75}
     connections:
     - q2
     isRoot: 0
@@ -108,7 +108,7 @@ MonoBehaviour:
     displayName: Recarga veloz (Q)
     description: "El disparo pesado se recarga 1,5 s m\xE1s r\xE1pido."
     cost: 3
-    position: {x: -4.2, y: 0.1}
+    position: {x: -5.25, y: 0.125}
     connections:
     - q2
     - v2
@@ -120,7 +120,7 @@ MonoBehaviour:
     displayName: Vitalidad II
     description: "+5 de vida m\xE1xima."
     cost: 2
-    position: {x: -2.8, y: 0.1}
+    position: {x: -3.5, y: 0.125}
     connections:
     - v1
     - q4
@@ -133,7 +133,7 @@ MonoBehaviour:
     displayName: Filo de niebla (E)
     description: Al atravesar a un enemigo, la niebla le deja 2 pilas de sangrado.
     cost: 3
-    position: {x: 2.8, y: 1.4}
+    position: {x: 3.5, y: 1.75}
     connections:
     - s1
     - e2
@@ -145,7 +145,7 @@ MonoBehaviour:
     displayName: Escarcha (E)
     description: "Los enemigos que atraviesas se mueven un 30% m\xE1s lento durante 2 s."
     cost: 3
-    position: {x: 4.2, y: 1.4}
+    position: {x: 5.25, y: 1.75}
     connections:
     - e1
     - e3
@@ -158,7 +158,7 @@ MonoBehaviour:
     displayName: Niebla densa (E)
     description: "La niebla dura 1 s m\xE1s."
     cost: 4
-    position: {x: 5.6, y: 1.4}
+    position: {x: 7, y: 1.75}
     connections:
     - e2
     isRoot: 0
@@ -169,7 +169,7 @@ MonoBehaviour:
     displayName: "Disipaci\xF3n (E)"
     description: "La niebla se recarga 2 s m\xE1s r\xE1pido."
     cost: 3
-    position: {x: 4.2, y: 0.1}
+    position: {x: 5.25, y: 0.125}
     connections:
     - e2
     - s2
@@ -181,7 +181,7 @@ MonoBehaviour:
     displayName: Zancada II
     description: +4% de velocidad de movimiento.
     cost: 2
-    position: {x: 2.8, y: 0.1}
+    position: {x: 3.5, y: 0.125}
     connections:
     - s1
     - e4
@@ -194,7 +194,7 @@ MonoBehaviour:
     displayName: Sangre prolongada (F)
     description: "R\xEDo de sangre dura 1,5 s m\xE1s."
     cost: 4
-    position: {x: -1.4, y: -2.5}
+    position: {x: -1.75, y: -3.125}
     connections:
     - d1
     - f3
@@ -206,7 +206,7 @@ MonoBehaviour:
     displayName: "Frenes\xED (F)"
     description: "R\xEDo de sangre se recarga 8 s m\xE1s r\xE1pido."
     cost: 5
-    position: {x: 1.4, y: -2.5}
+    position: {x: 1.75, y: -3.125}
     connections:
     - d1
     - f3
@@ -218,7 +218,7 @@ MonoBehaviour:
     displayName: Sed eterna (F)
     description: "+15 puntos de robo de vida durante R\xEDo de sangre."
     cost: 6
-    position: {x: 0, y: -3.6}
+    position: {x: 0, y: -4.5}
     connections:
     - f1
     - f2
@@ -230,7 +230,7 @@ MonoBehaviour:
     displayName: Pulso II
     description: "+10% de da\xF1o con las balas."
     cost: 2
-    position: {x: -2.8, y: -1.3}
+    position: {x: -3.5, y: -1.625}
     connections:
     - d1
     - v2
@@ -242,7 +242,7 @@ MonoBehaviour:
     displayName: Pulso III
     description: "+10% de da\xF1o con las balas."
     cost: 2
-    position: {x: 2.8, y: -1.3}
+    position: {x: 3.5, y: -1.625}
     connections:
     - d1
     - s2
@@ -254,7 +254,7 @@ MonoBehaviour:
     displayName: Cuarta carga (Q)
     description: El disparo pesado se puede lanzar 4 veces seguidas.
     cost: 8
-    position: {x: -7, y: 1.4}
+    position: {x: -8.75, y: 1.75}
     connections:
     - q3
     isRoot: 0
@@ -265,7 +265,7 @@ MonoBehaviour:
     displayName: Bala triple (Q)
     description: El disparo pesado lanza 3 balas.
     cost: 8
-    position: {x: -5.6, y: 0.1}
+    position: {x: -7, y: 0.125}
     connections:
     - q4
     - q3
@@ -277,7 +277,7 @@ MonoBehaviour:
     displayName: Recarga veloz II (Q)
     description: "El disparo pesado se recarga 1 s m\xE1s r\xE1pido."
     cost: 6
-    position: {x: -7, y: 0.1}
+    position: {x: -8.75, y: 0.125}
     connections:
     - q5
     - q6
@@ -289,7 +289,7 @@ MonoBehaviour:
     displayName: Filo de niebla II (E)
     description: "Al atravesar a un enemigo, la niebla le deja 2 pilas de sangrado m\xE1s."
     cost: 6
-    position: {x: 7, y: 1.4}
+    position: {x: 8.75, y: 1.75}
     connections:
     - e3
     isRoot: 0
@@ -300,7 +300,7 @@ MonoBehaviour:
     displayName: Escarcha II (E)
     description: "Los enemigos que atraviesas se mueven un 15% m\xE1s lento."
     cost: 6
-    position: {x: 5.6, y: 0.1}
+    position: {x: 7, y: 0.125}
     connections:
     - e4
     - e3
@@ -312,7 +312,7 @@ MonoBehaviour:
     displayName: Niebla densa II (E)
     description: "La niebla dura 1 s m\xE1s."
     cost: 7
-    position: {x: 7, y: 0.1}
+    position: {x: 8.75, y: 0.125}
     connections:
     - e5
     - e6
@@ -324,7 +324,7 @@ MonoBehaviour:
     displayName: "Disipaci\xF3n II (E)"
     description: "La niebla se recarga 2 s m\xE1s r\xE1pido."
     cost: 6
-    position: {x: 8.4, y: 0.75}
+    position: {x: 10.5, y: 0.9375}
     connections:
     - e5
     - e7
@@ -336,7 +336,7 @@ MonoBehaviour:
     displayName: Sangre prolongada II (F)
     description: "R\xEDo de sangre dura 2 s m\xE1s."
     cost: 6
-    position: {x: -2.8, y: -2.5}
+    position: {x: -3.5, y: -3.125}
     connections:
     - f1
     - d2
@@ -348,7 +348,7 @@ MonoBehaviour:
     displayName: "Frenes\xED II (F)"
     description: "R\xEDo de sangre se recarga 8 s m\xE1s r\xE1pido."
     cost: 8
-    position: {x: 2.8, y: -2.5}
+    position: {x: 3.5, y: -3.125}
     connections:
     - f2
     - d3
@@ -360,7 +360,7 @@ MonoBehaviour:
     displayName: Sed eterna II (F)
     description: "+15 puntos m\xE1s de robo de vida durante R\xEDo de sangre."
     cost: 8
-    position: {x: -1.4, y: -3.6}
+    position: {x: -1.75, y: -4.5}
     connections:
     - f1
     - f3
@@ -372,7 +372,7 @@ MonoBehaviour:
     displayName: Vitalidad III
     description: "+8 de vida m\xE1xima."
     cost: 3
-    position: {x: -4.2, y: -1.3}
+    position: {x: -5.25, y: -1.625}
     connections:
     - d2
     isRoot: 0
@@ -383,7 +383,7 @@ MonoBehaviour:
     displayName: Vitalidad IV
     description: "+8 de vida m\xE1xima."
     cost: 4
-    position: {x: -5.6, y: -1.3}
+    position: {x: -7, y: -1.625}
     connections:
     - v3
     isRoot: 0
@@ -394,7 +394,7 @@ MonoBehaviour:
     displayName: Zancada III
     description: +4% de velocidad de movimiento.
     cost: 3
-    position: {x: 4.2, y: -1.3}
+    position: {x: 5.25, y: -1.625}
     connections:
     - d3
     isRoot: 0
@@ -405,7 +405,7 @@ MonoBehaviour:
     displayName: Zancada IV
     description: +4% de velocidad de movimiento.
     cost: 4
-    position: {x: 5.6, y: -1.3}
+    position: {x: 7, y: -1.625}
     connections:
     - s3
     isRoot: 0
@@ -416,7 +416,7 @@ MonoBehaviour:
     displayName: Pulso IV
     description: "+10% de da\xF1o con las balas."
     cost: 6
-    position: {x: -4.2, y: -2.5}
+    position: {x: -5.25, y: -3.125}
     connections:
     - f4
     - v3
@@ -428,7 +428,7 @@ MonoBehaviour:
     displayName: Pulso V
     description: "+10% de da\xF1o con las balas."
     cost: 6
-    position: {x: 4.2, y: -2.5}
+    position: {x: 5.25, y: -3.125}
     connections:
     - f5
     - s3

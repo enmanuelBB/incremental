@@ -16,6 +16,25 @@ public class PlayerMovement : MonoBehaviour
     /// <summary>Multiplicador temporal de velocidad (1 = normal). Lo usa la niebla de Alucard.</summary>
     public float SpeedMultiplier { get; set; } = 1f;
 
+    private Vector3 forcedVelocity;
+    private float forcedUntil;
+
+    /// <summary>Entrada de movimiento actual (plana, relativa a la cámara, hasta módulo 1). La usa el dash para saber hacia dónde ir.</summary>
+    public Vector3 MoveInput => movement;
+
+    /// <summary>Mientras es true la velocidad horizontal la manda el dash y no el teclado.</summary>
+    public bool IsForced => Time.time < forcedUntil;
+
+    /// <summary>Empuja al jugador a esta velocidad horizontal durante unos segundos (el dash de Guts).</summary>
+    public void BeginForcedMove(Vector3 flatVelocity, float seconds)
+    {
+        forcedVelocity = flatVelocity;
+        forcedUntil = Time.time + seconds;
+        jumpRequested = false;
+    }
+
+    public void EndForcedMove() => forcedUntil = 0f;
+
     private Rigidbody rb;
     private CapsuleCollider capsule;
     private Vector3 movement;
@@ -64,19 +83,32 @@ public class PlayerMovement : MonoBehaviour
 
         float groundFactor = sprintHeld ? 1f : walkFactor;
         if (wasGrounded) airFactor = groundFactor; // al despegar se conserva el paso con el que se venía
-        float currentSpeed = (isGrounded ? speed * groundFactor : speed * airFactor * jumpDistance) * SpeedMultiplier;
-        Vector3 velocity = rb.linearVelocity;
-        velocity.x = movement.x * currentSpeed;
-        velocity.z = movement.z * currentSpeed;
-        rb.linearVelocity = velocity;
 
-        if (jumpRequested)
+        if (IsForced)
         {
+            // Dash: la velocidad horizontal la manda quien empuja; no se salta ni se camina.
+            Vector3 pushed = rb.linearVelocity;
+            pushed.x = forcedVelocity.x;
+            pushed.z = forcedVelocity.z;
+            rb.linearVelocity = pushed;
             jumpRequested = false;
-            if (isGrounded)
+        }
+        else
+        {
+            float currentSpeed = (isGrounded ? speed * groundFactor : speed * airFactor * jumpDistance) * SpeedMultiplier;
+            Vector3 velocity = rb.linearVelocity;
+            velocity.x = movement.x * currentSpeed;
+            velocity.z = movement.z * currentSpeed;
+            rb.linearVelocity = velocity;
+
+            if (jumpRequested)
             {
-                rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-                isGrounded = false;
+                jumpRequested = false;
+                if (isGrounded)
+                {
+                    rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+                    isGrounded = false;
+                }
             }
         }
 

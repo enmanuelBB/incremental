@@ -22,17 +22,32 @@ public class FloatingTextManager : MonoBehaviour
     }
 
     private static readonly Color BleedColor = new Color(0.95f, 0.15f, 0.15f);
+    private static readonly Color BurnColor = new Color(1f, 0.55f, 0.1f);
 
     private void OnEnable()
     {
         GameEvents.MoneyGained += ShowMoneyGain;
         GameEvents.BleedTick += ShowBleedTick;
+        GameEvents.BurnTick += ShowBurnTick;
     }
 
     private void OnDisable()
     {
         GameEvents.MoneyGained -= ShowMoneyGain;
         GameEvents.BleedTick -= ShowBleedTick;
+        GameEvents.BurnTick -= ShowBurnTick;
+    }
+
+    // Número naranja sobre el enemigo que se quema (igual que el sangrado, pero de otro color).
+    private void ShowBurnTick(Vector3 worldPosition, int damage)
+    {
+        Camera cam = Camera.main;
+        if (cam == null) return;
+
+        Vector3 screen = cam.WorldToScreenPoint(worldPosition);
+        if (screen.z <= 0f) return;
+
+        pool.Get().Show(damage.ToString(), screen, pool.Release, BurnColor);
     }
 
     // Número rojo sobre el enemigo. El canvas es Screen Space Overlay: la posición del texto es la de pantalla.

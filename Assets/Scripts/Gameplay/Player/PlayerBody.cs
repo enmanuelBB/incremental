@@ -17,6 +17,13 @@ public class PlayerBody : MonoBehaviour
     private static readonly int ReloadSpeedParam = Animator.StringToHash("ReloadSpeed");
     private static readonly int DeadParam = Animator.StringToHash("Dead");
     private static readonly int AttackParam = Animator.StringToHash("Attack");
+    private static readonly int AttackSpeedParam = Animator.StringToHash("AttackSpeed");
+    private static readonly int CastParam = Animator.StringToHash("Cast");
+    private static readonly int DashParam = Animator.StringToHash("Dash");
+    private static readonly int PowerUpParam = Animator.StringToHash("PowerUp");
+    private static readonly int MoveXParam = Animator.StringToHash("MoveX");
+    private static readonly int MoveYParam = Animator.StringToHash("MoveY");
+    private static readonly int RunParam = Animator.StringToHash("Run");
 
     /// <summary>Altura local del cuerpo bajo el jugador: el cilindro mide 2 m con el centro a 1 m, y los pies del modelo están en su origen.</summary>
     public const float FeetLocalY = -1f;
@@ -31,7 +38,15 @@ public class PlayerBody : MonoBehaviour
     [SerializeField, Range(0f, 1f), Tooltip("Cuánto de la animación de caminar se aplica en primera persona (0 = el cuerpo queda quieto y las pistolas no se mueven al caminar)")]
     private float firstPersonWalkAmount = 0f;
 
+    [Header("Movimiento en 4 direcciones (Frieren)")]
+    [SerializeField, Tooltip("Velocidad (m/s) al caminar: con ella MoveX/MoveY llegan a 1 en el árbol de movimiento. Solo se usa si el controlador tiene MoveX y MoveY")]
+    private float locomotionWalkSpeed = 2.5f;
+    [SerializeField, Tooltip("Velocidad (m/s) corriendo: con ella el parámetro Run llega a 1 y se mezclan las animaciones rápidas")]
+    private float locomotionRunSpeed = 5f;
+
     [Header("Primera persona")]
+    [SerializeField, Tooltip("En primera persona oculta todo el cuerpo (la malla con huesos), no solo la cabeza. Para personajes sin brazos propios a la vista, como Frieren; las armas (MeshRenderer) siguen visibles")]
+    private bool hideBodyInFirstPerson;
     [SerializeField, Tooltip("Huesos que se encogen en primera persona (cabeza, capa...). Para modelos de una sola malla, donde no se puede apagar solo la cabeza.")]
     private Transform[] firstPersonHiddenBones;
     [SerializeField, Tooltip("En primera persona, mover el cuerpo para que la cámara quede en 'cameraFromHead' respecto del hueso de la cabeza")]
@@ -66,12 +81,20 @@ public class PlayerBody : MonoBehaviour
     private Rigidbody playerBody;
     private Camera cam;
     private CameraFollow cameraFollow;
+    private PlayerHover hover;
     private Transform spine;
     private Transform chest;
     private Renderer[] skin;
     private bool inAir;
     private bool dead;
     private bool hasAttack;
+    private bool hasCast;
+    private bool hasDash;
+    private bool hasPowerUp;
+    private bool hasMove2D;
+    private bool parametersCached;
+    private float spinTimer = -1f;
+    private float spinTotal;
     private float aimYaw;
     private Shooting shooting;
     private Transform head;
@@ -103,24 +126,62 @@ public class PlayerBody : MonoBehaviour
         return Mathf.Clamp(Vector3.SignedAngle(cameraFlat, toPoint, Vector3.up), -maxAimYaw, maxAimYaw);
     }
 
+    private Transform FindBone(string boneName)
+    {
+        foreach (Transform t in GetComponentsInChildren<Transform>(true))
+            if (t.name == boneName) return t;
+        return null;
+    }
+
     private void Awake()
     {
         if (animator == null) animator = GetComponent<Animator>();
         playerBody = GetComponentInParent<Rigidbody>();
         shooting = GetComponentInParent<Shooting>();
 
-        spine = animator.GetBoneTransform(HumanBodyBones.Spine);
-        chest = animator.GetBoneTransform(HumanBodyBones.Chest);
-        head = animator.GetBoneTransform(HumanBodyBones.Head);
+        // GetBoneTransform lanza una excepción si el avatar no es humanoide (y eso dejaba el componente deshabilitado).
+        if (animator.isHuman)
+        {
+            spine = animator.GetBoneTransform(HumanBodyBones.Spine);
+            chest = animator.GetBoneTransform(HumanBodyBones.Chest);
+            head = animator.GetBoneTransform(HumanBodyBones.Head);
+        }
+
+        // Un rig Generic (Frieren) no tiene huesos humanoides: se buscan por el nombre que traen en el modelo.
+        if (spine == null) spine = FindBone("spine_02");
+        if (chest == null) chest = FindBone("spine_03");
+        if (head == null) head = FindBone("head");
         if (!string.IsNullOrEmpty(firstPersonLayer)) firstPersonLayerIndex = animator.GetLayerIndex(firstPersonLayer);
-        hasAttack = System.Array.Exists(animator.parameters, p => p.nameHash == AttackParam);
+        CacheAnimatorParameters();
 
         // Solo el cuerpo: las pistolas (MeshRenderer) quedan siempre a la vista.
         skin = GetComponentsInChildren<SkinnedMeshRenderer>(true);
     }
 
+    // Con un rig Generic (Frieren) el Animator todavía no expone sus parámetros en Awake ni en Start (la lista llega vacía): se leen
+    // en cuanto aparecen, la primera vez que hace falta.
+    private void EnsureParameters()
+    {
+        if (parametersCached || animator.parameterCount == 0) return;
+
+        CacheAnimatorParameters();
+    }
+
+    private void CacheAnimatorParameters()
+    {
+        AnimatorControllerParameter[] parameters = animator.parameters;
+        parametersCached = parameters.Length > 0;   // una lista vacía es "todavía no" (rig Generic), no "no tiene"
+        hasAttack = System.Array.Exists(parameters, p => p.nameHash == AttackParam);
+        hasCast = System.Array.Exists(parameters, p => p.nameHash == CastParam);
+        hasDash = System.Array.Exists(parameters, p => p.nameHash == DashParam);
+        hasPowerUp = System.Array.Exists(parameters, p => p.nameHash == PowerUpParam);
+        hasMove2D = System.Array.Exists(parameters, p => p.nameHash == MoveXParam)
+            && System.Array.Exists(parameters, p => p.nameHash == MoveYParam);
+    }
+
     private void Update()
     {
+        EnsureParameters();
         if (dead) return;
 
         bool first = cameraFollow != null && cameraFollow.IsFirstPerson;
@@ -129,6 +190,18 @@ public class PlayerBody : MonoBehaviour
         float flatSpeed = new Vector2(velocity.x, velocity.z).magnitude;
         // En primera persona no se ven las piernas y la caminata solo sacudiría las pistolas: el cuerpo se queda quieto.
         animator.SetFloat(SpeedParam, first ? flatSpeed * firstPersonWalkAmount : flatSpeed, 0.08f, Time.deltaTime);
+
+        // Movimiento en 4 direcciones (Frieren): la velocidad en el espacio del cuerpo, que mira hacia donde mira la cámara.
+        // MoveX/MoveY = dirección (módulo 0 a 1, 1 = ritmo de caminar) y Run = 0 caminando a 1 corriendo.
+        if (hasMove2D)
+        {
+            Vector3 local = transform.InverseTransformDirection(new Vector3(velocity.x, 0f, velocity.z));
+            Vector2 direction = flatSpeed > 0.01f ? new Vector2(local.x, local.z) / flatSpeed : Vector2.zero;
+            float amount = Mathf.Clamp01(flatSpeed / Mathf.Max(0.1f, locomotionWalkSpeed));
+            animator.SetFloat(MoveXParam, direction.x * amount, 0.1f, Time.deltaTime);
+            animator.SetFloat(MoveYParam, direction.y * amount, 0.1f, Time.deltaTime);
+            animator.SetFloat(RunParam, Mathf.InverseLerp(locomotionWalkSpeed, locomotionRunSpeed, flatSpeed), 0.15f, Time.deltaTime);
+        }
 
         bool rising = velocity.y > jumpVelocity;
         if (rising && !inAir && !first) animator.SetTrigger(JumpParam);
@@ -157,8 +230,10 @@ public class PlayerBody : MonoBehaviour
 
         if (dead) return;
 
-        // De frente a donde mira la cámara, sin inclinarse.
-        transform.localPosition = new Vector3(0f, FeetLocalY, 0f);
+        // De frente a donde mira la cámara, sin inclinarse. Los pies del modelo quedan sobre el suelo; los personajes que levitan
+        // (Frieren) suben con su balanceo.
+        if (hover == null) hover = GetComponentInParent<PlayerHover>();
+        transform.localPosition = new Vector3(0f, FeetLocalY + (hover != null ? hover.Offset : 0f), 0f);
         Vector3 flat = Vector3.ProjectOnPlane(cam.transform.forward, Vector3.up);
         if (flat.sqrMagnitude > 0.001f)
         {
@@ -167,7 +242,17 @@ public class PlayerBody : MonoBehaviour
                 ? Mathf.Clamp(AimYawOffset(flat) + attackYawOffset, -maxAimYaw, maxAimYaw)
                 : 0f;
             aimYaw = Mathf.MoveTowardsAngle(aimYaw, targetYaw, aimTurnSpeed * Time.deltaTime);
-            transform.rotation = Quaternion.AngleAxis(aimYaw, Vector3.up) * Quaternion.LookRotation(flat, Vector3.up);
+
+            // Giro del dash: una vuelta completa en tercera persona (en primera no se gira para no marear).
+            float spinAngle = 0f;
+            if (spinTimer >= 0f)
+            {
+                spinTimer += Time.deltaTime;
+                if (spinTimer >= spinTotal) spinTimer = -1f;
+                else if (!first) spinAngle = 360f * spinTimer / spinTotal;
+            }
+
+            transform.rotation = Quaternion.AngleAxis(aimYaw + spinAngle, Vector3.up) * Quaternion.LookRotation(flat, Vector3.up);
         }
 
         float pitch = Mathf.DeltaAngle(0f, cam.transform.eulerAngles.x) * pitchWeight;
@@ -221,7 +306,7 @@ public class PlayerBody : MonoBehaviour
             if (r == null) continue;
 
             bool isHead = r.name.Contains("Head");
-            r.enabled = visible || !isHead;
+            r.enabled = visible || (!isHead && !hideBodyInFirstPerson);
             if (r.shadowCastingMode != shadows) r.shadowCastingMode = shadows;
         }
     }
@@ -231,11 +316,47 @@ public class PlayerBody : MonoBehaviour
         if (!dead) animator.SetTrigger(barrel == 0 ? ShootLeftParam : ShootRightParam);
     }
 
-    /// <summary>Ataque cuerpo a cuerpo (el corte de Guts). Solo animación; no hace nada si el controlador no tiene el parámetro "Attack".</summary>
-    public void PlayAttack()
+    /// <summary>Ataque cuerpo a cuerpo (el corte de Guts). Solo animación; no hace nada si el controlador no tiene el parámetro "Attack". "speed" acelera el corte (1 = velocidad del clip).</summary>
+    public void PlayAttack(float speed = 1f)
     {
+        EnsureParameters();
         if (dead || !hasAttack) return;
+
+        animator.SetFloat(AttackSpeedParam, Mathf.Max(0.1f, speed));
         animator.SetTrigger(AttackParam);
+    }
+
+    /// <summary>Pose agachada del dash de Guts (dura lo que el dash y levantarse). No hace nada si el controlador no tiene "Dash".</summary>
+    public void PlayDash()
+    {
+        EnsureParameters();
+        if (dead || !hasDash) return;
+        animator.SetTrigger(DashParam);
+    }
+
+    /// <summary>Gesto de la transformación (la armadura Berserker). No hace nada si el controlador no tiene "PowerUp".</summary>
+    public void PlayPowerUp()
+    {
+        EnsureParameters();
+        if (dead || !hasPowerUp) return;
+        animator.SetTrigger(PowerUpParam);
+    }
+
+    /// <summary>Da una vuelta completa sobre el eje vertical durante unos segundos (el giro del dash). En primera persona no gira.</summary>
+    public void BeginSpin(float seconds)
+    {
+        spinTotal = Mathf.Max(0.05f, seconds);
+        spinTimer = 0f;
+    }
+
+    public void EndSpin() => spinTimer = -1f;
+
+    /// <summary>Lanzar una habilidad con la mano (la llamarada de Guts). Solo animación; no hace nada si el controlador no tiene el parámetro "Cast".</summary>
+    public void PlayCast()
+    {
+        EnsureParameters();
+        if (dead || !hasCast) return;
+        animator.SetTrigger(CastParam);
     }
 
     /// <summary>La animación de recarga se estira o acorta para durar lo mismo que la recarga real.</summary>

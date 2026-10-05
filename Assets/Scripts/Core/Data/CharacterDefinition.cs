@@ -57,4 +57,22 @@ public class CharacterDefinition : GameDefinition
 
     [Tooltip("Cuerpo animado del personaje (modelo con Animator y PlayerBody). Si lo tiene, reemplaza al cilindro y lleva sus armas en las manos.")]
     public GameObject bodyPrefab;
+
+    [Header("Levitar (solo visual)")]
+    [Min(0f), Tooltip("Metros que sube el cuerpo y la cámara sobre el suelo. 0 = no levita. La física no cambia")]
+    public float hoverHeight = 0f;
+    [Min(0f), Tooltip("Amplitud del balanceo suave, en metros")]
+    public float hoverBob = 0.05f;
+    [Min(0.1f), Tooltip("Segundos de un balanceo completo")]
+    public float hoverPeriod = 2.5f;
+
+    [Header("Almas")]
+    [Min(0f), Tooltip("Cuando muere un enemigo deja un alma que cura esta fracción de la vida máxima (0,02 = 2%). 0 = el personaje no suelta almas")]
+    public float soulHealFraction = 0f;
+    [Min(1f), Tooltip("Las almas de jefes y minijefes curan esto veces más")]
+    public float soulBossMultiplier = 3f;
+    [Min(1f), Tooltip("Segundos que dura un alma en el piso si no se recoge")]
+    public float soulLifetime = 10f;
+    [Min(0.1f), Tooltip("A cuántos metros (horizontales) se recoge sola")]
+    public float soulPickupRadius = 1.5f;
 }

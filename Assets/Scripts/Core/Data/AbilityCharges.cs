@@ -53,6 +53,14 @@ public class AbilityCharges
         return charges >= max ? 0f : Mathf.Max(0f, rechargeAt - now);
     }
 
+    /// <summary>Adelanta la recarga en curso 'seconds' segundos (la definitiva de Frieren acelera sus otras habilidades). No hace nada si están todas las cargas.</summary>
+    public void SpeedUp(float seconds)
+    {
+        if (charges >= max || seconds <= 0f) return;
+
+        rechargeAt -= seconds;
+    }
+
     private void Refresh(float now)
     {
         if (charges >= max) return;

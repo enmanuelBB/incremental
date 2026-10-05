@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -11,7 +12,6 @@ public class Shooting : MonoBehaviour
     public static Shooting Instance { get; private set; }
 
     private static readonly Color BoltColor = new Color(0.6f, 0.85f, 1f, 0.9f);
-    private static readonly Color BeamColor = new Color(0.75f, 0.92f, 1f, 1f);
 
     [SerializeField] private Camera cam;
     [SerializeField, Tooltip("Personaje con el que arranca la escena. CharacterManager lo reemplaza por el elegido en el menú.")]
@@ -23,12 +23,20 @@ public class Shooting : MonoBehaviour
     private float nextFireTime;
     private Coroutine reloadRoutine;
 
+    // Espada (Guts)
+    private Coroutine swordRoutine;
+    private FuryMeter fury = new FuryMeter(0f);
+    private readonly Collider[] meleeBuffer = new Collider[64];
+    private readonly List<EnemyAI> meleeTargets = new List<EnemyAI>();
+    private const float MeleeSearchMargin = 3f; // holgura para enemigos grandes (el radio real se cuenta en MeleeCone)
+
     // Bastón
     private ManaPool mana;
-    private readonly AbilityCooldown abilityCooldown = new AbilityCooldown();
     private int lastPublishedMana = -1;
     private BeamVfx boltVfx;
     private BeamVfx beamVfx;
+    private ZoltraakCaster zoltraak;
+    private PlayerHover hover;
 
     private readonly RaycastHit[] hitBuffer = new RaycastHit[16];
     private PlayerAbilities abilities;
@@ -55,7 +63,37 @@ public class Shooting : MonoBehaviour
     public PlayerBody Body { get; set; }
 
     public ManaPool Mana => mana;
-    public AbilityCooldown AbilityCooldown => abilityCooldown;
+
+    /// <summary>Verdadero si el arma activa es un bastón (Frieren): el clic izquierdo carga el Zoltraak y el derecho es el disparo básico.</summary>
+    public bool UsesStaff => states.Length > 0 && CurrentWeapon.Staff != null;
+
+    /// <summary>La punta del bastón (o el pecho del jugador si no hay).</summary>
+    public Vector3 MuzzlePoint => MuzzlePosition;
+
+    /// <summary>Dibuja el trazo grueso del rayo de maná (habilidades).</summary>
+    public void ShowBeam(Vector3 origin, Vector3 end, Color color, float width, float seconds) =>
+        beamVfx.Show(origin, end, color, width, seconds);
+
+    /// <summary>Avisa al HUD del maná actual (las habilidades que lo gastan).</summary>
+    public void RefreshMana() => PublishMana(true);
+
+    /// <summary>
+    /// Punto del suelo al que apunta la mira: el primer golpe del rayo (o el final del alcance) bajado hasta el piso.
+    /// Si no hay piso debajo, se queda a la altura de los pies del jugador.
+    /// </summary>
+    public Vector3 AimGroundPoint(float range)
+    {
+        Vector3 point = TryGetHit(range, out RaycastHit hit) ? hit.point : AimRay().GetPoint(range);
+
+        if (Physics.Raycast(point + Vector3.up * 50f, Vector3.down, out RaycastHit ground, 120f, ~0, QueryTriggerInteraction.Ignore)
+            && !ground.transform.IsChildOf(transform))
+            return ground.point;
+
+        return new Vector3(point.x, transform.position.y + PlayerBody.FeetLocalY, point.z);
+    }
+
+    /// <summary>Furia de Guts (máximo 0 si el personaje no tiene). Las habilidades futuras usarán la misma barra.</summary>
+    public FuryMeter Fury => fury;
 
     public WeaponState GetWeapon(int index) => states[index];
 
@@ -68,6 +106,8 @@ public class Shooting : MonoBehaviour
         beamVfx = BeamVfx.Create("BeamVfx");
         abilities = GetComponent<PlayerAbilities>();
         if (abilities == null) abilities = gameObject.AddComponent<PlayerAbilities>();
+        hover = GetComponent<PlayerHover>();
+        if (hover == null) hover = gameObject.AddComponent<PlayerHover>();
         Build(character);
     }
 
@@ -93,18 +133,25 @@ public class Shooting : MonoBehaviour
     private void Build(CharacterDefinition def)
     {
         character = def;
+        hover.Configure(def);
 
         if (reloadRoutine != null)
         {
             StopCoroutine(reloadRoutine);
             reloadRoutine = null;
         }
+        if (swordRoutine != null)
+        {
+            StopCoroutine(swordRoutine);
+            swordRoutine = null;
+        }
         isReloading = false;
         nextFireTime = 0f;
-        abilityCooldown.Reset();
+        if (zoltraak != null) zoltraak.Cancel();
         abilities.Configure(def);
 
         CharacterSave progress = SaveSystem.Data.GetCharacter(def.Id);
+        if (Progression.ClampAbilityRanks(progress, def)) SaveSystem.Save();   // rangos guardados por encima del tope de su tipo
         WeaponDefinition[] weapons = def.startingWeapons;
 
         states = new WeaponState[weapons.Length];
@@ -121,8 +168,14 @@ public class Shooting : MonoBehaviour
             }
         }
 
+        SwordDefinition furySword = states.Length > 0 ? CurrentWeapon.Sword : null;
+        fury = new FuryMeter(furySword != null ? furySword.furyMax : 0f);
+
         mana = null;
         ConfigureMana();
+
+        // Las habilidades se configuraron antes de tener las armas: el rayo de maná toma su enfriamiento del bastón.
+        abilities.RefreshBuild();
     }
 
     private void Update()
@@ -134,7 +187,7 @@ public class Shooting : MonoBehaviour
 
         GameInput input = GameInput.Instance;
 
-        // Sin armas (Guts, mientras no exista el cuerpo a cuerpo): el clic solo reproduce el corte, sin daño.
+        // Un personaje sin armas: el clic solo reproduce el corte, sin daño.
         if (states.Length == 0)
         {
             if (input.FirePressed && Body != null) Body.PlayAttack();
@@ -147,6 +200,12 @@ public class Shooting : MonoBehaviour
         }
         if (input.NextWeaponPressed) CycleWeapon(1);
         if (input.PreviousWeaponPressed) CycleWeapon(-1);
+
+        if (CurrentWeapon.Sword != null)
+        {
+            UpdateSword(CurrentWeapon, input);
+            return;
+        }
 
         if (!CurrentWeapon.UsesAmmo)
         {
@@ -179,12 +238,104 @@ public class Shooting : MonoBehaviour
         }
     }
 
-    // Bastón: el disparo básico es gratis y la habilidad gasta maná y tiene enfriamiento.
+    // Espada: el clic reproduce el corte (rápido) y el daño cae un instante después; el tiempo entre golpes es largo
+    // y es lo que mejora la tienda. Mantener el clic repite el golpe al ritmo de la cadencia.
+    private void UpdateSword(WeaponState weapon, GameInput input)
+    {
+        bool triggerPressed = weapon.IsAutomatic ? input.FireHeld : input.FirePressed;
+        if (!triggerPressed || Time.time < nextFireTime) return;
+
+        SwordDefinition sword = weapon.Sword;
+        nextFireTime = Time.time + weapon.FireRate * BerserkArmor.CadenceMultiplier;
+
+        if (Body != null) Body.PlayAttack(sword.attackAnimSpeed);
+
+        if (swordRoutine != null) StopCoroutine(swordRoutine);
+        swordRoutine = StartCoroutine(SwordHit(weapon, sword.hitDelay));
+    }
+
+    private IEnumerator SwordHit(WeaponState weapon, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        swordRoutine = null;
+
+        // Si en este instante ya terminó la partida o está en niebla, el golpe se pierde.
+        if (GameState.InputBlocked || abilities.IsMist) yield break;
+
+        SwingSword(weapon);
+    }
+
+    // Todos los enemigos vivos dentro del cono reciben el golpe; cada uno tira su propio dado de aturdimiento.
+    private void SwingSword(WeaponState weapon)
+    {
+        SwordDefinition sword = weapon.Sword;
+        float arc = BerserkArmor.SwingArc(sword.arcDegrees);   // 360° con la armadura Berserker puesta
+
+        Vector3 forward = cam != null ? Vector3.ProjectOnPlane(cam.transform.forward, Vector3.up) : transform.forward;
+        if (forward.sqrMagnitude < 0.001f) forward = transform.forward;
+
+        Vector3 origin = transform.position;
+
+        meleeTargets.Clear();
+        int count = Physics.OverlapSphereNonAlloc(origin, sword.range + MeleeSearchMargin, meleeBuffer, ~0, QueryTriggerInteraction.Ignore);
+        for (int i = 0; i < count; i++)
+        {
+            // El cubo de inicio de la partida también se activa a espadazos (como a balazos).
+            StartTrigger start = meleeBuffer[i].GetComponentInParent<StartTrigger>();
+            if (start != null)
+            {
+                Vector3 nearest = meleeBuffer[i].ClosestPoint(origin);
+                if (MeleeCone.Contains(origin, forward, nearest, sword.range, arc)) start.Activate();
+                continue;
+            }
+
+            EnemyAI enemy = meleeBuffer[i].GetComponentInParent<EnemyAI>();
+            if (enemy == null || enemy.IsDead || meleeTargets.Contains(enemy)) continue;
+            if (!MeleeCone.Contains(origin, forward, enemy.transform.position, sword.range, arc, enemy.BodyRadius)) continue;
+
+            meleeTargets.Add(enemy);
+        }
+
+        // Un golpe que no toca a nadie ni carga ni gasta la Furia.
+        if (meleeTargets.Count == 0) return;
+
+        // Furia llena: este golpe sale potenciado (daño x2 y aturdimiento seguro) y gasta toda la barra.
+        bool empowered = fury.TryConsume();
+
+        int damage = weapon.Damage;
+        if (empowered) damage = Mathf.RoundToInt(damage * sword.furyDamageMultiplier);
+        float stunChance = weapon.StunChance;
+        TreeBonuses tree = SkillTreeManager.CurrentBonuses;
+
+        foreach (EnemyAI enemy in meleeTargets)
+        {
+            // Más daño a los que ya estaban aturdidos (se mira antes de aturdirlos con este mismo golpe).
+            enemy.TakeDamage(tree.ScaleVsStunned(damage, enemy.IsStunned));   // primero el daño: si muere, ApplyStun lo ignora
+            // El aturdimiento seguro no depende del dado (Random.value puede valer exactamente 1).
+            if (empowered || StunRules.Roll(stunChance, Random.value)) enemy.ApplyStun(sword.stunSeconds);
+        }
+
+        // El golpe potenciado no suma Furia; los demás suman por enemigo golpeado.
+        if (!empowered) fury.Add(FuryMeter.GainForHits(meleeTargets.Count, sword.furyPerEnemyHit, sword.furyMaxPerSwing)
+            * (1f + tree.FuryGainPercent) * BerserkArmor.FuryGainMultiplier);
+        PublishFury();
+    }
+
+    // Bastón (Frieren): clic izquierdo = Zoltraak cargado, clic derecho = disparo básico gratis, Q/E/F = habilidades con rango.
     private void UpdateStaff(WeaponState weapon, GameInput input)
     {
-        if (input.AbilityPressed(0)) TryCastAbility(weapon);
+        if (zoltraak == null)
+        {
+            zoltraak = GetComponent<ZoltraakCaster>();
+            if (zoltraak == null) zoltraak = gameObject.AddComponent<ZoltraakCaster>();
+        }
 
-        bool triggerPressed = weapon.IsAutomatic ? input.FireHeld : input.FirePressed;
+        zoltraak.Tick(weapon, input);
+
+        // Colocando el campo de flores no se dispara; el clic que confirma o cancela tampoco cuenta como disparo.
+        if (abilities.BlocksFire || zoltraak.IsCharging) return;
+
+        bool triggerPressed = weapon.IsAutomatic ? input.AimHeld : input.AimPressed;
 
         if (triggerPressed && Time.time >= nextFireTime)
         {
@@ -268,47 +419,6 @@ public class Shooting : MonoBehaviour
 
         StartTrigger start = hit.collider.GetComponentInParent<StartTrigger>();
         if (start != null) start.Activate();
-    }
-
-    private void TryCastAbility(WeaponState weapon)
-    {
-        StaffDefinition staff = weapon.Staff;
-        if (staff == null || mana == null) return;
-        if (!abilityCooldown.IsReady(Time.time)) return;
-        if (!mana.TrySpend(staff.abilityManaCost)) return;
-
-        float cooldown = weapon.AbilityCooldownTime;
-        abilityCooldown.Start(Time.time, cooldown);
-
-        Vector3 origin = MuzzlePosition;
-        Vector3 end = PiercingBeam.Cast(new Ray(origin, BeamDirection(origin, staff.abilityRange)),
-            staff.abilityRange, staff.abilityBeamRadius, weapon.AbilityDamage, transform);
-
-        beamVfx.Show(origin, end, BeamColor, staff.abilityBeamRadius * 1.5f, 0.25f);
-
-        GameEvents.RaiseAbilityUsed(0, Time.time + cooldown);
-        PublishMana(true);
-    }
-
-    /// <summary>
-    /// El rayo sale horizontal, a la altura del bastón, hacia donde apunta la mira. Así recorre el campo a la
-    /// altura de los enemigos en vez de clavarse en el suelo, y atraviesa filas enteras.
-    /// </summary>
-    private Vector3 BeamDirection(Vector3 origin, float range)
-    {
-        Ray aim = AimRay();
-        Vector3 target = TryGetHit(range, out RaycastHit hit) ? hit.point : aim.GetPoint(range);
-
-        Vector3 direction = target - origin;
-        direction.y = 0f;
-
-        if (direction.sqrMagnitude < 0.01f)
-        {
-            direction = aim.direction;
-            direction.y = 0f;
-        }
-
-        return direction.normalized;
     }
 
     public Ray AimRay() => cam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
@@ -408,14 +518,19 @@ public class Shooting : MonoBehaviour
     public void RefreshAbilityHud()
     {
         abilities.RefreshBuild();
-        GameEvents.RaiseAbilitiesChanged(BuildAbilityHud());
+        GameEvents.RaiseAbilitiesChanged(abilities.HudInfo());
     }
+
+    /// <summary>Avisa a la barra de Furia del estado actual (la llamarada también la gasta).</summary>
+    public void PublishFury() => GameEvents.RaiseFuryChanged(fury.Current, fury.Max);
 
     private void PublishHud()
     {
-        if (states.Length == 0)
+        PublishFury();
+
+        if (states.Length == 0 || (!CurrentWeapon.UsesAmmo && CurrentWeapon.Staff == null))
         {
-            // Sin armas: ni munición ni maná en el HUD, solo las habilidades del personaje (si tiene).
+            // Sin armas, o con una sin munición ni maná (la espada): solo las habilidades del personaje (si tiene).
             GameEvents.RaiseResourceModeChanged(false);
             GameEvents.RaiseAbilitiesChanged(abilities.HudInfo());
             return;
@@ -423,21 +538,10 @@ public class Shooting : MonoBehaviour
 
         bool usesMana = !CurrentWeapon.UsesAmmo;
         GameEvents.RaiseResourceModeChanged(usesMana);
-        GameEvents.RaiseAbilitiesChanged(BuildAbilityHud());
+        GameEvents.RaiseAbilitiesChanged(abilities.HudInfo());
 
         if (usesMana) PublishMana(true);
         else PublishSlots();
-    }
-
-    // Casillas del HUD: con bastón la 1.ª es la habilidad del bastón (Frieren); si no, las del personaje.
-    private AbilityHudInfo[] BuildAbilityHud()
-    {
-        StaffDefinition staff = states.Length > 0 ? CurrentWeapon.Staff : null;
-        if (staff == null) return abilities.HudInfo();
-
-        var info = new AbilityHudInfo[GameInput.AbilitySlots];
-        info[0] = new AbilityHudInfo { Name = staff.abilityName, Icon = staff.abilityIcon };
-        return info;
     }
 
     // Cada arma con munición tiene su casilla en el HUD: así se ve también la que no está equipada.
@@ -479,6 +583,7 @@ public class Shooting : MonoBehaviour
         {
             ConfigureMana();
             PublishMana(true);
+            abilities.RefreshBuild();   // "Maná" también baja el enfriamiento del rayo
         }
 
         return bought;

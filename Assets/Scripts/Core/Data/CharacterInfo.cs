@@ -43,6 +43,7 @@ public static class CharacterInfo
             int damage = Level(progress, UpgradeType.Damage);
 
             if (weapon is StaffDefinition staff) AddStaff(lines, staff, fireRate, reload, damage);
+            else if (weapon is SwordDefinition sword) AddSword(lines, sword, fireRate, reload, damage);
             else AddGun(lines, weapon, fireRate, reload, damage);
         }
 
@@ -63,6 +64,24 @@ public static class CharacterInfo
         lines.Add(new StatLine(weapon.weaponName,
             $"daño {weapon.DamageAt(damage)} · {weapon.FireRateAt(fireRate).ToString("0.00", Culture)} s · " +
             $"{magazineText} · recarga {weapon.ReloadTimeAt(reload).ToString("0.0", Culture)} s · {mode} · {dps.ToString("0", Culture)} DPS"));
+    }
+
+    // La espada no tiene cargador ni recarga: se muestran el golpe en área, el aturdimiento (con el nivel de Aturdir
+    // guardado; el bono del árbol no entra aquí) y la Furia.
+    private static void AddSword(List<StatLine> lines, SwordDefinition sword, int fireRate, int stun, int damage)
+    {
+        int stunPercent = (int)System.Math.Round(sword.StunChanceAt(stun) * 100f);
+
+        lines.Add(new StatLine(sword.weaponName,
+            $"daño {sword.DamageAt(damage)} · un golpe cada {sword.FireRateAt(fireRate).ToString("0.00", Culture)} s · " +
+            $"golpe en área de {sword.range.ToString("0.#", Culture)} m · aturdir {stunPercent}%"));
+
+        if (sword.furyMax > 0f)
+        {
+            lines.Add(new StatLine("Furia",
+                $"+{sword.furyPerEnemyHit.ToString("0.#", Culture)} por enemigo golpeado · con la barra llena, " +
+                $"el siguiente golpe hace x{sword.furyDamageMultiplier.ToString("0.#", Culture)} de daño y aturde a todos"));
+        }
     }
 
     private static void AddStaff(List<StatLine> lines, StaffDefinition staff, int fireRate, int mana, int power)

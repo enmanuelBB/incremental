@@ -114,6 +114,22 @@ public static class SkillTreeRules
             case SkillEffectType.UltDuration: b.UltDurationBonus += v; break;
             case SkillEffectType.UltCooldown: b.UltCooldownReduction += v; break;
             case SkillEffectType.UltLifeSteal: b.UltLifeStealBonus += v; break;
+            case SkillEffectType.StunChance: b.StunChanceBonus += v; break;
+            case SkillEffectType.StunnedDamagePercent: b.StunnedDamagePercent += v; break;
+            case SkillEffectType.FuryGainPercent: b.FuryGainPercent += v; break;
+            case SkillEffectType.SoulHealBonus: b.SoulHealBonus += v; break;
+            case SkillEffectType.FlameBurnSeconds: b.FlameBurnSecondsBonus += v; break;
+            case SkillEffectType.FlameCone: b.FlameConeBonus += v; break;
+            case SkillEffectType.FlameBurnDamagePercent: b.FlameBurnDamagePercent += v; break;
+            case SkillEffectType.FlameRange: b.FlameRangeBonus += v; break;
+            case SkillEffectType.DashExtraCharges: b.DashExtraCharges += Mathf.RoundToInt(v); break;
+            case SkillEffectType.DashExtraShots: b.DashExtraShots += Mathf.RoundToInt(v); break;
+            case SkillEffectType.DashDistance: b.DashDistanceBonus += v; break;
+            case SkillEffectType.DashCooldown: b.DashCooldownReduction += v; break;
+            case SkillEffectType.BerserkDamage: b.BerserkDamageBonus += v; break;
+            case SkillEffectType.BerserkDamageTaken: b.BerserkDamageTakenReduction += v; break;
+            case SkillEffectType.RoarStun: b.RoarStunBonus += v; break;
+            case SkillEffectType.RoarRadius: b.RoarRadiusBonus += v; break;
         }
     }
 }

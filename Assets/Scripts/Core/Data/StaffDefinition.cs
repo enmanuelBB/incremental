@@ -32,6 +32,26 @@ public class StaffDefinition : WeaponDefinition
     public float cooldownStep = 0.3f;
     public float cooldownLimit = 1.5f;
 
+    [Header("Zoltraak (disparo cargado, clic izquierdo)")]
+    [Tooltip("Daño a carga completa (sin mejoras)")]
+    public int zoltraakDamage = 45;
+    [Min(0.1f), Tooltip("Segundos que hay que mantener el clic para la carga completa")]
+    public float zoltraakChargeSeconds = 1.2f;
+    [Range(0f, 1f), Tooltip("Fracción del daño con la carga en 0 (suelta al instante)")]
+    public float zoltraakMinDamageFraction = 0.4f;
+    [Tooltip("Radio de la explosión con la carga en 0, en metros")]
+    public float zoltraakMinRadius = 2.5f;
+    [Tooltip("Radio de la explosión a carga completa, en metros")]
+    public float zoltraakMaxRadius = 4f;
+    [Tooltip("Maná que gasta al dispararlo. 0 = gratis (así lo quiere el usuario: el Zoltraak no gasta maná)")]
+    public float zoltraakManaCost = 0f;
+    [Tooltip("Pausa tras un Zoltraak antes de poder empezar otro, en segundos")]
+    public float zoltraakPause = 0.4f;
+    [Tooltip("Pausa entre disparos con la definitiva activa (sin carga)")]
+    public float zoltraakInstantPause = 0.35f;
+    [Tooltip("Alcance de la mira para colocar la explosión, en metros")]
+    public float zoltraakRange = 60f;
+
     public override bool UsesAmmo => false;
 
     // El bastón no sangra: no muestra la mejora de sangrado.
@@ -54,6 +74,13 @@ public class StaffDefinition : WeaponDefinition
 
     public int AbilityDamageAt(int powerLevel) =>
         Mathf.RoundToInt(abilityDamage * (1f + powerLevel * damageUpgrade.step));
+
+    /// <summary>Daño del Zoltraak: el de carga completa con el Poder de la tienda (+step por nivel), escalado de 'zoltraakMinDamageFraction' a 1 según la carga (0 a 1).</summary>
+    public int ZoltraakDamageAt(int powerLevel, float charge) =>
+        Mathf.RoundToInt(zoltraakDamage * (1f + powerLevel * damageUpgrade.step) * Mathf.Lerp(zoltraakMinDamageFraction, 1f, Mathf.Clamp01(charge)));
+
+    public float ZoltraakRadiusAt(float charge) =>
+        Mathf.Lerp(zoltraakMinRadius, zoltraakMaxRadius, Mathf.Clamp01(charge));
 
     public float ManaRegenAt(int manaLevel) =>
         manaRegen + manaLevel * reloadUpgrade.step;

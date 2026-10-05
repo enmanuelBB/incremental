@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Core::CharacterDefinition
   id: guts
   displayName: Guts
-  description: "El Espadach\xEDn Negro, con la Dragonslayer. Lento y resistente. Su combate cuerpo a cuerpo est\xE1 en desarrollo: por ahora el clic solo hace el corte, sin da\xF1o."
+  description: "El Espadach\xEDn Negro, con la Dragonslayer. Lento y resistente. Su golpe de espada pega en \xE1rea frente a \xE9l y puede aturdir a los enemigos."
   menuOrder: 2
   availability: 0
   maxHealth: 150
@@ -22,8 +22,16 @@ MonoBehaviour:
   unlockKind: 0
   unlockPrice: 0
   unlockHint: 
-  startingWeapons: []
-  abilities: []
-  skillTree: {fileID: 0}
+  startingWeapons:
+  - {fileID: 11400000, guid: 0b80c78e756d38b45a7852c175dc3c9b, type: 2}
+  abilities:
+  - {fileID: 11400000, guid: ff937216da234b1458b1c16f0bf4c822, type: 2}
+  - {fileID: 11400000, guid: a047db8555ac8bd44892749520978e68, type: 2}
+  - {fileID: 11400000, guid: c2cdfb905569c2f42aa4a72e77f8d840, type: 2}
+  skillTree: {fileID: 11400000, guid: 3889100524bd2b14689dba5f5845c238, type: 2}
   heldItemPrefab: {fileID: 0}
   bodyPrefab: {fileID: 3523368839967746950, guid: b0df3b757c68c1049a6a9a699ce54f8b, type: 3}
+  soulHealFraction: 0.02
+  soulBossMultiplier: 3
+  soulLifetime: 10
+  soulPickupRadius: 1.5

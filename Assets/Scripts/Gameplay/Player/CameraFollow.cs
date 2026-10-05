@@ -24,6 +24,7 @@ public class CameraFollow : MonoBehaviour
     [SerializeField, Tooltip("Grados por segundo con el stick del gamepad")] private float stickSensitivity = 150f;
 
     private Camera cam;
+    private PlayerHover hover;
     private float thirdPersonNearClip;
     private bool isFirstPerson;
     private float rotationX;   // vertical
@@ -64,7 +65,9 @@ public class CameraFollow : MonoBehaviour
 
         if (input.ToggleViewPressed) isFirstPerson = !isFirstPerson;
 
-        float targetFov = input.AimHeld ? zoomFOV : normalFOV;
+        // Con el bastón el clic derecho es el disparo básico: no hay zoom.
+        bool zoomAllowed = Shooting.Instance == null || !Shooting.Instance.UsesStaff;
+        float targetFov = input.AimHeld && zoomAllowed ? zoomFOV : normalFOV;
         cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, targetFov, zoomSpeed * Time.deltaTime);
 
         Vector2 look = input.LookDelta * mouseSensitivity + input.LookStick * (stickSensitivity * Time.unscaledDeltaTime);
@@ -153,19 +156,23 @@ public class CameraFollow : MonoBehaviour
 
         Quaternion rotation = Quaternion.Euler(rotationX, rotationY, 0f);
 
+        // Los personajes que levitan (Frieren) suben la cámara lo mismo que el cuerpo.
+        if (hover == null) hover = target.GetComponent<PlayerHover>();
+        Vector3 lift = Vector3.up * (hover != null ? hover.Offset : 0f);
+
         Vector3 position = isFirstPerson
-            ? target.position + firstPersonOffset
-            : ResolveThirdPersonPosition(rotation);
+            ? target.position + firstPersonOffset + lift
+            : ResolveThirdPersonPosition(rotation, lift);
 
         transform.SetPositionAndRotation(position, rotation);
     }
 
     // Acerca la cámara al jugador si hay una pared entre ambos, para que no la atraviese.
     // Se ignoran los objetos con Rigidbody (enemigos, jugador) para que no empujen la cámara.
-    private Vector3 ResolveThirdPersonPosition(Quaternion rotation)
+    private Vector3 ResolveThirdPersonPosition(Quaternion rotation, Vector3 lift)
     {
-        Vector3 pivot = target.position + pivotOffset;
-        Vector3 desired = target.position + rotation * thirdPersonOffset;
+        Vector3 pivot = target.position + pivotOffset + lift;
+        Vector3 desired = target.position + rotation * thirdPersonOffset + lift;
 
         Vector3 toCamera = desired - pivot;
         float distance = toCamera.magnitude;

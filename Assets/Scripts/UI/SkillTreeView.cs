@@ -17,7 +17,10 @@ public class SkillTreeView
     private static readonly Color LockedColor = new Color(0.22f, 0.24f, 0.3f, 1f);
     private static readonly Color LineIdle = new Color(0.3f, 0.33f, 0.42f, 1f);
 
-    private const float NodeSize = 112f;
+    // El árbol se dibuja a una escala fija (UnitScale px por unidad) y NO se ajusta a la zona: si es más grande, se arrastra y se
+    // hace zoom. SkillTreeLayoutTests repite UnitScale y NodeSize para exigir aire entre los nodos de los dos árboles.
+    private const float UnitScale = 150f;
+    private const float NodeSize = 104f;
     private const float NodeFontSize = 20f;
     private const float NodeFontMin = 13f;
     private const float AreaWidth = 1800f;
@@ -26,11 +29,12 @@ public class SkillTreeView
     private const float DetailGap = 10f;
     private const float TopOffset = 215f;   // debajo del título, la XP y los puntos
     private const float LineThickness = 9f;
-    private const float MaxScale = 190f;
-    private const float MinZoom = 0.6f;
-    private const float MaxZoom = 3f;
+    private const float StartZoom = 0.75f;  // vista inicial: centrada en el árbol y con los nodos todavía legibles
+    private const float MinZoom = 0.2f;
+    private const float MaxZoom = 2.5f;
     private const float ZoomStep = 1.15f;
-    private const float PanMargin = 160f;
+    private const float PanMargin = 160f;   // siempre queda al menos este tramo del árbol dentro de la zona
+    private const float FitMargin = 60f;
 
     private class NodeUi
     {
@@ -61,8 +65,13 @@ public class SkillTreeView
 
     private SkillTreeDefinition builtFor;
     private SkillNode shown;
-    private float zoom = 1f;
+    private float zoom = StartZoom;
     private Vector2 pan;
+
+    // Límites del árbol dibujado (en píxeles de contenido, contando el tamaño de los nodos): para centrarlo, ajustarlo y no dejar
+    // que se arrastre fuera de la zona.
+    private Vector2 contentMin;
+    private Vector2 contentMax;
 
     /// <param name="parent">Panel donde se coloca la vista (misma zona que la lista de habilidades).</param>
     /// <param name="onChanged">Se llama tras comprar o reiniciar, para que la pantalla se redibuje.</param>
@@ -126,7 +135,7 @@ public class SkillTreeView
         UiKit.Place((RectTransform)zoomOut.transform, new Vector2(0f, 1f), new Vector2(78f, y), new Vector2(58f, 58f));
         ((RectTransform)zoomOut.transform).pivot = new Vector2(0f, 1f);
 
-        Button fit = UiKit.TextButton("FitView", Root, "Ajustar", 26f, ResetView, out _);
+        Button fit = UiKit.TextButton("FitView", Root, "Ver todo", 26f, FitAll, out _);
         UiKit.Place((RectTransform)fit.transform, new Vector2(0f, 1f), new Vector2(144f, y), new Vector2(150f, 58f));
         ((RectTransform)fit.transform).pivot = new Vector2(0f, 1f);
 
@@ -164,20 +173,36 @@ public class SkillTreeView
         ApplyView();
     }
 
-    /// <summary>Vuelve a ver todo el árbol, centrado y sin zoom.</summary>
+    /// <summary>Vista inicial: centrada en el árbol, con el zoom de partida (el árbol puede salirse de la zona: se arrastra).</summary>
     public void ResetView()
     {
-        zoom = 1f;
-        pan = Vector2.zero;
+        zoom = StartZoom;
+        pan = -((contentMin + contentMax) * 0.5f) * zoom;
         ApplyView();
     }
 
-    // Que el árbol no se pueda arrastrar fuera de la pantalla: siempre queda parte a la vista.
+    /// <summary>Aleja lo necesario para ver el árbol entero (los nodos quedan chicos; después se acerca con la rueda o los botones).</summary>
+    public void FitAll()
+    {
+        Vector2 size = contentMax - contentMin;
+        float fitX = size.x > 0.01f ? (AreaWidth - FitMargin) / size.x : 1f;
+        float fitY = size.y > 0.01f ? (AreaHeight - FitMargin) / size.y : 1f;
+
+        zoom = Mathf.Clamp(Mathf.Min(fitX, fitY, 1f), MinZoom, MaxZoom);
+        pan = -((contentMin + contentMax) * 0.5f) * zoom;
+        ApplyView();
+    }
+
+    // Que el árbol no se pueda arrastrar fuera de la pantalla: siempre queda al menos PanMargin px de él a la vista.
     private void ApplyView()
     {
-        float limitX = Mathf.Max(0f, (AreaWidth * zoom - AreaWidth) * 0.5f) + PanMargin;
-        float limitY = Mathf.Max(0f, (AreaHeight * zoom - AreaHeight) * 0.5f) + PanMargin;
-        pan = new Vector2(Mathf.Clamp(pan.x, -limitX, limitX), Mathf.Clamp(pan.y, -limitY, limitY));
+        // Un punto del contenido p se ve en pan + p * zoom (con el origen en el centro de la zona).
+        float minX = -AreaWidth * 0.5f + PanMargin - contentMax.x * zoom;
+        float maxX = AreaWidth * 0.5f - PanMargin - contentMin.x * zoom;
+        float minY = -AreaHeight * 0.5f + PanMargin - contentMax.y * zoom;
+        float maxY = AreaHeight * 0.5f - PanMargin - contentMin.y * zoom;
+        pan = new Vector2(Mathf.Clamp(pan.x, Mathf.Min(minX, maxX), Mathf.Max(minX, maxX)),
+            Mathf.Clamp(pan.y, Mathf.Min(minY, maxY), Mathf.Max(minY, maxY)));
 
         content.localScale = new Vector3(zoom, zoom, 1f);
         content.anchoredPosition = pan;
@@ -230,25 +255,23 @@ public class SkillTreeView
         lines.Clear();
         builtFor = tree;
         shown = null;
+        contentMin = contentMax = Vector2.zero;
         ResetView();
 
         if (tree == null || tree.nodes == null || tree.nodes.Length == 0) return;
 
-        // Ajusta la escala para que el árbol entre en la zona sin importar cuántos nodos o qué tan separados estén.
-        // El ancho y el alto se ajustan por separado: la zona es mucho más ancha que alta y así los nodos no se pegan.
+        // Escala fija: cada unidad del árbol son UnitScale píxeles (el árbol no se ajusta a la zona, se arrastra y se acerca).
         Vector2 min = new Vector2(float.MaxValue, float.MaxValue), max = new Vector2(float.MinValue, float.MinValue);
         foreach (SkillNode node in tree.nodes)
         {
-            min = Vector2.Min(min, node.position);
-            max = Vector2.Max(max, node.position);
+            min = Vector2.Min(min, node.position * UnitScale);
+            max = Vector2.Max(max, node.position * UnitScale);
         }
-        Vector2 center = (min + max) * 0.5f;
-        float width = Mathf.Max(0.01f, max.x - min.x);
-        float height = Mathf.Max(0.01f, max.y - min.y);
-        float scaleX = Mathf.Min(MaxScale, (AreaWidth - NodeSize) / width);
-        float scaleY = Mathf.Min(MaxScale, (AreaHeight - NodeSize) / height);
+        contentMin = min - Vector2.one * (NodeSize * 0.5f);
+        contentMax = max + Vector2.one * (NodeSize * 0.5f);
+        ResetView();
 
-        Vector2 ToScreen(Vector2 p) => new Vector2((p.x - center.x) * scaleX, (p.y - center.y) * scaleY);
+        Vector2 ToScreen(Vector2 p) => p * UnitScale;
 
         // Primero las líneas (debajo), una por cada par conectado.
         var drawn = new HashSet<string>();

@@ -1,0 +1,490 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91bf552f84e9df84b944d7d089976707, type: 3}
+  m_Name: Guts_Tree
+  m_EditorClassIdentifier: Game.Core::SkillTreeDefinition
+  id: guts_tree
+  nodes:
+  - id: core
+    displayName: Espada
+    description: "Tu Dragonslayer: +5% de da\xF1o."
+    cost: 1
+    position: {x: 0, y: 0}
+    connections:
+    - v1
+    - s1
+    - d1
+    - i1
+    isRoot: 1
+    effects:
+    - type: 2
+      value: 0.05
+  - id: v1
+    displayName: Vitalidad I
+    description: "+10 de vida m\xE1xima."
+    cost: 1
+    position: {x: -1.43, y: 0}
+    connections:
+    - core
+    - q1
+    - v2
+    isRoot: 0
+    effects:
+    - type: 0
+      value: 10
+  - id: v2
+    displayName: Vitalidad II
+    description: "+15 de vida m\xE1xima."
+    cost: 2
+    position: {x: -2.145, y: -1.5}
+    connections:
+    - v1
+    - v3
+    isRoot: 0
+    effects:
+    - type: 0
+      value: 15
+  - id: v3
+    displayName: Vitalidad III
+    description: "+20 de vida m\xE1xima."
+    cost: 3
+    position: {x: -3.575, y: -1.5}
+    connections:
+    - v2
+    - v4
+    isRoot: 0
+    effects:
+    - type: 0
+      value: 20
+  - id: s1
+    displayName: Zancada I
+    description: +3% de velocidad.
+    cost: 1
+    position: {x: 1.43, y: 0}
+    connections:
+    - core
+    - e1
+    - s2
+    isRoot: 0
+    effects:
+    - type: 1
+      value: 0.03
+  - id: s2
+    displayName: Zancada II
+    description: +3% de velocidad.
+    cost: 2
+    position: {x: 2.145, y: -1.5}
+    connections:
+    - s1
+    - s3
+    isRoot: 0
+    effects:
+    - type: 1
+      value: 0.03
+  - id: s3
+    displayName: Zancada III
+    description: +4% de velocidad.
+    cost: 3
+    position: {x: 3.575, y: -1.5}
+    connections:
+    - s2
+    isRoot: 0
+    effects:
+    - type: 1
+      value: 0.04
+  - id: d1
+    displayName: Filo I
+    description: "+3% de da\xF1o."
+    cost: 1
+    position: {x: 0, y: -1.5}
+    connections:
+    - core
+    - d2
+    - d3
+    isRoot: 0
+    effects:
+    - type: 2
+      value: 0.03
+  - id: d2
+    displayName: Filo II
+    description: "+3% de da\xF1o."
+    cost: 2
+    position: {x: -0.715, y: -3}
+    connections:
+    - d1
+    isRoot: 0
+    effects:
+    - type: 2
+      value: 0.03
+  - id: d3
+    displayName: Filo III
+    description: "+4% de da\xF1o."
+    cost: 6
+    position: {x: 0.715, y: -3}
+    connections:
+    - d1
+    - f1
+    isRoot: 0
+    effects:
+    - type: 2
+      value: 0.04
+  - id: i1
+    displayName: Impacto I
+    description: +3% de probabilidad de aturdir con la espada.
+    cost: 2
+    position: {x: 0, y: 1.5}
+    connections:
+    - core
+    - i2
+    - i3
+    - ve1
+    - r1
+    isRoot: 0
+    effects:
+    - type: 13
+      value: 0.03
+  - id: i2
+    displayName: Impacto II
+    description: +3% de probabilidad de aturdir con la espada.
+    cost: 3
+    position: {x: -0.715, y: 3}
+    connections:
+    - i1
+    - i4
+    isRoot: 0
+    effects:
+    - type: 13
+      value: 0.03
+  - id: i3
+    displayName: Impacto III
+    description: +3% de probabilidad de aturdir con la espada.
+    cost: 4
+    position: {x: 0.715, y: 3}
+    connections:
+    - i1
+    - i5
+    isRoot: 0
+    effects:
+    - type: 13
+      value: 0.03
+  - id: i4
+    displayName: Impacto IV
+    description: +3% de probabilidad de aturdir con la espada.
+    cost: 5
+    position: {x: -2.145, y: 3}
+    connections:
+    - i2
+    - a1
+    isRoot: 0
+    effects:
+    - type: 13
+      value: 0.03
+  - id: i5
+    displayName: Impacto V
+    description: +3% de probabilidad de aturdir con la espada.
+    cost: 6
+    position: {x: 2.145, y: 3}
+    connections:
+    - i3
+    isRoot: 0
+    effects:
+    - type: 13
+      value: 0.03
+  - id: ve1
+    displayName: Verdugo
+    description: "+15% de da\xF1o a los enemigos aturdidos."
+    cost: 5
+    position: {x: -1.43, y: 1.5}
+    connections:
+    - i1
+    - ve2
+    isRoot: 0
+    effects:
+    - type: 14
+      value: 0.15
+  - id: ve2
+    displayName: Verdugo II
+    description: "+15% m\xE1s de da\xF1o a los enemigos aturdidos."
+    cost: 7
+    position: {x: -2.86, y: 1.5}
+    connections:
+    - ve1
+    isRoot: 0
+    effects:
+    - type: 14
+      value: 0.15
+  - id: a1
+    displayName: Alma voraz
+    description: "Las almas curan 1 punto de porcentaje m\xE1s (2% a 3% de tu vida)."
+    cost: 4
+    position: {x: -3.575, y: 3}
+    connections:
+    - i4
+    - a2
+    isRoot: 0
+    effects:
+    - type: 16
+      value: 0.01
+  - id: a2
+    displayName: Alma voraz II
+    description: "Las almas curan otro punto de porcentaje m\xE1s (3% a 4%)."
+    cost: 6
+    position: {x: -4.29, y: 1.5}
+    connections:
+    - a1
+    isRoot: 0
+    effects:
+    - type: 16
+      value: 0.01
+  - id: r1
+    displayName: Rabia
+    description: +25% de Furia por golpe.
+    cost: 4
+    position: {x: 1.43, y: 1.5}
+    connections:
+    - i1
+    - r2
+    isRoot: 0
+    effects:
+    - type: 15
+      value: 0.25
+  - id: r2
+    displayName: Rabia II
+    description: "+25% m\xE1s de Furia por golpe."
+    cost: 6
+    position: {x: 2.86, y: 1.5}
+    connections:
+    - r1
+    isRoot: 0
+    effects:
+    - type: 15
+      value: 0.25
+  - id: q1
+    displayName: Brasas (Q)
+    description: "La llamarada quema 2 s m\xE1s."
+    cost: 3
+    position: {x: -2.86, y: 0}
+    connections:
+    - v1
+    - q2
+    isRoot: 0
+    effects:
+    - type: 17
+      value: 2
+  - id: q2
+    displayName: Llama ancha (Q)
+    description: "El cono de la llamarada es 30\xB0 m\xE1s ancho."
+    cost: 3
+    position: {x: -4.29, y: 0}
+    connections:
+    - q1
+    - q3
+    isRoot: 0
+    effects:
+    - type: 18
+      value: 30
+  - id: q3
+    displayName: Infierno (Q)
+    description: "La quemadura hace 50% m\xE1s de da\xF1o."
+    cost: 5
+    position: {x: -5.72, y: 0}
+    connections:
+    - q2
+    - q4
+    - q5
+    isRoot: 0
+    effects:
+    - type: 19
+      value: 0.5
+  - id: q4
+    displayName: Llama larga (Q)
+    description: "La llamarada llega 2 m m\xE1s lejos."
+    cost: 4
+    position: {x: -7.15, y: 0}
+    connections:
+    - q3
+    - q6
+    isRoot: 0
+    effects:
+    - type: 20
+      value: 2
+  - id: q5
+    displayName: Brasas II (Q)
+    description: "La llamarada quema 2 s m\xE1s."
+    cost: 6
+    position: {x: -6.435, y: -1.5}
+    connections:
+    - q3
+    - q6
+    isRoot: 0
+    effects:
+    - type: 17
+      value: 2
+  - id: q6
+    displayName: Infierno II (Q)
+    description: "La quemadura hace otro 50% m\xE1s de da\xF1o."
+    cost: 8
+    position: {x: -7.8650002, y: -1.5}
+    connections:
+    - q4
+    - q5
+    isRoot: 0
+    effects:
+    - type: 19
+      value: 0.5
+  - id: e1
+    displayName: Doble carga (E)
+    description: La Embestida tiene 2 cargas (se recargan de una en una).
+    cost: 4
+    position: {x: 2.86, y: 0}
+    connections:
+    - s1
+    - e2
+    - e4
+    isRoot: 0
+    effects:
+    - type: 21
+      value: 1
+  - id: e2
+    displayName: Disparo doble (E)
+    description: "Despu\xE9s del dash dispara 2 veces, cada disparo a un enemigo distinto."
+    cost: 5
+    position: {x: 4.29, y: 0}
+    connections:
+    - e1
+    - e3
+    - e4
+    isRoot: 0
+    effects:
+    - type: 22
+      value: 1
+  - id: e3
+    displayName: Disparo triple (E)
+    description: "Despu\xE9s del dash dispara 3 veces. Necesita el disparo doble."
+    cost: 8
+    position: {x: 5.72, y: 0}
+    connections:
+    - e2
+    isRoot: 0
+    effects:
+    - type: 22
+      value: 1
+  - id: e4
+    displayName: Dash largo (E)
+    description: "El dash recorre 1,5 m m\xE1s."
+    cost: 3
+    position: {x: 5.005, y: -1.5}
+    connections:
+    - e1
+    - e2
+    - e5
+    isRoot: 0
+    effects:
+    - type: 23
+      value: 1.5
+  - id: e5
+    displayName: Recarga veloz (E)
+    description: La Embestida se recarga 1 s antes.
+    cost: 3
+    position: {x: 6.435, y: -1.5}
+    connections:
+    - e4
+    - e6
+    isRoot: 0
+    effects:
+    - type: 24
+      value: 1
+  - id: e6
+    displayName: Recarga veloz II (E)
+    description: La Embestida se recarga otro segundo antes.
+    cost: 6
+    position: {x: 7.15, y: 0}
+    connections:
+    - e5
+    isRoot: 0
+    effects:
+    - type: 24
+      value: 1
+  - id: f1
+    displayName: Rugido (F)
+    description: "El rugido aturde 1 s m\xE1s y llega 1,5 m m\xE1s lejos."
+    cost: 4
+    position: {x: 2.145, y: -3}
+    connections:
+    - d3
+    - f2
+    isRoot: 0
+    effects:
+    - type: 27
+      value: 1
+    - type: 28
+      value: 1.5
+  - id: f2
+    displayName: Ira (F)
+    description: "La armadura da +10 puntos de da\xF1o (x1,4 a x1,5 en el rango 1)."
+    cost: 5
+    position: {x: 3.575, y: -3}
+    connections:
+    - f1
+    - f3
+    isRoot: 0
+    effects:
+    - type: 25
+      value: 0.1
+  - id: f3
+    displayName: Piel de hierro (F)
+    description: "Con la armadura recibes 10 puntos menos de da\xF1o (x0,5 a x0,4)."
+    cost: 6
+    position: {x: 5.005, y: -3}
+    connections:
+    - f2
+    - f4
+    isRoot: 0
+    effects:
+    - type: 26
+      value: 0.1
+  - id: f4
+    displayName: Rugido II (F)
+    description: "El rugido aturde otro segundo m\xE1s y llega 1,5 m m\xE1s lejos."
+    cost: 6
+    position: {x: 6.435, y: -3}
+    connections:
+    - f3
+    - f5
+    isRoot: 0
+    effects:
+    - type: 27
+      value: 1
+    - type: 28
+      value: 1.5
+  - id: f5
+    displayName: Ira II (F)
+    description: "La armadura da otros +10 puntos de da\xF1o."
+    cost: 8
+    position: {x: 7.8650002, y: -3}
+    connections:
+    - f4
+    isRoot: 0
+    effects:
+    - type: 25
+      value: 0.1
+  - id: v4
+    displayName: Vitalidad IV
+    description: "+25 de vida m\xE1xima."
+    cost: 4
+    position: {x: -5.005, y: -1.5}
+    connections:
+    - v3
+    isRoot: 0
+    effects:
+    - type: 0
+      value: 25

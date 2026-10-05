@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66ffa8d72a5ac2f4fb4471403e5fa868, type: 3}
+  m_Name: CampoFlores
+  m_EditorClassIdentifier: Game.Core::AbilityDefinition
+  id: 
+  abilityName: Campo de flores
+  icon: {fileID: 0}
+  kind: 7
+  cooldown: 18
+  damageMultiplier: 6
+  range: 60
+  bleedStacks: 3
+  duration: 6
+  speedMultiplier: 1.6
+  radius: 5
+  mistSlowSeconds: 2
+  lifeSteal: 0.5
+  bleedMultiplier: 2
+  explosionRadius: 2.5
+  explosionFraction: 0.6
+  explosionBleedStacks: 2
+  riverTickSeconds: 2
+  coneDegrees: 90
+  burnDamageFractionPerSecond: 0.6
+  burnTickSeconds: 0.5
+  dashDistance: 6
+  dashSeconds: 0.35
+  riseSeconds: 0.25
+  shotRange: 25
+  drainFractionPerSecond: 0.02
+  drainPerRank: 0
+  roarRadius: 4
+  roarStunSeconds: 1.5
+  damageTakenMultiplier: 0.5
+  cadenceMultiplier: 0.5
+  furyGainMultiplier: 2
+  swingArcDegrees: 360
+  manaCost: 20
+  fieldHealFractionPerSecond: 0.03
+  fieldSlowFraction: 0.4
+  fieldTickSeconds: 0.25
+  fieldPlaceRange: 25
+  pulseStunSeconds: 1.5
+  pulseSlowFraction: 0.4
+  pulseCooldownBoost: 2
+  cooldownPerRank: 1
+  damagePerRank: 0
+  durationPerRank: 0.5
+  speedPerRank: 0
+  lifeStealPerRank: 0

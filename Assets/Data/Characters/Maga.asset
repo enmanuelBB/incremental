@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Core::CharacterDefinition
   id: maga
   displayName: Frieren
-  description: "Maga de precisi\xF3n. Disparo b\xE1sico sin man\xE1 y un rayo penetrante que atraviesa filas enteras de enemigos. Especialista en oleadas."
+  description: "Maga de control y de \xE1rea. Carga el Zoltraak (clic izquierdo) para explotar zonas enteras, dispara sin gastar man\xE1 con el clic derecho, atraviesa filas con el rayo de man\xE1, cura y frena a la horda con el campo de flores y levita siempre."
   menuOrder: 1
   availability: 0
   maxHealth: 100
@@ -24,4 +24,17 @@ MonoBehaviour:
   unlockHint: 
   startingWeapons:
   - {fileID: 11400000, guid: c6f87c85ce2800742b20ca4776c54dd2, type: 2}
+  abilities:
+  - {fileID: 11400000, guid: 21e488731e6d83045af5ddc36cfda0ad, type: 2}
+  - {fileID: 11400000, guid: c34ab51a40589bc4388b75aa6859f087, type: 2}
+  - {fileID: 11400000, guid: 05efdddf84890d149a88459410b0f6ba, type: 2}
+  skillTree: {fileID: 0}
   heldItemPrefab: {fileID: 4935944395925541920, guid: 0ff9d57381c8cf349806d73ff145b5ce, type: 3}
+  bodyPrefab: {fileID: 5741062982687632497, guid: ace569f0516d2374e86d75c8b84acd8e, type: 3}
+  hoverHeight: 0.1
+  hoverBob: 0.05
+  hoverPeriod: 2.5
+  soulHealFraction: 0
+  soulBossMultiplier: 3
+  soulLifetime: 10
+  soulPickupRadius: 1.5

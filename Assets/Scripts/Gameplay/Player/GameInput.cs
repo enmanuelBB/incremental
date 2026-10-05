@@ -24,6 +24,8 @@ public class GameInput : MonoBehaviour
     public bool FireHeld => fire.IsPressed();
     public bool FirePressed => fire.WasPressedThisFrame();
     public bool AimHeld => aim.IsPressed();
+    public bool AimPressed => aim.WasPressedThisFrame();
+    public bool FireReleased => fire.WasReleasedThisFrame();
     public bool ReloadPressed => reload.WasPressedThisFrame();
     public bool InteractPressed => interact.WasPressedThisFrame();
     public bool JumpPressed => jump.WasPressedThisFrame();

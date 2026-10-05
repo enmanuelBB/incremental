@@ -1,6 +1,6 @@
 public class UpgradeStation : MenuStation
 {
-    // Los personajes sin armas (por ahora Guts) no tienen nada que mejorar aquí.
+    // Los personajes sin armas no tienen nada que mejorar aquí (Guts ya tiene su espada).
     private static bool Available => Shooting.Instance != null && Shooting.Instance.WeaponCount > 0;
 
     protected override string PromptText => Available ? "Presiona E para mejorar arma" : "No disponible para este personaje";

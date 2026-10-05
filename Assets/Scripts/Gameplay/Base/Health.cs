@@ -29,6 +29,9 @@ public abstract class Health : MonoBehaviour, IDamageable
     /// <summary>Mientras sea true no recibe daño (niebla de Alucard).</summary>
     public bool Invulnerable { get; set; }
 
+    /// <summary>Multiplicador del daño que recibe (1 = normal; 0,5 = la mitad). Lo usa la armadura Berserker de Guts.</summary>
+    public float DamageTakenMultiplier { get; set; } = 1f;
+
     /// <summary>Recupera vida sin pasar del máximo. No revive a quien ya murió.</summary>
     public void Heal(int amount)
     {
@@ -38,10 +41,20 @@ public abstract class Health : MonoBehaviour, IDamageable
         OnHealthChanged();
     }
 
+    /// <summary>Quita vida sin matar (nunca baja de 1) y sin multiplicadores ni invulnerabilidad: el drenaje de la armadura de Guts.</summary>
+    public void Drain(int amount)
+    {
+        if (IsDead || amount <= 0) return;
+
+        CurrentHealth = Mathf.Max(1, CurrentHealth - amount);
+        OnHealthChanged();
+    }
+
     public void TakeDamage(int amount)
     {
         if (IsDead || Invulnerable) return;
 
+        if (!Mathf.Approximately(DamageTakenMultiplier, 1f)) amount = Mathf.Max(1, Mathf.RoundToInt(amount * DamageTakenMultiplier));
         CurrentHealth = Mathf.Max(CurrentHealth - amount, 0);
         OnHealthChanged();
 

@@ -1,0 +1,169 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7155524887045499152
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6811029144155822564}
+  m_Layer: 0
+  m_Name: Muzzle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6811029144155822564
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7155524887045499152}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.010840282, y: 0.0005053301, z: 1.7730036}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6369008363184132842}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &4858596251004866848
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -1610254996115842846, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.36887437
+      objectReference: {fileID: 0}
+    - target: {fileID: -1610254996115842846, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.6271423
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+      propertyPath: m_Name
+      value: Frieren_Character
+      objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: b4e30e247402b2f489166b2380fe10cb, type: 2}
+    - target: {fileID: 5866666021909216657, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+      propertyPath: m_ApplyRootMotion
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8965162449314614456, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.17829905
+      objectReference: {fileID: 0}
+    - target: {fileID: 8965162449314614456, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.052544996
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -7273752306227248182, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6811029144155822564}
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8376333350813538795}
+  m_SourcePrefab: {fileID: 100100000, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+--- !u!95 &1299189697979886769 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+  m_PrefabInstance: {fileID: 4858596251004866848}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &5741062982687632497 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+  m_PrefabInstance: {fileID: 4858596251004866848}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8376333350813538795
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5741062982687632497}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca4d390cd39dc044ebd5d792c438170c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::PlayerBody
+  animator: {fileID: 1299189697979886769}
+  pitchWeight: 1
+  jumpVelocity: 1.5
+  reloadClipLength: 1.6
+  firstPersonWalkAmount: 0
+  locomotionWalkSpeed: 2.5
+  locomotionRunSpeed: 5
+  hideBodyInFirstPerson: 1
+  firstPersonHiddenBones: []
+  alignHeadToCamera: 0
+  cameraFromHead: {x: 0, y: 0.1, z: 0.12}
+  firstPersonTilt: 0
+  attackCameraFromHead: {x: 0, y: 0.1, z: 0.12}
+  attackFirstPersonTilt: 0
+  firstPersonLayer: 
+  firstPersonLayerSpeed: 8
+  faceAimWhenAttacking: 0
+  meleeAimRange: 15
+  meleeAimFallback: 3
+  aimTurnSpeed: 720
+  maxAimYaw: 60
+  attackYawOffset: 0
+--- !u!4 &6369008363184132842 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -7273752306227248182, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+  m_PrefabInstance: {fileID: 4858596251004866848}
+  m_PrefabAsset: {fileID: 0}

@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66ffa8d72a5ac2f4fb4471403e5fa868, type: 3}
+  m_Name: Armadura
+  m_EditorClassIdentifier: Game.Core::AbilityDefinition
+  id: Armadura
+  abilityName: Armadura
+  icon: {fileID: -3647609281912267156, guid: 26bf07cd6b2c46844a186736846e2190, type: 3}
+  kind: 5
+  cooldown: 25
+  damageMultiplier: 1.4
+  range: 60
+  bleedStacks: 3
+  duration: 2
+  speedMultiplier: 1.6
+  radius: 3
+  mistSlowSeconds: 2
+  lifeSteal: 0.5
+  bleedMultiplier: 2
+  explosionRadius: 2.5
+  explosionFraction: 0.6
+  explosionBleedStacks: 2
+  riverTickSeconds: 2
+  coneDegrees: 90
+  burnDamageFractionPerSecond: 0.6
+  burnTickSeconds: 0.5
+  dashDistance: 6
+  dashSeconds: 0.35
+  riseSeconds: 0.25
+  shotRange: 25
+  drainFractionPerSecond: 0.02
+  drainPerRank: 0
+  roarRadius: 4
+  roarStunSeconds: 1.5
+  damageTakenMultiplier: 0.5
+  cadenceMultiplier: 0.5
+  furyGainMultiplier: 2
+  swingArcDegrees: 360
+  cooldownPerRank: 3
+  damagePerRank: 0.1
+  durationPerRank: 0
+  speedPerRank: 0
+  lifeStealPerRank: 0

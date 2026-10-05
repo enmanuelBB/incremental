@@ -64,7 +64,7 @@ public class UpgradeMenuUI : MenuPanel
         panelMoneyText.text = "$ " + HudFormat.Money(MoneyManager.Instance.Money);
 
         fireRateText.text = UpgradeLabel(weapon, UpgradeType.FireRate);
-        reloadText.text = UpgradeLabel(weapon, UpgradeType.Reload);
+        reloadText.text = weapon.Sword != null ? StunLabel(weapon) : UpgradeLabel(weapon, UpgradeType.Reload);
         damageText.text = UpgradeLabel(weapon, UpgradeType.Damage);
 
         bool bleeds = bleedText != null && weapon.Definition.AppliesBleed;
@@ -99,6 +99,16 @@ public class UpgradeMenuUI : MenuPanel
         return weapon.GetUpgradeLabel(UpgradeType.Bleed)
             + "\nNv " + weapon.GetLevel(UpgradeType.Bleed) + "/" + weapon.GetMaxLevel(UpgradeType.Bleed)
             + "\nPilas: " + weapon.BleedPerHit
+            + "\n" + cost;
+    }
+
+    // La espada usa este espacio para Aturdir: además del nivel y el precio, muestra la probabilidad actual.
+    private static string StunLabel(WeaponState weapon)
+    {
+        string cost = weapon.IsMaxLevel(UpgradeType.Reload) ? "MAX" : "$" + HudFormat.Money(weapon.GetUpgradeCost(UpgradeType.Reload));
+        return weapon.GetUpgradeLabel(UpgradeType.Reload)
+            + "\nNv " + weapon.GetLevel(UpgradeType.Reload) + "/" + weapon.GetMaxLevel(UpgradeType.Reload)
+            + "\nProb.: " + Mathf.RoundToInt(weapon.StunChance * 100f) + "%"
             + "\n" + cost;
     }
 
