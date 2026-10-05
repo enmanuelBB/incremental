@@ -46,6 +46,7 @@ MonoBehaviour:
   furyGainMultiplier: 2
   swingArcDegrees: 360
   manaCost: 0
+  castSeconds: 0.2
   fieldHealFractionPerSecond: 0.03
   fieldSlowFraction: 0.4
   fieldTickSeconds: 0.25

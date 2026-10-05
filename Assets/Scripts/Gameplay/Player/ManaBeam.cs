@@ -9,6 +9,15 @@ public static class ManaBeam
 {
     private static readonly Color BeamColor = new Color(0.75f, 0.92f, 1f, 1f);
 
+    /// <summary>True si se puede lanzar ahora: bastón en la mano y maná suficiente (no gasta nada).</summary>
+    public static bool CanCast(Shooting shooting)
+    {
+        if (shooting.WeaponCount == 0 || shooting.Mana == null) return false;
+
+        StaffDefinition staff = shooting.CurrentWeapon.Staff;
+        return staff != null && shooting.Mana.Current >= staff.abilityManaCost;
+    }
+
     /// <summary>Lanza el rayo. False (sin gastar nada ni empezar el enfriamiento) si no hay bastón o no alcanza el maná.</summary>
     public static bool Cast(AbilityDefinition ability, int rank, Shooting shooting)
     {

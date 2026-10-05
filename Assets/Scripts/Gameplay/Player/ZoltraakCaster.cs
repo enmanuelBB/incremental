@@ -35,6 +35,13 @@ public class ZoltraakCaster : MonoBehaviour
 
         charge.Cancel();
         StaffHud.SetCharge(-1f);
+        HoldCastPose(false);
+    }
+
+    // Mientras carga, el gesto del Cast se queda en su punto máximo; al soltar o cancelar vuelve.
+    private void HoldCastPose(bool held)
+    {
+        if (shooting != null && shooting.Body != null) shooting.Body.HoldCast(held);
     }
 
     public void Tick(WeaponState weapon, GameInput input)
@@ -52,14 +59,22 @@ public class ZoltraakCaster : MonoBehaviour
         if (abilities.PulseActive)
         {
             Cancel();
-            if (input.FirePressed && Time.time >= nextAllowed) Fire(weapon, 1f, false);
+            if (input.FirePressed && Time.time >= nextAllowed)
+            {
+                Fire(weapon, 1f, false);
+                if (shooting.Body != null) shooting.Body.PlayCast();
+            }
             return;
         }
 
         if (!charge.IsCharging)
         {
             bool hasMana = shooting.Mana != null && shooting.Mana.Current >= staff.zoltraakManaCost;
-            if (input.FirePressed && Time.time >= nextAllowed && hasMana) charge.Begin(staff.zoltraakChargeSeconds);
+            if (input.FirePressed && Time.time >= nextAllowed && hasMana)
+            {
+                charge.Begin(staff.zoltraakChargeSeconds);
+                HoldCastPose(true);
+            }
             return;
         }
 
@@ -70,6 +85,7 @@ public class ZoltraakCaster : MonoBehaviour
 
         float fraction = charge.Release();
         StaffHud.SetCharge(-1f);
+        if (shooting.Body != null) shooting.Body.ReleaseCast(); // sale con el gesto al máximo y vuelve
         Fire(weapon, fraction, true);
     }
 
@@ -88,7 +104,6 @@ public class ZoltraakCaster : MonoBehaviour
         float radius = staff.ZoltraakRadiusAt(fraction);
         int damage = weapon.ZoltraakDamage(fraction);
 
-        if (shooting.Body != null) shooting.Body.PlayCast();
         shooting.ShowBolt(point, BoltColor, 0.12f, 0.12f);
         AbilityVfx.ExplosionFlash(point, radius, BlastColor);
 

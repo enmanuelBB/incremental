@@ -74,6 +74,7 @@ public class FlowerField : MonoBehaviour
         rank = abilityRank;
         onConfirmed = confirmed;
         IsPlacing = true;
+        if (shooting.Body != null) shooting.Body.HoldCast(true); // eligiendo el círculo, el gesto se queda en su máximo
 
         if (ring == null) ring = CreateRing();
         ring.gameObject.SetActive(true);
@@ -96,7 +97,7 @@ public class FlowerField : MonoBehaviour
         shooting.RefreshMana();
         CloseRing();
         StartField(center);
-        if (shooting.Body != null) shooting.Body.PlayCast();
+        if (shooting.Body != null) shooting.Body.ReleaseCast(); // al poner el círculo, el gesto vuelve
         onConfirmed?.Invoke();
     }
 
@@ -111,6 +112,7 @@ public class FlowerField : MonoBehaviour
     /// <summary>Corta todo: la colocación y el campo activo (cambio de personaje, fin de partida).</summary>
     public void ForceEnd()
     {
+        if (IsPlacing && shooting != null && shooting.Body != null) shooting.Body.HoldCast(false);
         IsPlacing = false;
         StaffHud.SetHint(null);
         if (ring != null) ring.gameObject.SetActive(false);
@@ -119,6 +121,7 @@ public class FlowerField : MonoBehaviour
 
     private void CloseRing()
     {
+        if (shooting.Body != null) shooting.Body.HoldCast(false);
         IsPlacing = false;
         ClosedFrame = Time.frameCount;
         StaffHud.SetHint(null);

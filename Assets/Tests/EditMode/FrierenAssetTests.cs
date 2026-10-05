@@ -21,6 +21,16 @@ public class FrierenAssetTests
     }
 
     [Test]
+    public void Q_AndUltimate_TakeAMomentToCast_TheUltimateABitLonger()
+    {
+        AbilityDefinition beam = Maga.abilities[0], field = Maga.abilities[1], pulse = Maga.abilities[2];
+        Assert.AreEqual(0.2f, beam.castSeconds, 1e-4f, "la Q no sale al instante: el gesto sube 0,2 s y el rayo sale en su máximo");
+        Assert.AreEqual(0.35f, pulse.castSeconds, 1e-4f, "la definitiva tarda un poco más que la Q");
+        Assert.Greater(pulse.castSeconds, beam.castSeconds);
+        Assert.AreEqual(0f, field.castSeconds, "la E ya tiene su tiempo: el gesto se mantiene mientras se elige el círculo");
+    }
+
+    [Test]
     public void FlowerField_HasTheSpecValues()
     {
         AbilityDefinition field = Maga.abilities[1];
@@ -95,17 +105,44 @@ public class FrierenAssetTests
         // Generic a propósito: en Humanoide Unity descarta el hueso del bastón y reescribe los dedos (agarre del bastón).
         Assert.IsFalse(animator.avatar.isHuman, "el rig de Frieren es Generic: así se animan el bastón y los dedos tal cual el FBX");
 
+        // El hueso del bastón cuelga de Root, no de la mano: PlayerBody lo hace seguir a la mano izquierda cuando inclina el torso con la cámara.
+        var bodySettings = new SerializedObject(System.Array.Find(body.GetComponents<MonoBehaviour>(), c => c != null && c.GetType().Name == "PlayerBody"));
+        var heldProp = (Transform)bodySettings.FindProperty("heldProp").objectReferenceValue;
+        var propHand = (Transform)bodySettings.FindProperty("propHand").objectReferenceValue;
+        Assert.IsNotNull(heldProp, "falta el bastón en PlayerBody (heldProp): si no, queda fijo al mover la cámara");
+        Assert.AreEqual("staff", heldProp.name);
+        Assert.AreEqual("hand_l", propHand != null ? propHand.name : null, "Frieren sostiene el bastón con la mano izquierda");
+
         bool hasMuzzle = false;
         foreach (Transform t in body.GetComponentsInChildren<Transform>(true))
             if (t.name == "Muzzle" && t.parent != null && t.parent.name == "Staff") hasMuzzle = true;
         Assert.IsTrue(hasMuzzle, "falta el Muzzle en la punta del bastón (de ahí salen los disparos)");
 
         var controller = (UnityEditor.Animations.AnimatorController)animator.runtimeAnimatorController;
-        Assert.AreEqual(2, controller.layers.Length, "capa base + capa superior (Cast)");
-        Assert.IsNotNull(controller.layers[1].avatarMask, "la capa superior lleva su máscara");
+        // Hover es la base de todo: los movimientos se suman encima y el Cast encima de los dos (capas aditivas).
+        Assert.AreEqual(3, controller.layers.Length, "Hover (base) + movimiento + Cast");
+        var baseState = controller.layers[0].stateMachine.defaultState;
+        Assert.AreEqual("Hover", baseState.motion.name, "la capa base es solo Hover");
+        Assert.AreEqual(UnityEditor.Animations.AnimatorLayerBlendingMode.Additive, controller.layers[1].blendingMode, "los movimientos se suman a Hover");
+        Assert.AreEqual(1f, controller.layers[1].defaultWeight);
+        var moveState = controller.layers[1].stateMachine.defaultState;
+        Assert.IsTrue(moveState.timeParameterActive, "el fotograma de los move lo decide el código (MovePhase), no el reloj");
+        Assert.AreEqual("MovePhase", moveState.timeParameter);
+        var locomotion = moveState.motion as UnityEditor.Animations.BlendTree;
+        Assert.IsNotNull(locomotion, "el movimiento es un árbol de mezcla");
+        foreach (var speed in locomotion.children)
+            foreach (var child in ((UnityEditor.Animations.BlendTree)speed.motion).children)
+                Assert.AreNotEqual("Hover", child.motion.name, "Hover no va en la capa aditiva (se sumaría dos veces): al centro va la pose neutra");
+        Assert.AreEqual(UnityEditor.Animations.AnimatorLayerBlendingMode.Additive, controller.layers[2].blendingMode, "el Cast se suma a Hover y al movimiento");
+        Assert.AreEqual(1f, controller.layers[2].defaultWeight);
+        Assert.IsNotNull(controller.layers[2].avatarMask, "la capa del Cast lleva su máscara");
+        var castState = controller.layers[2].stateMachine.defaultState;
+        Assert.AreEqual("Cast", castState.motion != null ? castState.motion.name : null, "la capa del Cast siempre está en Cast (fase 0 = sin gesto)");
+        Assert.IsTrue(castState.timeParameterActive, "el fotograma del Cast lo decide el código (CastPhase): al máximo al disparar o mientras carga");
+        Assert.AreEqual("CastPhase", castState.timeParameter);
 
         // Máscara por huesos: activos el bastón, los brazos y la cabeza; inactivas las piernas
-        AvatarMask mask = controller.layers[1].avatarMask;
+        AvatarMask mask = controller.layers[2].avatarMask;
         System.Func<string, bool?> active = path =>
         {
             for (int i = 0; i < mask.transformCount; i++) if (mask.GetTransformPath(i) == path) return mask.GetTransformActive(i);
@@ -116,7 +153,7 @@ public class FrierenAssetTests
         Assert.AreEqual(true, active("Frieren90/Root/pelvis/spine_01/spine_02/spine_03/clavicle_r/upperarm_r"));
         Assert.AreEqual(true, active("Frieren90/Root/pelvis/spine_01/spine_02/spine_03/neck_01/head"));
         Assert.AreEqual(false, active("Frieren90/Root/pelvis/thigh_l"), "las piernas no entran en la capa superior");
-        foreach (string parameter in new[] { "MoveX", "MoveY", "Run", "Cast", "Dead" })
+        foreach (string parameter in new[] { "MoveX", "MoveY", "Run", "MovePhase", "CastPhase", "Cast", "Dead" })
             Assert.IsTrue(System.Array.Exists(controller.parameters, p => p.name == parameter), "falta el parámetro " + parameter);
     }
 

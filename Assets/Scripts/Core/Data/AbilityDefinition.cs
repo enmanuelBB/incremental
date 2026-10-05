@@ -110,6 +110,10 @@ public class AbilityDefinition : GameDefinition
     [Min(0f), Tooltip("Maná que gasta al lanzarla (Campo de flores y Pulso de maná; el rayo usa el del bastón)")]
     public float manaCost = 0f;
 
+    [Header("Lanzamiento")]
+    [Min(0f), Tooltip("Segundos que tarda en lanzarse: el gesto sube hasta su máximo en ese tiempo y el efecto sale al llegar (0 = al instante). Rayo y Pulso de maná de Frieren")]
+    public float castSeconds = 0f;
+
     [Header("Campo de flores (Frieren)")]
     [Tooltip("Cura a Frieren, mientras esté dentro, esta fracción de su vida máxima por segundo (0,03 = 3%). 'radius' es el radio y 'duration' los segundos que dura")]
     public float fieldHealFractionPerSecond = 0.03f;

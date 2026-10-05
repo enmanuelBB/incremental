@@ -44,6 +44,9 @@ public class PlayerAbilities : MonoBehaviour
     private BerserkArmor berserk;
     private FlowerField field;
     private ManaPulseEffect pulse;
+    private int pendingSlot = -1;   // habilidad preparándose (gesto en curso), -1 si ninguna
+    private int pendingRank;
+    private float pendingAt;
 
     // Pausa mínima entre dos lanzamientos seguidos de una habilidad con varias cargas.
     private const float ConsecutiveCastGap = 0.35f;
@@ -108,6 +111,7 @@ public class PlayerAbilities : MonoBehaviour
         if (berserk != null) berserk.ForceOff();
         if (field != null) field.ForceEnd();
         if (pulse != null) pulse.ForceOff();
+        pendingSlot = -1;
 
         for (int i = 0; i < slots.Length; i++)
         {
@@ -199,6 +203,7 @@ public class PlayerAbilities : MonoBehaviour
         if (ultimate.IsActive(now)) TickRiver(now);
         if (mist.IsActive(now)) TickMist();
         PublishChargeChanges(now);
+        TickPendingCast(now);
 
         // Pulso de maná: las otras habilidades se recargan más rápido (el pulso no se acelera a sí mismo).
         if (pulse != null && pulse.IsActive)
@@ -256,7 +261,49 @@ public class PlayerAbilities : MonoBehaviour
         int rank = RankOf(slot);
         float now = Time.time;
         if (rank < 1 || now < nextCastAllowed[slot] || charges[slot].Available(now) <= 0) return;
+        if (pendingSlot >= 0) return; // ya está lanzando otra
 
+        // Con tiempo de lanzamiento (la Q y la definitiva de Frieren): primero el gesto, y el efecto sale cuando llega a su máximo.
+        if (ability.castSeconds > 0f)
+        {
+            if (!CanCast(ability)) return;
+
+            pendingSlot = slot;
+            pendingRank = rank;
+            pendingAt = now + ability.castSeconds;
+            if (shooting.Body != null) shooting.Body.CastWindUp(ability.castSeconds);
+            return;
+        }
+
+        Execute(slot, ability, rank);
+    }
+
+    // Lo que se puede saber antes de empezar el gesto (si al llegar al máximo ya no alcanza, no sale).
+    private bool CanCast(AbilityDefinition ability)
+    {
+        switch (ability.kind)
+        {
+            case AbilityKind.ManaBeam: return ManaBeam.CanCast(shooting);
+            case AbilityKind.ManaPulse: return shooting.Mana != null && shooting.Mana.Current >= ability.manaCost;
+            default: return true;
+        }
+    }
+
+    // La habilidad que estaba preparándose sale ahora (o se pierde, sin gastar nada, si la partida terminó o Frieren murió).
+    private void TickPendingCast(float now)
+    {
+        if (pendingSlot < 0 || now < pendingAt) return;
+
+        int slot = pendingSlot;
+        pendingSlot = -1;
+        if (GameState.IsGameOver || (health != null && health.IsDead) || slots[slot] == null) return;
+
+        Execute(slot, slots[slot], pendingRank);
+    }
+
+    private void Execute(int slot, AbilityDefinition ability, int rank)
+    {
+        float now = Time.time;
         bool cast;
         switch (ability.kind)
         {

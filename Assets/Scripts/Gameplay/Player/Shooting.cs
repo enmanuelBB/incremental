@@ -391,6 +391,10 @@ public class Shooting : MonoBehaviour
             }
             if (Body != null) Body.PlayShoot(barrel);
         }
+        else if (weapon.Staff != null && Body != null)
+        {
+            Body.PlayCast(); // disparo rápido del bastón: el gesto ya está al máximo cuando sale el rayo
+        }
 
         AudioManager.Instance.PlaySFX(weapon.Definition.shootSound);
 

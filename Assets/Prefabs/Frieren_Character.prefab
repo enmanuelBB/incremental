@@ -123,6 +123,16 @@ Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
   m_PrefabInstance: {fileID: 4858596251004866848}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &2302038899703878333 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -2549231303177567331, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+  m_PrefabInstance: {fileID: 4858596251004866848}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &3184653903910453620 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -1198210018599219116, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
+  m_PrefabInstance: {fileID: 4858596251004866848}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &5741062982687632497 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 82877c1bf8af37d4dbc92574ae794566, type: 3}
@@ -147,6 +157,10 @@ MonoBehaviour:
   firstPersonWalkAmount: 0
   locomotionWalkSpeed: 2.5
   locomotionRunSpeed: 5
+  moveClipSeconds: 1
+  moveThreshold: 0.3
+  heldProp: {fileID: 2302038899703878333}
+  propHand: {fileID: 3184653903910453620}
   hideBodyInFirstPerson: 1
   firstPersonHiddenBones: []
   alignHeadToCamera: 0

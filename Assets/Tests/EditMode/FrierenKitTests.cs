@@ -155,6 +155,53 @@ public class FrierenKitTests
         Assert.AreEqual(0.4f, HoverMath.Offset(1.875f, 0.45f, 0.05f, 2.5f), 1e-4f, "a tres cuartos: valle");
     }
 
+    // --- Fase de los clips de movimiento (fotograma 0 quieta, 40 máximo, 79 quieta otra vez) ---
+
+    [Test]
+    public void MovePhase_WhileMoving_RisesToThePeak_AndStaysThere()
+    {
+        float phase = MovePhase.Step(0f, true, 0.2f);
+        Assert.AreEqual(0.2f, phase, 1e-6f);
+
+        for (int i = 0; i < 20; i++) phase = MovePhase.Step(phase, true, 0.2f);
+        Assert.AreEqual(MovePhase.Peak, phase, 1e-6f, "mientras se mueve se queda en el fotograma 40");
+    }
+
+    [Test]
+    public void MovePhase_WhenStopping_GoesOnPastThePeak_UntilItIsStillAgain()
+    {
+        float phase = MovePhase.Step(MovePhase.Peak, false, 0.2f);
+        Assert.AreEqual(MovePhase.Peak + 0.2f, phase, 1e-6f, "al soltar sigue hacia el fotograma 79");
+
+        for (int i = 0; i < 20; i++) phase = MovePhase.Step(phase, false, 0.2f);
+        Assert.AreEqual(0f, phase, "termina quieta (fotograma 0 = fotograma 79)");
+    }
+
+    [Test]
+    public void MovePhase_StoppingBeforeThePeak_ContinuesFromTheSameIntensityOnTheWayBack()
+    {
+        // A mitad de subida (mitad de intensidad) salta al punto de bajada con la misma intensidad: no pasa por el máximo.
+        float halfUp = MovePhase.Peak * 0.5f;
+        float halfDown = MovePhase.Peak + (1f - MovePhase.Peak) * 0.5f;
+        Assert.AreEqual(halfDown, MovePhase.Step(halfUp, false, 0f), 1e-6f);
+    }
+
+    [Test]
+    public void MovePhase_MovingAgainWhileReturning_WalksBackToThePeak()
+    {
+        float phase = MovePhase.Step(0.8f, true, 0.1f);
+        Assert.AreEqual(0.7f, phase, 1e-6f, "desanda la vuelta en vez de saltar");
+
+        for (int i = 0; i < 10; i++) phase = MovePhase.Step(phase, true, 0.1f);
+        Assert.AreEqual(MovePhase.Peak, phase, 1e-6f);
+    }
+
+    [Test]
+    public void MovePhase_Still_StaysStill()
+    {
+        Assert.AreEqual(0f, MovePhase.Step(0f, false, 0.3f));
+    }
+
     // --- Cargas más rápidas (la definitiva acelera Q y E) ---
 
     [Test]
