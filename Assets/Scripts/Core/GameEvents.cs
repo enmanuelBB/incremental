@@ -63,6 +63,7 @@ public static class GameEvents
     public static event Action<int> EnemyKilled;                // recompensa en dinero
     public static event Action<Vector3, bool> EnemyDied;        // dónde murió y si era jefe o minijefe (solo la muerte real: un jefe que resucita no lo publica)
     public static event Action<Vector3, int> BleedTick;         // posición sobre el enemigo y daño del tick de sangrado
+    public static event Action<Vector3, int> PoisonTick;        // posición sobre el enemigo y daño del tick de veneno (Frieren)
     public static event Action<Vector3, int> BurnTick;          // posición sobre el enemigo y daño del tick de quemadura
     public static event Action<int> XpGained;                   // experiencia ganada (la recibe el personaje activo)
     public static event Action<XpInfo> XpChanged;               // estado de nivel/experiencia del personaje activo
@@ -95,6 +96,7 @@ public static class GameEvents
     public static void RaiseEnemyDied(Vector3 position, bool isBoss) => EnemyDied?.Invoke(position, isBoss);
     public static void RaiseBleedTick(Vector3 worldPosition, int damage) => BleedTick?.Invoke(worldPosition, damage);
     public static void RaiseBurnTick(Vector3 worldPosition, int damage) => BurnTick?.Invoke(worldPosition, damage);
+    public static void RaisePoisonTick(Vector3 worldPosition, int damage) => PoisonTick?.Invoke(worldPosition, damage);
     public static void RaiseXpGained(int amount) => XpGained?.Invoke(amount);
     public static void RaiseXpChanged(XpInfo info) => XpChanged?.Invoke(info);
     public static void RaiseLevelUp(string characterName, int level, int points) => LevelUp?.Invoke(characterName, level, points);

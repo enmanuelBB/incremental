@@ -23,12 +23,14 @@ public class FloatingTextManager : MonoBehaviour
 
     private static readonly Color BleedColor = new Color(0.95f, 0.15f, 0.15f);
     private static readonly Color BurnColor = new Color(1f, 0.55f, 0.1f);
+    private static readonly Color PoisonColor = new Color(0.45f, 1f, 0.3f);
 
     private void OnEnable()
     {
         GameEvents.MoneyGained += ShowMoneyGain;
         GameEvents.BleedTick += ShowBleedTick;
         GameEvents.BurnTick += ShowBurnTick;
+        GameEvents.PoisonTick += ShowPoisonTick;
     }
 
     private void OnDisable()
@@ -36,6 +38,7 @@ public class FloatingTextManager : MonoBehaviour
         GameEvents.MoneyGained -= ShowMoneyGain;
         GameEvents.BleedTick -= ShowBleedTick;
         GameEvents.BurnTick -= ShowBurnTick;
+        GameEvents.PoisonTick -= ShowPoisonTick;
     }
 
     // Número naranja sobre el enemigo que se quema (igual que el sangrado, pero de otro color).
@@ -48,6 +51,18 @@ public class FloatingTextManager : MonoBehaviour
         if (screen.z <= 0f) return;
 
         pool.Get().Show(damage.ToString(), screen, pool.Release, BurnColor);
+    }
+
+    // Número verde sobre el enemigo envenenado por el campo de flores de Frieren.
+    private void ShowPoisonTick(Vector3 worldPosition, int damage)
+    {
+        Camera cam = Camera.main;
+        if (cam == null) return;
+
+        Vector3 screen = cam.WorldToScreenPoint(worldPosition);
+        if (screen.z <= 0f) return;
+
+        pool.Get().Show(damage.ToString(), screen, pool.Release, PoisonColor);
     }
 
     // Número rojo sobre el enemigo. El canvas es Screen Space Overlay: la posición del texto es la de pantalla.

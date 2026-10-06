@@ -81,7 +81,7 @@ Clasificación de los eventos actuales de `GameEvents.cs`:
 | Evento | Origen en Roblox | Nota |
 |---|---|---|
 | `PlayerHealthChanged`, `BaseHealthChanged`, `MoneyChanged`, `ManaChanged`, `FuryChanged`, `XpChanged`, `SkillPointsChanged` | Servidor | **Atributos** replicados |
-| `MoneyGained`, `WaveStarted`, `WaveCompleted`, `EnemyKilled`, `EnemyDied`, `BleedTick`, `BurnTick`, `XpGained`, `XpEarned`, `LevelUp`, `SkillPointsGained`, `BossAppeared`, `BossHealthChanged`, `BossDefeated`, `GameStarted`, `GameOver` | Servidor | RemoteEvent → cliente (`BleedTick` y `BurnTick` son muchos: agruparlos por frame) |
+| `MoneyGained`, `WaveStarted`, `WaveCompleted`, `EnemyKilled`, `EnemyDied`, `BleedTick`, `BurnTick`, `PoisonTick`, `XpGained`, `XpEarned`, `LevelUp`, `SkillPointsGained`, `BossAppeared`, `BossHealthChanged`, `BossDefeated`, `GameStarted`, `GameOver` | Servidor | RemoteEvent → cliente (`BleedTick`, `BurnTick` y `PoisonTick` son muchos: agruparlos por frame) |
 | `AbilityUsed`, `AbilityChargesChanged`, `AbilitiesChanged`, `WeaponSlotChanged`, `ResourceModeChanged`, `CharacterChanged` | Servidor confirma, cliente predice | El cliente muestra el enfriamiento al instante; el servidor corrige si lo rechaza |
 | `PromptChanged` | Cliente | Mejor con `ProximityPrompt` de Roblox (ver estaciones) |
 
@@ -120,10 +120,10 @@ Lado: **S** = Shared, **Sv** = Server, **C** = Client.
 
 | Archivo C# | Destino | Dif. | Nota |
 |---|---|---|---|
-| `CombatMath`, `TargetPicker`, `MeleeCone`, `StunRules`, `DashRules`, `HoverMath`, `MovePhase`, `SpawnArea` | `Shared/Rules/` | 🟢 | Matemática pura. `Vector3` existe igual en Luau |
+| `CombatMath`, `TargetPicker`, `MeleeCone`, `StunRules`, `DashRules`, `HoverMath`, `MovePhase`, `SpawnArea`, `FrierenTreeMath`, `SlowRules` | `Shared/Rules/` | 🟢 | Matemática pura. `Vector3` existe igual en Luau. `SlowRules`: mientras dura una ralentización, solo la reemplaza otra igual o más fuerte |
 | `BleedStacks`, `BurnState`, `FuryMeter`, `BerserkDrain`, `ManaPool`, `AbilityCooldown`, `AbilityCharges`, `TimedEffect`, `ZoltraakCharge`, `BarrelMagazines`, `FlowerFieldRules`, `SoulRules` | `Shared/Rules/` | 🟢 | Pasan a "clases" Luau (tabla + metatabla). El tiempo debe venir como parámetro (`os.clock()` / `workspace:GetServerTimeNow()`), no leído adentro |
 | `WaveBuilder`, `WaveSet`, `BossRules` | `Shared/Rules/` | 🟢 | |
-| `Progression`, `CharacterRules`, `CharacterInfo`, `SkillTreeRules`, `TreeBonuses`, `RunStats`, `UpgradeType`, `HudFormat`, `RecoilSettings` | `Shared/Rules/` | 🟢 | `HudFormat`: revisar el formato de números (separador de miles) |
+| `Progression`, `CharacterRules`, `CharacterInfo`, `SkillTreeRules`, `TreeBonuses`, `RunStats`, `UpgradeType`, `HudFormat`, `RecoilSettings` | `Shared/Rules/` | 🟢 | `HudFormat`: revisar el formato de números (separador de miles). `SkillTreeRules` tiene grupos de "elige 1" y nodos divididos (`choiceGroup`, `half`): `CanSwap`/`TrySwap` cambian una opción por otra con reembolso y comprobando que todo siga conectado; el servidor debe validar el cambio igual que una compra |
 | `AbilityDefinition`, `CharacterDefinition`, `EnemyDefinition`, `WeaponDefinition`, `StaffDefinition`, `SwordDefinition`, `SkillTreeDefinition`, `GameDefinition` | `Shared/Data/` (forma de la tabla + validación) | 🟢 | Los campos que apuntan a prefabs, sonidos o iconos pasan a ser nombres de assets o `rbxassetid://` |
 
 ### 6.2 `Core` — resto
@@ -160,7 +160,7 @@ Lado: **S** = Shared, **Sv** = Server, **C** = Client.
 |---|---|---|---|
 | `EnemyAI` (379) | Sv | 🔴 | Ir a la base o perseguir al jugador, anti-kiting, ataque por distancia. **No usar un `Humanoid` por enemigo.** Opción recomendada: el servidor mueve una posición lógica por enemigo (rutas precalculadas por waypoints o `PathfindingService` cacheado por zona) y el cliente dibuja y anima el modelo. Prototipo con 100+ enemigos antes de seguir |
 | `EnemyPool` (51) | Sv + C | 🟡 | Pool de modelos en el cliente; IDs de enemigo en el servidor |
-| `EnemyBleed` (92), `EnemyBurn` (96) | Sv (tick) + C (tinte y número) | 🟢 | El tinte rojo con `Highlight` o cambiando el color |
+| `EnemyBleed` (92), `EnemyBurn` (96), `EnemyPoison` (96) | Sv (tick) + C (tinte y número) | 🟢 | El tinte rojo con `Highlight` o cambiando el color. El veneno (campo de flores de Frieren) es la misma lógica que la quemadura (`BurnState`), en verde. `EnemyAI` también guarda la Marca de maná (daño recibido +30% por un tiempo) |
 | `BossController` (260), `BossProjectile` (79) | Sv | 🟠 | Embestida, invocar, enfurecer, resucitar, disparar. Proyectiles: simulados en el servidor, dibujados en el cliente |
 | `WaveManager` (187), `SpawnZone` (42) | Sv | 🟢 | |
 
@@ -188,7 +188,7 @@ Lado: **S** = Shared, **Sv** = Server, **C** = Client.
 | `CharacterSelectUI` (190) | 🟡 | |
 | `UpgradeMenuUI` (133), `WeaponCardUI`, `WeaponInfoUI` | 🟡 | |
 | `AbilityShopUI` (396) | 🟠 | Dos pestañas (rangos y árbol) |
-| `SkillTreeView` (398), `SkillTreePanZoom` (38), `SkillNodeButton` (21) | 🟠 | Pan y zoom: `ScrollingFrame` o un `Frame` con arrastre propio; zoom con pellizco en el celular |
+| `SkillTreeView` (551), `SkillTreePanZoom` (38), `SkillNodeButton` (21) | 🟠 | Pan y zoom: `ScrollingFrame` o un `Frame` con arrastre propio; zoom con pellizco en el celular. Además: marcos "Elige 1", nodos partidos en dos botones (curar / ralentizar) y una ventana de confirmación para cambiar de opción |
 | `GameOverManager` (114), `GameOverScreenUI` (285) | 🟡 | Resumen de la partida. La cámara lenta se simula en el cliente |
 | `MenuPanel`, `UiKit` | 🟡 | Se reemplazan por componentes de Fusion |
 
@@ -202,7 +202,7 @@ Copiar **los valores** de cada asset a tablas Luau, sin cambiar los `id`. Convie
 | `Weapons/` | `Pistola`, `Baston`, `Espada`, `M16` (apagado) |
 | `Abilities/` | `DisparoPesado`, `Niebla`, `Definitiva` (Alucard); `RayoMana`, `CampoFlores`, `PulsoMana` (Frieren); `Llamarada`, `Embestida`, `Armadura` (Guts) |
 | `Enemies/` | `Enemy_Normal`, `Enemy_Tank`, `Mini_Embestidor`, `Mini_Coloso`, `Boss_Invocador`, `Boss_Tirador` |
-| `Skills/` | `Alucard_Tree` (19 nodos), `Guts_Tree` (39 nodos) |
+| `Skills/` | `Alucard_Tree` (35 nodos), `Guts_Tree` (39 nodos), `Frieren_Tree` (56 nodos: 4 grupos "elige 1" y 4 nodos divididos) |
 | `Waves/` | `Waves_Default` |
 
 ### 6.8 Tests
@@ -301,4 +301,5 @@ Lo más nuevo arriba.
 
 | Fecha | Commit de Unity | Qué se reflejó |
 |---|---|---|
+| 2026-10-06 | sin commit (sobre `77da566`) | Árbol de Frieren (56 nodos): grupos "elige 1", nodos divididos y cambio de opción (`SkillTreeRules`, `SkillTreeView`), 31 efectos nuevos, `FrierenTreeMath`, `SlowRules`, `EnemyPoison`, evento `PoisonTick`, Marca de maná en `EnemyAI`. 589 tests |
 | 2026-10-06 | `e886693` | Plan inicial: Alucard, Frieren y Guts con sus 3 habilidades, árboles de Alucard (19 nodos) y Guts (39), 4 jefes/minijefes, guardado v4, 149 tests |

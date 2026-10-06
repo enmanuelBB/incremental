@@ -79,13 +79,23 @@ public class WeaponState
     }
 
     // Solo bastón
-    public int AbilityDamage => Staff.AbilityDamageAt(GetLevel(UpgradeType.Damage));
-    /// <summary>Daño de un Zoltraak con esa carga (0 a 1): el del bastón con el Poder de la tienda, por el bono de daño del árbol.</summary>
+    /// <summary>Daño del rayo de maná: el del bastón con el Poder de la tienda, por el daño del árbol y el del rayo.</summary>
+    public int AbilityDamage
+    {
+        get
+        {
+            int baseDamage = Staff.AbilityDamageAt(GetLevel(UpgradeType.Damage));
+            TreeBonuses tree = SkillTreeManager.CurrentBonuses;
+            return Mathf.Max(baseDamage, Mathf.RoundToInt(baseDamage * tree.DamageMultiplier * (1f + tree.BeamDamagePercent)));
+        }
+    }
+
+    /// <summary>Daño de un Zoltraak con esa carga (0 a 1): el del bastón con el Poder de la tienda, por el daño del árbol y el del Zoltraak.</summary>
     public int ZoltraakDamage(float charge)
     {
         int baseDamage = Staff.ZoltraakDamageAt(GetLevel(UpgradeType.Damage), charge);
-        float multiplier = SkillTreeManager.Instance != null ? SkillTreeManager.Instance.Bonuses.DamageMultiplier : 1f;
-        return Mathf.Max(baseDamage, Mathf.RoundToInt(baseDamage * multiplier));
+        TreeBonuses tree = SkillTreeManager.CurrentBonuses;
+        return Mathf.Max(baseDamage, Mathf.RoundToInt(baseDamage * tree.DamageMultiplier * (1f + tree.ZoltraakDamagePercent)));
     }
 
     public float ManaRegen => Staff.ManaRegenAt(GetLevel(UpgradeType.Reload));

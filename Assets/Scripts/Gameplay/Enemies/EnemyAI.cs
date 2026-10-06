@@ -28,9 +28,12 @@ public class EnemyAI : MonoBehaviour, IDamageable
     private bool isDead;
     private EnemyBleed bleed;
     private EnemyBurn burn;
+    private EnemyPoison poison;
     private Collider bodyCollider;
     private float slowMultiplier = 1f;
     private float slowUntil;
+    private float damageTakenBonus;
+    private float damageTakenUntil;
     private readonly StunTimer stun = new StunTimer();
     private BossController boss;
     private int maxHealthScaled;
@@ -121,6 +124,7 @@ public class EnemyAI : MonoBehaviour, IDamageable
         isDead = false;
         if (bleed != null) bleed.Clear(); // viene del pool: sin sangrado ni tinte de su vida anterior
         if (burn != null) burn.Clear();   // ni quemadura
+        if (poison != null) poison.Clear(); // ni veneno
         currentHealth = Mathf.CeilToInt(def.maxHealth * healthScale);
         maxHealthScaled = currentHealth;
         HealthScale = healthScale;
@@ -134,6 +138,8 @@ public class EnemyAI : MonoBehaviour, IDamageable
         nextRepathTime = 0f;
         slowUntil = 0f;
         slowMultiplier = 1f;
+        damageTakenBonus = 0f;
+        damageTakenUntil = 0f;
         stun.Clear();
         ApplySpeed();
 
@@ -178,6 +184,7 @@ public class EnemyAI : MonoBehaviour, IDamageable
     public void TakeDamage(int damage)
     {
         if (isDead || Time.time < invulnerableUntil) return;
+        if (Time.time < damageTakenUntil) damage = FrierenTreeMath.Scale(damage, damageTakenBonus);   // Marca de maná
 
         currentHealth -= damage;
         if (currentHealth > 0) return;
@@ -192,6 +199,7 @@ public class EnemyAI : MonoBehaviour, IDamageable
         isDead = true;
         if (bleed != null) bleed.Clear();
         if (burn != null) burn.Clear();
+        if (poison != null) poison.Clear();
         GameEvents.RaiseEnemyKilled(def.moneyReward);
         GameEvents.RaiseEnemyDied(transform.position, IsBoss);
         GameEvents.RaiseXpGained(def.xpReward);
@@ -201,13 +209,15 @@ public class EnemyAI : MonoBehaviour, IDamageable
         else gameObject.SetActive(false);
     }
 
-    /// <summary>Le quita una fracción de velocidad durante unos segundos (0,3 = -30%). No acumula: vale la última.</summary>
+    /// <summary>Le quita una fracción de velocidad durante unos segundos (0,3 = -30%). Mientras una dura, solo la reemplaza otra igual o más fuerte.</summary>
     public void ApplySlow(float fraction, float seconds)
     {
         if (isDead || fraction <= 0f || seconds <= 0f) return;
+        bool active = Time.time < slowUntil;
+        if (!SlowRules.ShouldReplace(slowMultiplier, active, fraction)) return;
 
+        slowUntil = SlowRules.EndTime(slowMultiplier, active, slowUntil, fraction, Time.time, seconds);
         slowMultiplier = Mathf.Clamp(1f - fraction, 0.1f, 1f);
-        slowUntil = Time.time + seconds;
         ApplySpeed();
     }
 
@@ -232,6 +242,32 @@ public class EnemyAI : MonoBehaviour, IDamageable
         }
 
         burn.Apply(seconds, damagePerTick, tickSeconds);
+    }
+
+    /// <summary>Lo envenena unos segundos (daño cada tick). Renueva y conserva el mayor daño. No hace nada si ya murió.</summary>
+    public void ApplyPoison(float seconds, int damagePerTick, float tickSeconds)
+    {
+        if (isDead || seconds <= 0f || damagePerTick <= 0) return;
+
+        if (poison == null)
+        {
+            poison = GetComponent<EnemyPoison>();
+            if (poison == null) poison = gameObject.AddComponent<EnemyPoison>();
+        }
+
+        poison.Apply(seconds, damagePerTick, tickSeconds);
+    }
+
+    public bool IsPoisoned => poison != null && poison.IsPoisoned;
+
+    /// <summary>Recibe más daño de todo durante unos segundos (0,3 = +30%; la Marca de maná de Frieren). Conserva el bono mayor.</summary>
+    public void ApplyDamageTakenBonus(float bonus, float seconds)
+    {
+        if (isDead || bonus <= 0f || seconds <= 0f) return;
+        if (Time.time < damageTakenUntil && damageTakenBonus > bonus) return;
+
+        damageTakenBonus = bonus;
+        damageTakenUntil = Mathf.Max(damageTakenUntil, Time.time + seconds);
     }
 
     private bool IsBoss => def != null && def.IsBoss;

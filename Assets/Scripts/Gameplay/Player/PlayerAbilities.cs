@@ -138,6 +138,7 @@ public class PlayerAbilities : MonoBehaviour
             int max = 1;
             if (ability != null && ability.kind == AbilityKind.HeavyShot) max = 1 + bonuses.HeavyShotExtraCharges;
             else if (ability != null && ability.kind == AbilityKind.Dash) max = 1 + bonuses.DashExtraCharges;
+            else if (ability != null && ability.kind == AbilityKind.ManaBeam) max = 1 + bonuses.BeamExtraCharges;
             float cooldown = ability != null ? CooldownFor(ability, rank, bonuses) : 1f;
 
             charges[i].Configure(max, cooldown, now);
@@ -147,11 +148,11 @@ public class PlayerAbilities : MonoBehaviour
         }
     }
 
-    // El rayo de maná usa el enfriamiento del bastón (baja con "Maná" de la tienda); las demás, el de su rango y el árbol.
+    // El rayo de maná usa el enfriamiento del bastón (baja con "Maná" de la tienda) menos el del árbol; las demás, el de su rango y el árbol.
     private float CooldownFor(AbilityDefinition ability, int rank, TreeBonuses bonuses)
     {
         if (ability.kind == AbilityKind.ManaBeam && shooting.WeaponCount > 0 && shooting.CurrentWeapon.Staff != null)
-            return shooting.CurrentWeapon.AbilityCooldownTime;
+            return Mathf.Max(1f, shooting.CurrentWeapon.AbilityCooldownTime - bonuses.BeamCooldownReduction);
 
         return EffectiveCooldown(ability, rank, bonuses);
     }
@@ -166,6 +167,8 @@ public class PlayerAbilities : MonoBehaviour
             case AbilityKind.Mist: reduction = bonuses.MistCooldownReduction; break;
             case AbilityKind.Ultimate: reduction = bonuses.UltCooldownReduction; break;
             case AbilityKind.Dash: reduction = bonuses.DashCooldownReduction; break;
+            case AbilityKind.FlowerField: reduction = bonuses.FieldCooldownReduction; break;
+            case AbilityKind.ManaPulse: reduction = bonuses.PulseCooldownReduction; break;
         }
         return Mathf.Max(1f, ability.CooldownAt(rank) - reduction);
     }
@@ -284,7 +287,7 @@ public class PlayerAbilities : MonoBehaviour
         switch (ability.kind)
         {
             case AbilityKind.ManaBeam: return ManaBeam.CanCast(shooting);
-            case AbilityKind.ManaPulse: return shooting.Mana != null && shooting.Mana.Current >= ability.manaCost;
+            case AbilityKind.ManaPulse: return shooting.Mana != null && shooting.Mana.Current >= FrierenTreeMath.ManaCost(ability.manaCost, Bonuses.ManaCostReduction);
             default: return true;
         }
     }

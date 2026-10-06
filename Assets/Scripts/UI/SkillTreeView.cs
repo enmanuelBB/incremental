@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
@@ -16,6 +17,11 @@ public class SkillTreeView
     private static readonly Color UnaffordableColor = new Color(0.17f, 0.27f, 0.5f, 1f);
     private static readonly Color LockedColor = new Color(0.22f, 0.24f, 0.3f, 1f);
     private static readonly Color LineIdle = new Color(0.3f, 0.33f, 0.42f, 1f);
+    private static readonly Color AlternativeColor = new Color(0.36f, 0.26f, 0.55f, 1f);   // otra opción de un grupo "Elige 1" ya elegido
+    private static readonly Color HealHalfColor = new Color(0.2f, 0.62f, 0.38f, 1f);       // mitad izquierda de un nodo dividido
+    private static readonly Color SlowHalfColor = new Color(0.2f, 0.55f, 0.8f, 1f);        // mitad derecha
+    private static readonly Color GroupFrameColor = new Color(0.6f, 0.45f, 0.95f, 0.14f);
+    private static readonly Color GroupLabelColor = new Color(0.8f, 0.7f, 1f, 1f);
 
     // El árbol se dibuja a una escala fija (UnitScale px por unidad) y NO se ajusta a la zona: si es más grande, se arrastra y se
     // hace zoom. SkillTreeLayoutTests repite UnitScale y NodeSize para exigir aire entre los nodos de los dos árboles.
@@ -62,6 +68,12 @@ public class SkillTreeView
     private readonly Action onChanged;
     private readonly Dictionary<string, NodeUi> nodes = new Dictionary<string, NodeUi>();
     private readonly List<LineUi> lines = new List<LineUi>();
+    private readonly List<GameObject> frames = new List<GameObject>();
+    private readonly Image swapPanel;
+    private readonly TMP_Text swapText;
+    private readonly Button swapAccept;
+    private readonly Button swapCancel;
+    private SkillNode pendingSwap;
 
     private SkillTreeDefinition builtFor;
     private SkillNode shown;
@@ -114,6 +126,32 @@ public class SkillTreeView
         Button reset = UiKit.TextButton("ResetTree", detail.transform, "Reiniciar árbol", 32f, ResetClicked, out resetLabel);
         UiKit.Place((RectTransform)reset.transform, new Vector2(1f, 0.5f), new Vector2(-24f, 0f), new Vector2(400f, 84f));
         ((RectTransform)reset.transform).pivot = new Vector2(1f, 0.5f);
+
+        // Ventana de confirmación para cambiar la opción de un grupo de "elige 1". Tapa el árbol (bloquea los clics de detrás).
+        swapPanel = UiKit.Box("SwapConfirm", Root, new Color(0f, 0f, 0f, 0.65f));
+        UiKit.Stretch(swapPanel.rectTransform);
+
+        Image box = UiKit.Box("Box", swapPanel.transform, UiKit.RowColor);
+        UiKit.Place(box.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1000f, 320f));
+        box.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+
+        swapText = UiKit.Label("Text", box.transform, "", 32f, TextAlignmentOptions.Center, Color.white);
+        UiKit.Place(swapText.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -20f), new Vector2(940f, 180f));
+        swapText.rectTransform.pivot = new Vector2(0.5f, 1f);
+
+        swapAccept = UiKit.TextButton("Accept", box.transform, "Aceptar", 32f, AcceptSwap, out _);
+        UiKit.Place((RectTransform)swapAccept.transform, new Vector2(0.5f, 0f), new Vector2(-170f, 30f), new Vector2(300f, 84f));
+        ((RectTransform)swapAccept.transform).pivot = new Vector2(0.5f, 0f);
+
+        swapCancel = UiKit.TextButton("Cancel", box.transform, "Cancelar", 32f, CloseSwap, out _);
+        UiKit.Place((RectTransform)swapCancel.transform, new Vector2(0.5f, 0f), new Vector2(170f, 30f), new Vector2(300f, 84f));
+        ((RectTransform)swapCancel.transform).pivot = new Vector2(0.5f, 0f);
+
+        // Con teclado o mando, el foco no se escapa a los nodos de detrás.
+        swapAccept.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnRight = swapCancel };
+        swapCancel.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnLeft = swapAccept };
+
+        swapPanel.gameObject.SetActive(false);
     }
 
     // Botones de zoom y "Ajustar" (para quien no tiene rueda) y una pista, abajo a la izquierda del área.
@@ -251,8 +289,12 @@ public class SkillTreeView
     {
         foreach (NodeUi ui in nodes.Values) UnityEngine.Object.Destroy(ui.Button.gameObject);
         foreach (LineUi line in lines) UnityEngine.Object.Destroy(line.Image.gameObject);
+        foreach (GameObject frame in frames) UnityEngine.Object.Destroy(frame);
         nodes.Clear();
         lines.Clear();
+        frames.Clear();
+        pendingSwap = null;
+        swapPanel.gameObject.SetActive(false);
         builtFor = tree;
         shown = null;
         contentMin = contentMax = Vector2.zero;
@@ -269,6 +311,7 @@ public class SkillTreeView
         }
         contentMin = min - Vector2.one * (NodeSize * 0.5f);
         contentMax = max + Vector2.one * (NodeSize * 0.5f);
+        contentMax.y += NodeSize;   // el texto "Elige 1" de los grupos sale por encima del nodo más alto
         ResetView();
 
         Vector2 ToScreen(Vector2 p) => p * UnitScale;
@@ -283,18 +326,31 @@ public class SkillTreeView
                 SkillNode target = tree.Find(other);
                 if (target == null) continue;
 
-                string key = string.CompareOrdinal(node.id, other) < 0 ? node.id + "|" + other : other + "|" + node.id;
+                // Una línea por par de cuadrados: las dos mitades de un nodo dividido comparten la suya (si no, se apilarían
+                // líneas iguales y solo se vería la de encima).
+                string a = SkillTreeRules.SquareOf(node), b = SkillTreeRules.SquareOf(target);
+                string key = string.CompareOrdinal(a, b) < 0 ? a + "|" + b : b + "|" + a;
                 if (!drawn.Add(key)) continue;
 
-                lines.Add(CreateLine(ToScreen(node.position), ToScreen(target.position), node.id, other));
+                lines.Add(CreateLine(ToScreen(node.position), ToScreen(target.position), a, b));
             }
         }
+
+        BuildChoiceFrames(tree, ToScreen);
 
         foreach (SkillNode node in tree.nodes)
         {
             SkillNode captured = node;
             Button button = UiKit.TextButton("Node_" + node.id, nodesLayer, node.displayName, NodeFontSize, () => NodeClicked(captured), out TMP_Text label);
-            UiKit.Place((RectTransform)button.transform, new Vector2(0.5f, 0.5f), ToScreen(node.position), new Vector2(NodeSize, NodeSize));
+            Vector2 size = new Vector2(NodeSize, NodeSize);
+            Vector2 at = ToScreen(node.position);
+            if (node.half != SkillNodeHalf.None)
+            {
+                // Un nodo dividido: dos botones de media anchura en el mismo cuadrado (izquierda Cura, derecha Freno).
+                size = new Vector2(NodeSize * 0.5f - 3f, NodeSize);
+                at.x += (node.half == SkillNodeHalf.Left ? -1f : 1f) * NodeSize * 0.25f;
+            }
+            UiKit.Place((RectTransform)button.transform, new Vector2(0.5f, 0.5f), at, size);
             ((RectTransform)button.transform).pivot = new Vector2(0.5f, 0.5f);
             label.rectTransform.offsetMin = new Vector2(4f, 4f);
             label.rectTransform.offsetMax = new Vector2(-4f, -4f);
@@ -310,6 +366,45 @@ public class SkillTreeView
             focus.Selected = EnsureVisible;
 
             nodes[node.id] = new NodeUi { Node = node, Image = button.GetComponent<Image>(), Button = button, Label = label };
+        }
+    }
+
+    // Un marco detrás de cada grupo de "elige 1" con el texto "Elige 1" (los nodos divididos ya se ven partidos y no lo llevan).
+    private void BuildChoiceFrames(SkillTreeDefinition tree, Func<Vector2, Vector2> toScreen)
+    {
+        var groups = new Dictionary<string, List<SkillNode>>();
+        foreach (SkillNode node in tree.nodes)
+        {
+            if (string.IsNullOrEmpty(node.choiceGroup) || node.half != SkillNodeHalf.None) continue;
+            if (!groups.TryGetValue(node.choiceGroup, out List<SkillNode> members)) groups[node.choiceGroup] = members = new List<SkillNode>();
+            members.Add(node);
+        }
+
+        foreach (List<SkillNode> members in groups.Values)
+        {
+            Vector2 lo = new Vector2(float.MaxValue, float.MaxValue), hi = new Vector2(float.MinValue, float.MinValue);
+            foreach (SkillNode member in members)
+            {
+                lo = Vector2.Min(lo, toScreen(member.position));
+                hi = Vector2.Max(hi, toScreen(member.position));
+            }
+            float pad = NodeSize * 0.5f + 18f;
+            lo -= Vector2.one * pad;
+            hi += Vector2.one * pad;
+
+            Image frame = UiKit.Box("ChoiceFrame", linesLayer, GroupFrameColor);
+            frame.raycastTarget = false;
+            UiKit.Place(frame.rectTransform, new Vector2(0.5f, 0.5f), (lo + hi) * 0.5f, hi - lo);
+            frame.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+
+            TMP_Text label = UiKit.Label("ChoiceLabel", linesLayer, "Elige 1", 24f, TextAlignmentOptions.Center, GroupLabelColor);
+            label.raycastTarget = false;
+            label.fontStyle = FontStyles.Bold;
+            UiKit.Place(label.rectTransform, new Vector2(0.5f, 0.5f), new Vector2((lo.x + hi.x) * 0.5f, hi.y + 18f), new Vector2(200f, 36f));
+            label.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+
+            frames.Add(frame.gameObject);
+            frames.Add(label.gameObject);
         }
     }
 
@@ -332,20 +427,26 @@ public class SkillTreeView
         foreach (NodeUi ui in nodes.Values)
         {
             SkillNode node = ui.Node;
-            bool owned = save.skillNodes.Contains(node.id);
+            SkillBuyBlock block = SkillTreeRules.CanBuy(tree, save, node.id);
+            bool owned = block == SkillBuyBlock.Owned;
+            bool alternative = block == SkillBuyBlock.ChoiceTaken;
             bool unlocked = SkillTreeRules.IsUnlocked(tree, node, save.skillNodes);
             bool affordable = save.skillPoints >= node.cost;
+            Color open = node.half == SkillNodeHalf.Left ? HealHalfColor : node.half == SkillNodeHalf.Right ? SlowHalfColor : BuyableColor;
 
-            ui.Image.color = owned ? OwnedColor : !unlocked ? LockedColor : affordable ? BuyableColor : UnaffordableColor;
-            ui.Label.color = owned ? new Color(0.1f, 0.08f, 0.01f, 1f) : unlocked ? Color.white : new Color(0.8f, 0.82f, 0.9f, 1f);
+            ui.Image.color = owned ? OwnedColor : alternative ? AlternativeColor : !unlocked ? LockedColor : affordable ? open : UnaffordableColor;
+            ui.Label.color = owned ? new Color(0.1f, 0.08f, 0.01f, 1f) : unlocked || alternative ? Color.white : new Color(0.8f, 0.82f, 0.9f, 1f);
             ui.Label.fontStyle = FontStyles.Bold;
-            ui.Label.text = owned ? node.displayName : node.displayName + "\n" + node.cost + (node.cost == 1 ? " pt" : " pts");
+            // En una mitad no cabe "cambiar": el color violeta ya lo dice.
+            ui.Label.text = owned ? node.displayName
+                : alternative ? (node.half != SkillNodeHalf.None ? node.displayName : node.displayName + "\ncambiar")
+                : node.displayName + "\n" + node.cost + (node.cost == 1 ? " pt" : " pts");
         }
 
         foreach (LineUi line in lines)
         {
-            bool both = save.skillNodes.Contains(line.A) && save.skillNodes.Contains(line.B);
-            line.Image.color = both ? OwnedColor : LineIdle;
+            // Iluminada si algún par conectado de esos dos cuadrados está comprado (sea la mitad de cura o la de freno).
+            line.Image.color = SkillTreeRules.LinkLit(tree, save.skillNodes, line.A, line.B) ? OwnedColor : LineIdle;
         }
 
         int spent = 0;
@@ -373,6 +474,12 @@ public class SkillTreeView
             case SkillBuyBlock.Owned: status = "Comprado"; break;
             case SkillBuyBlock.Locked: status = "Bloqueado: compra antes un nodo conectado"; break;
             case SkillBuyBlock.NoPoints: status = "Te faltan " + (node.cost - save.skillPoints) + " puntos"; break;
+            case SkillBuyBlock.ChoiceTaken:
+            {
+                SkillNode rival = builtFor.Find(SkillTreeRules.OwnedRival(builtFor, save.skillNodes, node.id));
+                status = "Alternativa a " + rival.displayName + ": clic para cambiar";
+                break;
+            }
             default: status = ""; break;
         }
 
@@ -383,9 +490,65 @@ public class SkillTreeView
     private void NodeClicked(SkillNode node)
     {
         ShowDetail(node);
+        if (SkillTreeManager.Instance != null && SkillTreeManager.Instance.ActiveSave != null
+            && SkillTreeRules.CanBuy(builtFor, SkillTreeManager.Instance.ActiveSave, node.id) == SkillBuyBlock.ChoiceTaken)
+        {
+            OpenSwap(node);
+            return;
+        }
+
         if (SkillTreeManager.Instance == null || !SkillTreeManager.Instance.Buy(node.id)) return;
 
         onChanged?.Invoke();
+    }
+
+    /// <summary>Cierra la ventana de cambio sin mover el foco (al cambiar de pestaña o volver a abrir el menú).</summary>
+    public void CloseSwapWindow()
+    {
+        pendingSwap = null;
+        swapPanel.gameObject.SetActive(false);
+    }
+
+    private void OpenSwap(SkillNode node)
+    {
+        CharacterSave save = SkillTreeManager.Instance.ActiveSave;
+        SkillNode rival = builtFor.Find(SkillTreeRules.OwnedRival(builtFor, save.skillNodes, node.id));
+        if (rival == null) return;
+
+        SkillSwapBlock block = SkillTreeRules.CanSwap(builtFor, save, node.id);
+        string problem;
+        switch (block)
+        {
+            case SkillSwapBlock.NoPoints: problem = "Faltan " + (node.cost - save.skillPoints - rival.cost) + " puntos"; break;
+            case SkillSwapBlock.WouldDisconnect: problem = "Desconectaría otros nodos comprados"; break;
+            case SkillSwapBlock.Locked: problem = "Bloqueado: compra antes un nodo conectado"; break;
+            default: problem = null; break;
+        }
+
+        pendingSwap = node;
+        swapText.text = "¿Cambiar <b>" + rival.displayName + "</b> por <b>" + node.displayName + "</b>?\nSe devuelven " + rival.cost
+            + " puntos y se gastan " + node.cost + "." + (problem != null ? "\n<color=#ff8a8a>" + problem + "</color>" : "");
+        swapAccept.interactable = block == SkillSwapBlock.None;
+        swapPanel.gameObject.SetActive(true);
+        if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(swapCancel.gameObject);
+    }
+
+    private void AcceptSwap()
+    {
+        SkillNode node = pendingSwap;
+        if (node == null || SkillTreeManager.Instance == null || !SkillTreeManager.Instance.Swap(node.id)) return;
+
+        CloseSwap();
+        onChanged?.Invoke();
+    }
+
+    private void CloseSwap()
+    {
+        SkillNode node = pendingSwap;
+        pendingSwap = null;
+        swapPanel.gameObject.SetActive(false);
+        if (node != null && EventSystem.current != null && nodes.TryGetValue(node.id, out NodeUi ui))
+            EventSystem.current.SetSelectedGameObject(ui.Button.gameObject);
     }
 
     private void ResetClicked()

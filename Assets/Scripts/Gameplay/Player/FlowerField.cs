@@ -41,7 +41,12 @@ public class FlowerField : MonoBehaviour
     /// <summary>Fotograma en que se cerró la colocación (confirmar o cancelar): ese clic no debe disparar ni cargar nada.</summary>
     public int ClosedFrame { get; private set; } = -1;
 
-    private float Radius => ability != null ? ability.radius : 0f;
+    private static TreeBonuses Tree => SkillTreeManager.CurrentBonuses;
+
+    // Maná del campo con Eficiencia del árbol.
+    private static float CostOf(AbilityDefinition definition) => FrierenTreeMath.ManaCost(definition.manaCost, Tree.ManaCostReduction);
+
+    private float Radius => ability != null ? ability.radius + Tree.FieldRadiusBonus : 0f;
 
     private void Awake()
     {
@@ -68,7 +73,7 @@ public class FlowerField : MonoBehaviour
     /// <summary>Abre la colocación. False si ya estaba abierta o no alcanza el maná.</summary>
     public bool Begin(AbilityDefinition definition, int abilityRank, Action confirmed)
     {
-        if (IsPlacing || shooting.Mana == null || shooting.Mana.Current < definition.manaCost) return false;
+        if (IsPlacing || shooting.Mana == null || shooting.Mana.Current < CostOf(definition)) return false;
 
         ability = definition;
         rank = abilityRank;
@@ -88,7 +93,7 @@ public class FlowerField : MonoBehaviour
         if (!IsPlacing) return;
 
         Vector3 center = PlacementPoint();
-        if (!shooting.Mana.TrySpend(ability.manaCost))
+        if (!shooting.Mana.TrySpend(CostOf(ability)))
         {
             Cancel();
             return;
@@ -169,7 +174,7 @@ public class FlowerField : MonoBehaviour
         EndField();
 
         fieldCenter = center;
-        fieldEnd = Time.time + ability.DurationAt(rank);
+        fieldEnd = Time.time + ability.DurationAt(rank) + Tree.FieldDurationBonus;
         nextTick = Time.time;
         heal.Reset();
         fieldRoot = BuildFlowers(center, Radius);
@@ -186,12 +191,20 @@ public class FlowerField : MonoBehaviour
         float step = ability.fieldTickSeconds;
         nextTick = Time.time + step;
 
+        TreeBonuses tree = Tree;
+
         // Cura a Frieren si está dentro del círculo.
         if (health != null && !health.IsDead && FlowerFieldRules.Contains(fieldCenter, Radius, transform.position))
         {
-            int amount = heal.Add(health.MaxHealth, ability.fieldHealFractionPerSecond, step);
+            int amount = heal.Add(health.MaxHealth, ability.fieldHealFractionPerSecond + tree.FieldHealBonus, step);
             if (amount > 0) health.Heal(amount);
         }
+
+        // Ralentización con las mitades de freno del árbol (tope 80%) y, con Flores venenosas, veneno que dura un poco tras salir.
+        float slow = FrierenTreeMath.FieldSlow(ability.fieldSlowFraction, tree.FieldSlowBonus);
+        int poison = tree.FieldPoison > 0f && shooting.WeaponCount > 0
+            ? FrierenTreeMath.PoisonTickDamage(shooting.CurrentWeapon.Damage, tree.FieldPoison, tree.FieldPoisonDamagePercent)
+            : 0;
 
         // Ralentiza a cada enemigo dentro. La ralentización dura un poco más que el tick: al salir se recuperan casi enseguida.
         int count = Physics.OverlapSphereNonAlloc(fieldCenter, Radius + 3f, buffer, ~0, QueryTriggerInteraction.Ignore);
@@ -201,7 +214,8 @@ public class FlowerField : MonoBehaviour
             if (enemy == null || enemy.IsDead) continue;
             if (!FlowerFieldRules.Contains(fieldCenter, Radius, enemy.transform.position, enemy.BodyRadius)) continue;
 
-            enemy.ApplySlow(ability.fieldSlowFraction, step * 2f);
+            enemy.ApplySlow(slow, step * 2f);
+            if (poison > 0) enemy.ApplyPoison(FrierenTreeMath.PoisonLinger, poison, FrierenTreeMath.PoisonTick);
         }
     }
 

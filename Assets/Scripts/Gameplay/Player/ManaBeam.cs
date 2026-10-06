@@ -15,8 +15,12 @@ public static class ManaBeam
         if (shooting.WeaponCount == 0 || shooting.Mana == null) return false;
 
         StaffDefinition staff = shooting.CurrentWeapon.Staff;
-        return staff != null && shooting.Mana.Current >= staff.abilityManaCost;
+        return staff != null && shooting.Mana.Current >= CostOf(staff);
     }
+
+    // Maná del rayo con Eficiencia del árbol.
+    private static float CostOf(StaffDefinition staff) =>
+        FrierenTreeMath.ManaCost(staff.abilityManaCost, SkillTreeManager.CurrentBonuses.ManaCostReduction);
 
     /// <summary>Lanza el rayo. False (sin gastar nada ni empezar el enfriamiento) si no hay bastón o no alcanza el maná.</summary>
     public static bool Cast(AbilityDefinition ability, int rank, Shooting shooting)
@@ -26,13 +30,16 @@ public static class ManaBeam
         WeaponState weapon = shooting.CurrentWeapon;
         StaffDefinition staff = weapon.Staff;
         if (staff == null) return false;
-        if (!shooting.Mana.TrySpend(staff.abilityManaCost)) return false;
+        if (!shooting.Mana.TrySpend(CostOf(staff))) return false;
 
+        // El árbol ensancha el rayo y le puede dar Perforación creciente o Rayo gélido.
+        TreeBonuses tree = SkillTreeManager.CurrentBonuses;
+        float radius = staff.abilityBeamRadius + tree.BeamRadiusBonus;
         Vector3 origin = shooting.MuzzlePoint;
         Vector3 end = PiercingBeam.Cast(new Ray(origin, Direction(shooting, origin, staff.abilityRange)),
-            staff.abilityRange, staff.abilityBeamRadius, weapon.AbilityDamage, shooting.transform);
+            staff.abilityRange, radius, weapon.AbilityDamage, shooting.transform, null, tree.BeamPierceDamage, tree.BeamFrostSlow);
 
-        shooting.ShowBeam(origin, end, BeamColor, staff.abilityBeamRadius * 1.5f, 0.25f);
+        shooting.ShowBeam(origin, end, BeamColor, radius * 1.5f, 0.25f);
         shooting.RefreshMana();
         return true;
     }

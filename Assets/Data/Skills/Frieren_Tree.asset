@@ -1,0 +1,757 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91bf552f84e9df84b944d7d089976707, type: 3}
+  m_Name: Frieren_Tree
+  m_EditorClassIdentifier: Game.Core::SkillTreeDefinition
+  id: frieren_tree
+  nodes:
+  - id: core
+    displayName: Grimorio
+    description: "+5% de da\xF1o a todo."
+    cost: 1
+    position: {x: 0, y: 0}
+    connections:
+    - v1
+    - d1
+    - s1
+    - za1
+    - qi1
+    - mr1
+    - ep
+    - fp1
+    isRoot: 1
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 2
+      value: 0.05
+  - id: v1
+    displayName: Vitalidad I
+    description: "+10 de vida m\xE1xima."
+    cost: 1
+    position: {x: -1.5, y: -1.5}
+    connections:
+    - core
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 0
+      value: 10
+  - id: v2
+    displayName: Vitalidad II
+    description: "+15 de vida m\xE1xima."
+    cost: 2
+    position: {x: -2.5, y: -2.8}
+    connections:
+    - v1
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 0
+      value: 15
+  - id: v3
+    displayName: Vitalidad III
+    description: "+20 de vida m\xE1xima."
+    cost: 3
+    position: {x: -3.5, y: -4.1}
+    connections:
+    - v2
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 0
+      value: 20
+  - id: d1
+    displayName: Poder arcano I
+    description: "+3% de da\xF1o a todo."
+    cost: 1
+    position: {x: 0, y: -1.5}
+    connections:
+    - core
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 2
+      value: 0.03
+  - id: d2
+    displayName: Poder arcano II
+    description: "+3% de da\xF1o a todo."
+    cost: 2
+    position: {x: 0, y: -3}
+    connections:
+    - d1
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 2
+      value: 0.03
+  - id: d3
+    displayName: Poder arcano III
+    description: "+4% de da\xF1o a todo."
+    cost: 4
+    position: {x: 0, y: -4.5}
+    connections:
+    - d2
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 2
+      value: 0.04
+  - id: s1
+    displayName: Zancada I
+    description: +3% de velocidad de movimiento.
+    cost: 1
+    position: {x: 1.5, y: -1.5}
+    connections:
+    - core
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 1
+      value: 0.03
+  - id: s2
+    displayName: Zancada II
+    description: +3% de velocidad de movimiento.
+    cost: 2
+    position: {x: 2.5, y: -2.8}
+    connections:
+    - s1
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 1
+      value: 0.03
+  - id: s3
+    displayName: Zancada III
+    description: +4% de velocidad de movimiento.
+    cost: 3
+    position: {x: 3.5, y: -4.1}
+    connections:
+    - s2
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 1
+      value: 0.04
+  - id: za1
+    displayName: Zoltraak afinado I
+    description: "+15% de da\xF1o del Zoltraak (tambi\xE9n el Eco, la Lluvia y la Explosi\xF3n final)."
+    cost: 2
+    position: {x: 0, y: 1.8}
+    connections:
+    - core
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 29
+      value: 0.15
+  - id: zc1
+    displayName: "Canalizaci\xF3n r\xE1pida I"
+    description: La carga del Zoltraak tarda 0,15 s menos.
+    cost: 2
+    position: {x: -1.5, y: 3.3}
+    connections:
+    - za1
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 30
+      value: 0.15
+  - id: zc2
+    displayName: "Canalizaci\xF3n r\xE1pida II"
+    description: "La carga del Zoltraak tarda 0,15 s menos (1,2 \u2192 0,9 s con las dos)."
+    cost: 4
+    position: {x: -1.5, y: 4.8}
+    connections:
+    - zc1
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 30
+      value: 0.15
+  - id: za2
+    displayName: Zoltraak afinado II
+    description: "+15% de da\xF1o del Zoltraak."
+    cost: 4
+    position: {x: 0, y: 4.2}
+    connections:
+    - za1
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 29
+      value: 0.15
+  - id: zr1
+    displayName: Onda expansiva I
+    description: +0,5 m de radio del Zoltraak.
+    cost: 3
+    position: {x: 1.5, y: 3.3}
+    connections:
+    - za1
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 31
+      value: 0.5
+  - id: zr2
+    displayName: Onda expansiva II
+    description: +0,5 m de radio del Zoltraak.
+    cost: 5
+    position: {x: 1.5, y: 4.8}
+    connections:
+    - zr1
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 31
+      value: 0.5
+  - id: zo1
+    displayName: Sobrecarga
+    description: Elige 1. Tras soltar un Zoltraak al 100%, el siguiente sale cargado al instante.
+    cost: 7
+    position: {x: -1.6, y: 6.5}
+    connections:
+    - za2
+    isRoot: 0
+    choiceGroup: zoltraak
+    half: 0
+    effects:
+    - type: 32
+      value: 1
+  - id: zo2
+    displayName: Eco
+    description: "Elige 1. A carga completa, 0,3 s despu\xE9s cae una segunda explosi\xF3n con 50% del da\xF1o y 70% del radio."
+    cost: 7
+    position: {x: 0, y: 6.2}
+    connections:
+    - za2
+    isRoot: 0
+    choiceGroup: zoltraak
+    half: 0
+    effects:
+    - type: 33
+      value: 0.5
+  - id: zo3
+    displayName: Escarcha arcana
+    description: Elige 1. A carga completa, ralentiza 40% durante 3 s a los enemigos golpeados.
+    cost: 7
+    position: {x: 1.6, y: 6.5}
+    connections:
+    - za2
+    isRoot: 0
+    choiceGroup: zoltraak
+    half: 0
+    effects:
+    - type: 34
+      value: 0.4
+  - id: qi1
+    displayName: Rayo intenso I
+    description: "+15% de da\xF1o del rayo de man\xE1."
+    cost: 2
+    position: {x: -3, y: 1.6}
+    connections:
+    - core
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 40
+      value: 0.15
+  - id: qw
+    displayName: Rayo ancho
+    description: "+0,2 m de grosor del rayo (0,4 \u2192 0,6)."
+    cost: 3
+    position: {x: -3, y: 3.3}
+    connections:
+    - qi1
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 41
+      value: 0.2
+  - id: qi2
+    displayName: Rayo intenso II
+    description: "+15% de da\xF1o del rayo de man\xE1."
+    cost: 4
+    position: {x: -4.6, y: 3.4}
+    connections:
+    - qi1
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 40
+      value: 0.15
+  - id: qc1
+    displayName: Recarga arcana I
+    description: "El rayo enfr\xEDa 0,5 s menos."
+    cost: 2
+    position: {x: -6, y: 3}
+    connections:
+    - qi1
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 42
+      value: 0.5
+  - id: qc2
+    displayName: Recarga arcana II
+    description: "El rayo enfr\xEDa 0,5 s menos."
+    cost: 4
+    position: {x: -6, y: 4.6}
+    connections:
+    - qc1
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 42
+      value: 0.5
+  - id: qo1
+    displayName: Doble carga
+    description: 'Elige 1. +1 carga: dos rayos seguidos; se recargan de una en una.'
+    cost: 7
+    position: {x: -6, y: 6.2}
+    connections:
+    - qi2
+    isRoot: 0
+    choiceGroup: rayo
+    half: 0
+    effects:
+    - type: 43
+      value: 1
+  - id: qo2
+    displayName: "Rayo g\xE9lido"
+    description: Elige 1. Ralentiza 60% durante 3 s a cada enemigo que atraviesa.
+    cost: 7
+    position: {x: -4.6, y: 5.6}
+    connections:
+    - qi2
+    isRoot: 0
+    choiceGroup: rayo
+    half: 0
+    effects:
+    - type: 44
+      value: 0.6
+  - id: qo3
+    displayName: "Perforaci\xF3n creciente"
+    description: "Elige 1. +15% de da\xF1o por cada enemigo ya atravesado (hasta +90%)."
+    cost: 7
+    position: {x: -3.2, y: 6.2}
+    connections:
+    - qi2
+    isRoot: 0
+    choiceGroup: rayo
+    half: 0
+    effects:
+    - type: 45
+      value: 0.15
+  - id: mr1
+    displayName: Reserva I
+    description: "+20 de man\xE1 m\xE1ximo."
+    cost: 2
+    position: {x: -3, y: 0}
+    connections:
+    - core
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 35
+      value: 20
+  - id: mr2
+    displayName: Reserva II
+    description: "+20 de man\xE1 m\xE1ximo."
+    cost: 4
+    position: {x: -4.6, y: -1}
+    connections:
+    - mr1
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 35
+      value: 20
+  - id: mf1
+    displayName: Flujo I
+    description: "+0,75 de man\xE1 por segundo."
+    cost: 2
+    position: {x: -4.6, y: 0.6}
+    connections:
+    - mr1
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 36
+      value: 0.75
+  - id: mf2
+    displayName: Flujo II
+    description: "+0,75 de man\xE1 por segundo."
+    cost: 4
+    position: {x: -6.2, y: 1}
+    connections:
+    - mf1
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 36
+      value: 0.75
+  - id: mo1
+    displayName: Eficiencia
+    description: "Elige 1. La Q, la E y la F cuestan 40% menos man\xE1."
+    cost: 7
+    position: {x: -7.6, y: 2.4}
+    connections:
+    - mf2
+    isRoot: 0
+    choiceGroup: mana
+    half: 0
+    effects:
+    - type: 37
+      value: 0.4
+  - id: mo2
+    displayName: "Absorci\xF3n"
+    description: "Elige 1. +3 de man\xE1 por cada enemigo que muere."
+    cost: 7
+    position: {x: -8, y: 0.9}
+    connections:
+    - mf2
+    isRoot: 0
+    choiceGroup: mana
+    half: 0
+    effects:
+    - type: 38
+      value: 3
+  - id: mo3
+    displayName: "Concentraci\xF3n"
+    description: "Elige 1. Regeneras el doble de man\xE1 si no recibiste da\xF1o en 3 s."
+    cost: 7
+    position: {x: -7.6, y: -0.6}
+    connections:
+    - mf2
+    isRoot: 0
+    choiceGroup: mana
+    half: 0
+    effects:
+    - type: 39
+      value: 2
+  - id: ep
+    displayName: Pradera
+    description: +1 m de radio del campo de flores.
+    cost: 2
+    position: {x: 3, y: 1.6}
+    connections:
+    - core
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 46
+      value: 1
+  - id: ev1
+    displayName: Flores venenosas
+    description: "El campo envenena: cada segundo, la mitad del da\xF1o del disparo b\xE1sico; sigue 3 s despu\xE9s de salir."
+    cost: 5
+    position: {x: 3, y: 3.3}
+    connections:
+    - ep
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 51
+      value: 0.5
+  - id: ev2
+    displayName: Veneno II
+    description: "+50% de da\xF1o del veneno."
+    cost: 6
+    position: {x: 3, y: 4.9}
+    connections:
+    - ev1
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 52
+      value: 0.5
+  - id: es1c
+    displayName: Cura I
+    description: "Elige una mitad. El campo cura +1% de tu vida m\xE1xima por segundo."
+    cost: 2
+    position: {x: 4.5, y: 3.4}
+    connections:
+    - ep
+    isRoot: 0
+    choiceGroup: flor1
+    half: 1
+    effects:
+    - type: 49
+      value: 0.01
+  - id: es1r
+    displayName: Freno I
+    description: "Elige una mitad. El campo ralentiza 10 puntos m\xE1s (m\xE1ximo 80%)."
+    cost: 2
+    position: {x: 4.5, y: 3.4}
+    connections:
+    - ep
+    isRoot: 0
+    choiceGroup: flor1
+    half: 2
+    effects:
+    - type: 50
+      value: 0.1
+  - id: es2c
+    displayName: Cura II
+    description: "Elige una mitad. El campo cura +1% de tu vida m\xE1xima por segundo."
+    cost: 3
+    position: {x: 4.5, y: 4.9}
+    connections:
+    - es1c
+    - es1r
+    isRoot: 0
+    choiceGroup: flor2
+    half: 1
+    effects:
+    - type: 49
+      value: 0.01
+  - id: es2r
+    displayName: Freno II
+    description: "Elige una mitad. El campo ralentiza 10 puntos m\xE1s (m\xE1ximo 80%)."
+    cost: 3
+    position: {x: 4.5, y: 4.9}
+    connections:
+    - es1c
+    - es1r
+    isRoot: 0
+    choiceGroup: flor2
+    half: 2
+    effects:
+    - type: 50
+      value: 0.1
+  - id: es3c
+    displayName: Cura III
+    description: "Elige una mitad. El campo cura +1% de tu vida m\xE1xima por segundo."
+    cost: 4
+    position: {x: 4.5, y: 6.4}
+    connections:
+    - es2c
+    - es2r
+    isRoot: 0
+    choiceGroup: flor3
+    half: 1
+    effects:
+    - type: 49
+      value: 0.01
+  - id: es3r
+    displayName: Freno III
+    description: "Elige una mitad. El campo ralentiza 10 puntos m\xE1s (m\xE1ximo 80%)."
+    cost: 4
+    position: {x: 4.5, y: 6.4}
+    connections:
+    - es2c
+    - es2r
+    isRoot: 0
+    choiceGroup: flor3
+    half: 2
+    effects:
+    - type: 50
+      value: 0.1
+  - id: es4c
+    displayName: Cura IV
+    description: "Elige una mitad. El campo cura +1% de tu vida m\xE1xima por segundo."
+    cost: 5
+    position: {x: 4.5, y: 7.9}
+    connections:
+    - es3c
+    - es3r
+    isRoot: 0
+    choiceGroup: flor4
+    half: 1
+    effects:
+    - type: 49
+      value: 0.01
+  - id: es4r
+    displayName: Freno IV
+    description: "Elige una mitad. El campo ralentiza 10 puntos m\xE1s (m\xE1ximo 80%)."
+    cost: 5
+    position: {x: 4.5, y: 7.9}
+    connections:
+    - es3c
+    - es3r
+    isRoot: 0
+    choiceGroup: flor4
+    half: 2
+    effects:
+    - type: 50
+      value: 0.1
+  - id: ef
+    displayName: "Floraci\xF3n larga"
+    description: "El campo dura 1,5 s m\xE1s."
+    cost: 3
+    position: {x: 6, y: 3.2}
+    connections:
+    - ep
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 47
+      value: 1.5
+  - id: eb
+    displayName: "Brote r\xE1pido"
+    description: "El campo enfr\xEDa 3 s menos."
+    cost: 3
+    position: {x: 6.1, y: 4.8}
+    connections:
+    - ef
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 48
+      value: 3
+  - id: fp1
+    displayName: Pulso prolongado I
+    description: "El pulso dura 1,5 s m\xE1s."
+    cost: 3
+    position: {x: 3, y: 0}
+    connections:
+    - core
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 53
+      value: 1.5
+  - id: ft
+    displayName: Terror
+    description: "El pulso aturde 0,5 s m\xE1s."
+    cost: 4
+    position: {x: 4.6, y: 1.4}
+    connections:
+    - fp1
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 54
+      value: 0.5
+  - id: fp2
+    displayName: Pulso prolongado II
+    description: "El pulso dura 1,5 s m\xE1s."
+    cost: 5
+    position: {x: 4.8, y: -0.2}
+    connections:
+    - fp1
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 53
+      value: 1.5
+  - id: fr1
+    displayName: "Recuperaci\xF3n I"
+    description: "El pulso enfr\xEDa 8 s menos."
+    cost: 4
+    position: {x: 4.4, y: -1.9}
+    connections:
+    - fp1
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 55
+      value: 8
+  - id: fr2
+    displayName: "Recuperaci\xF3n II"
+    description: "El pulso enfr\xEDa 8 s menos."
+    cost: 6
+    position: {x: 5.6, y: -3.3}
+    connections:
+    - fr1
+    isRoot: 0
+    choiceGroup: 
+    half: 0
+    effects:
+    - type: 55
+      value: 8
+  - id: fo1
+    displayName: Dominio
+    description: Elige 1. El pulso aturde y ralentiza a todos los enemigos del mapa.
+    cost: 8
+    position: {x: 7.2, y: 1.8}
+    connections:
+    - fp2
+    isRoot: 0
+    choiceGroup: pulso
+    half: 0
+    effects:
+    - type: 56
+      value: 1
+  - id: fo2
+    displayName: Lluvia de Zoltraak
+    description: Elige 1. Mientras dura, cada 1 s cae del cielo un Zoltraak completo sobre un enemigo al azar del radio.
+    cost: 8
+    position: {x: 7.6, y: 0.4}
+    connections:
+    - fp2
+    isRoot: 0
+    choiceGroup: pulso
+    half: 0
+    effects:
+    - type: 57
+      value: 1
+  - id: fo3
+    displayName: "Explosi\xF3n final"
+    description: "Elige 1. Al terminar, todos los enemigos del radio reciben el da\xF1o de 3 Zoltraak completos."
+    cost: 8
+    position: {x: 7.6, y: -1.1}
+    connections:
+    - fp2
+    isRoot: 0
+    choiceGroup: pulso
+    half: 0
+    effects:
+    - type: 58
+      value: 3
+  - id: fo4
+    displayName: "Marca de man\xE1"
+    description: "Elige 1. Los enemigos tocados por el pulso reciben +30% de da\xF1o de todo mientras dure."
+    cost: 8
+    position: {x: 7.2, y: -2.5}
+    connections:
+    - fp2
+    isRoot: 0
+    choiceGroup: pulso
+    half: 0
+    effects:
+    - type: 59
+      value: 0.3

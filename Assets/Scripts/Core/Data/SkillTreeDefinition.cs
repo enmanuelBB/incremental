@@ -36,8 +36,43 @@ public enum SkillEffectType
     [Tooltip("Guts F: suma al multiplicador de daño de la armadura (0,1 = +10 puntos)")] BerserkDamage,
     [Tooltip("Guts F: resta al multiplicador de daño recibido de la armadura (0,1 = -10 puntos)")] BerserkDamageTaken,
     [Tooltip("Guts F: segundos extra de aturdimiento del rugido")] RoarStun,
-    [Tooltip("Guts F: metros extra de radio del rugido")] RoarRadius
+    [Tooltip("Guts F: metros extra de radio del rugido")] RoarRadius,
+
+    [Tooltip("Frieren: fracción extra de daño del Zoltraak (0,15 = +15%)")] ZoltraakDamagePercent,
+    [Tooltip("Frieren: segundos que baja la carga del Zoltraak (mínimo 0,3 s)")] ZoltraakChargeTime,
+    [Tooltip("Frieren: metros extra de radio del Zoltraak (mínimo y máximo)")] ZoltraakRadius,
+    [Tooltip("Frieren, Sobrecarga (1): tras uno al 100%, el siguiente sale cargado al instante")] ZoltraakOvercharge,
+    [Tooltip("Frieren, Eco: fracción del daño de la segunda explosión (0,5)")] ZoltraakEcho,
+    [Tooltip("Frieren, Escarcha arcana: ralentización a carga completa (0,4 = -40%)")] ZoltraakFrost,
+    [Tooltip("Frieren: maná máximo extra")] ManaMax,
+    [Tooltip("Frieren: maná por segundo extra")] ManaRegen,
+    [Tooltip("Frieren, Eficiencia: fracción que baja el maná de Q, E y F (0,4 = -40%)")] ManaCostPercent,
+    [Tooltip("Frieren, Absorción: maná por cada enemigo que muere")] ManaOnKill,
+    [Tooltip("Frieren, Concentración: multiplicador de regeneración tras 3 s sin daño (2 = x2)")] ManaFocus,
+    [Tooltip("Frieren Q: fracción extra de daño del rayo (0,15 = +15%)")] BeamDamagePercent,
+    [Tooltip("Frieren Q: metros extra de grosor del rayo")] BeamRadius,
+    [Tooltip("Frieren Q: segundos que baja el enfriamiento")] BeamCooldown,
+    [Tooltip("Frieren Q: cargas extra")] BeamExtraCharges,
+    [Tooltip("Frieren Q, Rayo gélido: ralentización a los atravesados (0,6 = -60%)")] BeamFrost,
+    [Tooltip("Frieren Q, Perforación creciente: daño extra por cada enemigo ya atravesado (0,15)")] BeamPierceDamage,
+    [Tooltip("Frieren E: metros extra de radio del campo")] FieldRadius,
+    [Tooltip("Frieren E: segundos extra de duración")] FieldDuration,
+    [Tooltip("Frieren E: segundos que baja el enfriamiento")] FieldCooldown,
+    [Tooltip("Frieren E: fracción extra de cura por segundo (0,01 = +1 punto)")] FieldHeal,
+    [Tooltip("Frieren E: ralentización extra (0,1 = +10 puntos; el total no pasa de 0,8)")] FieldSlow,
+    [Tooltip("Frieren E: veneno por segundo como fracción del daño básico (0,5)")] FieldPoison,
+    [Tooltip("Frieren E: fracción extra de daño del veneno (0,5 = +50%)")] FieldPoisonDamagePercent,
+    [Tooltip("Frieren F: segundos extra de duración")] PulseDuration,
+    [Tooltip("Frieren F: segundos extra de aturdimiento")] PulseStun,
+    [Tooltip("Frieren F: segundos que baja el enfriamiento")] PulseCooldown,
+    [Tooltip("Frieren F, Dominio (1): el pulso alcanza a todos los enemigos")] PulseWholeMap,
+    [Tooltip("Frieren F, Lluvia de Zoltraak: segundos entre Zoltraaks (1)")] PulseZoltraakRain,
+    [Tooltip("Frieren F, Explosión final: multiplicador del Zoltraak completo (3)")] PulseFinalBlast,
+    [Tooltip("Frieren F, Marca de maná: daño extra que reciben los tocados (0,3 = +30%)")] PulseMark
 }
+
+/// <summary>Mitad de un nodo dividido (dos opciones en el mismo cuadrado). None = nodo normal.</summary>
+public enum SkillNodeHalf { None, Left, Right }
 
 [Serializable]
 public struct SkillEffect
@@ -61,6 +96,10 @@ public class SkillNode
     public string[] connections = new string[0];
     [Tooltip("Los nodos raíz se pueden comprar sin tener ningún vecino")]
     public bool isRoot;
+    [Tooltip("Grupo de 'elige 1': los nodos con el mismo grupo se excluyen (solo uno comprado). Vacío = sin grupo")]
+    public string choiceGroup = "";
+    [Tooltip("Mitad de un nodo dividido: las dos mitades comparten grupo, posición y costo")]
+    public SkillNodeHalf half = SkillNodeHalf.None;
     public SkillEffect[] effects = new SkillEffect[0];
 }
 

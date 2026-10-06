@@ -28,7 +28,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 21e488731e6d83045af5ddc36cfda0ad, type: 2}
   - {fileID: 11400000, guid: c34ab51a40589bc4388b75aa6859f087, type: 2}
   - {fileID: 11400000, guid: 05efdddf84890d149a88459410b0f6ba, type: 2}
-  skillTree: {fileID: 0}
+  skillTree: {fileID: 11400000, guid: d87ba9c3228f80f44ac5002ef348d1ed, type: 2}
   heldItemPrefab: {fileID: 4935944395925541920, guid: 0ff9d57381c8cf349806d73ff145b5ce, type: 3}
   bodyPrefab: {fileID: 5741062982687632497, guid: ace569f0516d2374e86d75c8b84acd8e, type: 3}
   hoverHeight: 0.1

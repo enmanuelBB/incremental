@@ -40,6 +40,40 @@ public struct TreeBonuses
     public float RoarStunBonus;
     public float RoarRadiusBonus;
 
+    public float ZoltraakDamagePercent;
+    public float ZoltraakChargeReduction;
+    public float ZoltraakRadiusBonus;
+    public bool ZoltraakOvercharge;
+    public float ZoltraakEchoFraction;
+    public float ZoltraakFrostSlow;
+    public float ManaMaxBonus;
+    public float ManaRegenBonus;
+    public float ManaCostReduction;
+    public float ManaOnKill;
+    /// <summary>Multiplicador de regeneración de Concentración (0 = sin el nodo).</summary>
+    public float ManaFocusMultiplier;
+    public float BeamDamagePercent;
+    public float BeamRadiusBonus;
+    public float BeamCooldownReduction;
+    public int BeamExtraCharges;
+    public float BeamFrostSlow;
+    public float BeamPierceDamage;
+    public float FieldRadiusBonus;
+    public float FieldDurationBonus;
+    public float FieldCooldownReduction;
+    public float FieldHealBonus;
+    public float FieldSlowBonus;
+    public float FieldPoison;
+    public float FieldPoisonDamagePercent;
+    public float PulseDurationBonus;
+    public float PulseStunBonus;
+    public float PulseCooldownReduction;
+    public bool PulseWholeMap;
+    /// <summary>Segundos entre los Zoltraak de la Lluvia (0 = sin el nodo).</summary>
+    public float PulseRainInterval;
+    public float PulseFinalBlastMultiplier;
+    public float PulseMarkBonus;
+
     /// <summary>Daño a un enemigo con el bono de Guts a los aturdidos: x(1 + bono) si el objetivo está aturdido.</summary>
     public int ScaleVsStunned(int damage, bool targetStunned) =>
         targetStunned && StunnedDamagePercent > 0f ? UnityEngine.Mathf.RoundToInt(damage * (1f + StunnedDamagePercent)) : damage;

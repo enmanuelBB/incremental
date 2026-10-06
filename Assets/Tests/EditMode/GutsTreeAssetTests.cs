@@ -97,10 +97,10 @@ public class GutsTreeAssetTests
     {
         var present = Tree.nodes.SelectMany(n => n.effects).Select(e => e.type).Distinct().ToList();
 
-        // Los efectos de Guts son los que van de StunChance en adelante.
+        // Los efectos de Guts son los que van de StunChance a RoarRadius (después vienen los de Frieren).
         foreach (SkillEffectType type in System.Enum.GetValues(typeof(SkillEffectType)))
         {
-            if (type < SkillEffectType.StunChance) continue;
+            if (type < SkillEffectType.StunChance || type > SkillEffectType.RoarRadius) continue;
             Assert.Contains(type, present, "El árbol de Guts no usa " + type);
         }
     }

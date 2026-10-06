@@ -57,6 +57,7 @@ public class AbilityShopUI : MenuPanel
         firstChoice = pendingFirstChoice;
         pendingFirstChoice = false;
         treeTab = false;
+        treeView.CloseSwapWindow();
         Refresh();
     }
 
@@ -231,6 +232,7 @@ public class AbilityShopUI : MenuPanel
     private void SetTab(bool tree)
     {
         treeTab = tree;
+        treeView.CloseSwapWindow();   // una ventana de cambio abierta no sobrevive al cambio de pestaña
         if (tree) treeView.ResetView();
         Refresh();
 

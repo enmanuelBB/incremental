@@ -20,8 +20,11 @@ public static class PiercingBeam
 
     /// <param name="ignoreRoot">Transform del jugador, para que el rayo no se golpee a sí mismo.</param>
     /// <param name="hitEnemies">Opcional: recibe los enemigos dañados (para pruebas).</param>
+    /// <param name="pierceBonusPerEnemy">Perforación creciente (árbol de Frieren): daño extra por cada enemigo ya atravesado.</param>
+    /// <param name="frostSlow">Rayo gélido (árbol de Frieren): ralentización a cada enemigo atravesado (0 = ninguna).</param>
     /// <returns>Punto donde termina el rayo: el alcance máximo o la pared que lo detuvo.</returns>
-    public static Vector3 Cast(Ray ray, float range, float radius, int damage, Transform ignoreRoot, List<EnemyAI> hitEnemies = null)
+    public static Vector3 Cast(Ray ray, float range, float radius, int damage, Transform ignoreRoot, List<EnemyAI> hitEnemies = null,
+        float pierceBonusPerEnemy = 0f, float frostSlow = 0f)
     {
         damaged.Clear();
         Vector3 end = ray.origin + ray.direction * range;
@@ -56,7 +59,13 @@ public static class PiercingBeam
         }
 
         // El daño se aplica al final: matar a un enemigo lo devuelve al pool y desactiva su objeto.
-        foreach (EnemyAI enemy in damaged) enemy.TakeDamage(damage);
+        // 'damaged' va del más cercano al más lejano: Perforación creciente suma por cada enemigo previo.
+        for (int i = 0; i < damaged.Count; i++)
+        {
+            EnemyAI enemy = damaged[i];
+            if (frostSlow > 0f) enemy.ApplySlow(frostSlow, FrierenTreeMath.FrostSeconds);
+            enemy.TakeDamage(Mathf.RoundToInt(damage * FrierenTreeMath.PierceMultiplier(i, pierceBonusPerEnemy)));
+        }
         if (hitEnemies != null) hitEnemies.AddRange(damaged);
 
         return end;

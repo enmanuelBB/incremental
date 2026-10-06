@@ -32,6 +32,7 @@ public class Shooting : MonoBehaviour
 
     // Bastón
     private ManaPool mana;
+    private PlayerHealth playerHealth;
     private int lastPublishedMana = -1;
     private BeamVfx boltVfx;
     private BeamVfx beamVfx;
@@ -106,6 +107,7 @@ public class Shooting : MonoBehaviour
         beamVfx = BeamVfx.Create("BeamVfx");
         abilities = GetComponent<PlayerAbilities>();
         if (abilities == null) abilities = gameObject.AddComponent<PlayerAbilities>();
+        playerHealth = GetComponent<PlayerHealth>();
         hover = GetComponent<PlayerHover>();
         if (hover == null) hover = gameObject.AddComponent<PlayerHover>();
         Build(character);
@@ -489,8 +491,11 @@ public class Shooting : MonoBehaviour
         }
 
         WeaponState weapon = CurrentWeapon;
-        if (mana == null) mana = new ManaPool(weapon.Staff.manaMax, weapon.ManaRegen);
-        else mana.Configure(weapon.Staff.manaMax, weapon.ManaRegen);
+        TreeBonuses tree = SkillTreeManager.CurrentBonuses;
+        float max = weapon.Staff.manaMax + tree.ManaMaxBonus;
+        float regen = weapon.ManaRegen + tree.ManaRegenBonus;
+        if (mana == null) mana = new ManaPool(max, regen);
+        else mana.Configure(max, regen);
 
         lastPublishedMana = -1;
     }
@@ -499,7 +504,9 @@ public class Shooting : MonoBehaviour
     {
         if (mana == null) return;
 
-        mana.Tick(Time.deltaTime);
+        // Concentración (árbol de Frieren): regenera más rápido si hace un rato que no recibe daño.
+        float lastHit = playerHealth != null ? playerHealth.LastDamagedAt : -999f;
+        mana.Tick(Time.deltaTime * FrierenTreeMath.RegenMultiplier(SkillTreeManager.CurrentBonuses.ManaFocusMultiplier, Time.time, lastHit));
         PublishMana(false);
     }
 
@@ -515,8 +522,33 @@ public class Shooting : MonoBehaviour
         GameEvents.RaiseManaChanged(mana.Current, mana.Max);
     }
 
-    /// <summary>Reconfigura las habilidades con el rango y los bonos del árbol actuales (cargas, enfriamientos).</summary>
-    public void RefreshBuild() => abilities.RefreshBuild();
+    /// <summary>
+    /// Reconfigura el maná (máximo y regeneración del árbol) y las habilidades (cargas, enfriamientos) con el árbol actual. El maná
+    /// se llena: solo pasa al comprar o reiniciar nodos y al cambiar de personaje, antes de la primera oleada.
+    /// </summary>
+    public void RefreshBuild()
+    {
+        ConfigureMana();
+        if (mana != null)
+        {
+            mana.Refill();
+            PublishMana(true);
+        }
+        abilities.RefreshBuild();
+    }
+
+    private void OnEnable() => GameEvents.EnemyDied += OnEnemyDied;
+    private void OnDisable() => GameEvents.EnemyDied -= OnEnemyDied;
+
+    // Absorción (árbol de Frieren): maná por cada enemigo que muere.
+    private void OnEnemyDied(Vector3 position, bool isBoss)
+    {
+        float gain = SkillTreeManager.CurrentBonuses.ManaOnKill;
+        if (mana == null || gain <= 0f) return;
+
+        mana.Gain(gain);
+        PublishMana(true);
+    }
 
     /// <summary>Vuelve a dibujar las casillas de habilidad (al aprender una habilidad en la estación de mejoras).</summary>
     public void RefreshAbilityHud()

@@ -18,6 +18,7 @@ public class SkillTreeLayoutTests
 
     [TestCase("Assets/Data/Skills/Alucard_Tree.asset")]
     [TestCase("Assets/Data/Skills/Guts_Tree.asset")]
+    [TestCase("Assets/Data/Skills/Frieren_Tree.asset")]
     public void Nodes_KeepAtLeastTheMinimumGapBetweenThem(string path)
     {
         var tree = AssetDatabase.LoadAssetAtPath<SkillTreeDefinition>(path);
@@ -28,6 +29,9 @@ public class SkillTreeLayoutTests
         {
             for (int j = i + 1; j < tree.nodes.Length; j++)
             {
+                // Las dos mitades de un nodo dividido comparten el cuadrado a propósito.
+                if (SameSquare(tree.nodes[i], tree.nodes[j])) continue;
+
                 float d = Vector2.Distance(tree.nodes[i].position, tree.nodes[j].position);
                 Assert.GreaterOrEqual(d, minDistance - 0.01f,
                     tree.nodes[i].id + " y " + tree.nodes[j].id + " están a " + d.ToString("F2") + " unidades (mínimo " + minDistance.ToString("F2") + ")");
@@ -37,6 +41,7 @@ public class SkillTreeLayoutTests
 
     [TestCase("Assets/Data/Skills/Alucard_Tree.asset")]
     [TestCase("Assets/Data/Skills/Guts_Tree.asset")]
+    [TestCase("Assets/Data/Skills/Frieren_Tree.asset")]
     public void Connections_AreNotAbsurdlyLong(string path)
     {
         var tree = AssetDatabase.LoadAssetAtPath<SkillTreeDefinition>(path);
@@ -56,6 +61,7 @@ public class SkillTreeLayoutTests
 
     [TestCase("Assets/Data/Skills/Alucard_Tree.asset")]
     [TestCase("Assets/Data/Skills/Guts_Tree.asset")]
+    [TestCase("Assets/Data/Skills/Frieren_Tree.asset")]
     public void Tree_HasAReadableShape_NotATinyBlob(string path)
     {
         var tree = AssetDatabase.LoadAssetAtPath<SkillTreeDefinition>(path);
@@ -71,4 +77,27 @@ public class SkillTreeLayoutTests
         Assert.GreaterOrEqual(max.x - min.x, 12f, "el árbol es muy angosto");
         Assert.GreaterOrEqual(max.y - min.y, 5f, "el árbol es muy bajo");
     }
+
+    // El usuario pidió más aire en el árbol de Frieren: 1,4 unidades entre centros (210 px), no solo el mínimo general.
+    [Test]
+    public void Frieren_HasExtraAirBetweenSquares()
+    {
+        var tree = AssetDatabase.LoadAssetAtPath<SkillTreeDefinition>("Assets/Data/Skills/Frieren_Tree.asset");
+        Assert.IsNotNull(tree, "Falta el árbol de Frieren");
+
+        for (int i = 0; i < tree.nodes.Length; i++)
+        {
+            for (int j = i + 1; j < tree.nodes.Length; j++)
+            {
+                SkillNode a = tree.nodes[i], b = tree.nodes[j];
+                if (SameSquare(a, b)) continue;
+
+                float d = Vector2.Distance(a.position, b.position);
+                Assert.GreaterOrEqual(d, 1.4f - 0.01f, a.id + " y " + b.id + " están a " + d.ToString("F2"));
+            }
+        }
+    }
+
+    private static bool SameSquare(SkillNode a, SkillNode b) =>
+        a.half != SkillNodeHalf.None && b.half != SkillNodeHalf.None && a.choiceGroup == b.choiceGroup;
 }

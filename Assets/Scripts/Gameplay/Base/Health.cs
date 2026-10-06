@@ -10,6 +10,9 @@ public abstract class Health : MonoBehaviour, IDamageable
 
     public int CurrentHealth { get; private set; }
     public int MaxHealth => maxHealth;
+
+    /// <summary>Momento (Time.time) del último golpe que le llegó (la Concentración de Frieren lo mira). -999 si nunca.</summary>
+    public float LastDamagedAt { get; private set; } = -999f;
     public bool IsDead => CurrentHealth <= 0;
 
     protected virtual void Start()
@@ -54,6 +57,7 @@ public abstract class Health : MonoBehaviour, IDamageable
     {
         if (IsDead || Invulnerable) return;
 
+        LastDamagedAt = Time.time;
         if (!Mathf.Approximately(DamageTakenMultiplier, 1f)) amount = Mathf.Max(1, Mathf.RoundToInt(amount * DamageTakenMultiplier));
         CurrentHealth = Mathf.Max(CurrentHealth - amount, 0);
         OnHealthChanged();

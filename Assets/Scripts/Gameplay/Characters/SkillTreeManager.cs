@@ -101,6 +101,16 @@ public class SkillTreeManager : MonoBehaviour
         return true;
     }
 
+    /// <summary>Cambia la opción comprada de un grupo de "elige 1" por 'nodeId' (devuelve la vieja y cobra la nueva).</summary>
+    public bool Swap(string nodeId)
+    {
+        CharacterSave save = ActiveSave;
+        if (save == null || !SkillTreeRules.TrySwap(Tree, save, nodeId)) return false;
+
+        AfterChange();
+        return true;
+    }
+
     /// <summary>Devuelve todos los puntos gastados y vacía el árbol del personaje activo. Gratis.</summary>
     public int ResetTree()
     {
