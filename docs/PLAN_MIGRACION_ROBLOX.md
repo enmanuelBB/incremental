@@ -23,7 +23,7 @@ El juego de Unity **sigue en desarrollo**. Este plan es un documento vivo: **cad
 Mientras no se decidan, el plan asume lo marcado como **(por defecto)**.
 
 1. **¿Un jugador o cooperativo?** Cambia la economía, el escalado de oleadas y la sincronización de jefes. **(Por defecto: un jugador por servidor, pero con el código separado en cliente y servidor desde el día 1, para no tener que rehacerlo si después se quiere cooperativo).**
-2. **Nombres y diseños propios.** Alucard (Hellsing/Castlevania), Guts y Griffith (Berserk) y Frieren tienen copyright. En Roblox los juegos de fan-art de anime reciben reclamos DMCA, y más si monetizan. `NOTAS_DEL_JUEGO.md` ya dice "nombres y diseños distintos": en Roblox hay que hacerlo **antes de publicar**, no después. Los `id` internos (`alucard`, `maga`, `guts`) pueden quedarse.
+2. **Nombres y diseños propios.** Alucard (Hellsing/Castlevania), Guts y Griffith (Berserk) y Frieren tienen copyright. En Roblox los juegos de fan-art de anime reciben reclamos DMCA, y más si monetizan. Las notas de diseño ya prevén nombres y diseños distintos: en Roblox hay que hacerlo **antes de publicar**, no después. Los `id` internos (`alucard`, `maga`, `guts`) pueden quedarse.
 3. **Monetización.** ¿Algún personaje o mejora se desbloquea con Robux (Developer Products / Game Passes)? **(Por defecto: no; todo con el dinero del juego, como hoy).**
 4. **Controles táctiles.** Gran parte del público de Roblox juega en celular. Hay que definir los botones en pantalla (disparo, Q/E/F, recarga, correr, cámara). **(Por defecto: se diseñan en la fase 6).**
 5. **Librería de UI.** **(Por defecto: Fusion.)** Alternativa: React-lua (Roact). O ScreenGui a mano si se quiere evitar dependencias.
@@ -169,7 +169,7 @@ Lado: **S** = Shared, **Sv** = Server, **C** = Client.
 | Archivo C# | Destino | Dif. | Nota |
 |---|---|---|---|
 | `Characters/CharacterManager` (151) | Sv | 🟡 | Aplica vida, velocidad y armas del personaje elegido |
-| `Characters/ProgressionManager` (109), `SkillTreeManager` (151), `RunSummaryTracker` (64) | Sv | 🟢 | Quitar los `Debug*` de la versión final (ver `REGISTRO_DE_CAMBIOS.md`) |
+| `Characters/ProgressionManager` (109), `SkillTreeManager` (151), `RunSummaryTracker` (64) | Sv | 🟢 | No migrar `DebugLevelUp`, `DebugResetLevel`, `DebugAddPoints` ni `DebugClearTree` (solo depuración) |
 | `Characters/SoulPickup` (55), `SoulSpawner` (96) | Sv + C | 🟡 | Las almas de Guts: recogida validada en el servidor |
 | `Economy/MoneyManager` (63) | Sv | 🟢 | |
 | `Base/BaseHealth` (12), `Base/Health` (66) | Sv | 🟢 | |
