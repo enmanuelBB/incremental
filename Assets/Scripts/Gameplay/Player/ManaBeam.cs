@@ -44,22 +44,13 @@ public static class ManaBeam
         return true;
     }
 
-    // Sale horizontal, a la altura del bastón, hacia donde apunta la mira: recorre el campo a la altura de los enemigos
-    // en vez de clavarse en el suelo, y atraviesa filas enteras.
+    // Sale del bastón hacia el punto exacto de la mira, con su altura (pedido del usuario, 2026-10-07): apuntando arriba
+    // alcanza a voladores y montones; apuntando al suelo se clava ahí. Antes salía siempre horizontal.
     private static Vector3 Direction(Shooting shooting, Vector3 origin, float range)
     {
         Ray aim = shooting.AimRay();
         Vector3 target = shooting.TryGetHit(range, out RaycastHit hit) ? hit.point : aim.GetPoint(range);
 
-        Vector3 direction = target - origin;
-        direction.y = 0f;
-
-        if (direction.sqrMagnitude < 0.01f)
-        {
-            direction = aim.direction;
-            direction.y = 0f;
-        }
-
-        return direction.normalized;
+        return BeamAim.Direction(origin, target, aim.direction);
     }
 }

@@ -309,7 +309,7 @@ MonoBehaviour:
       value: 0.15
   - id: qc1
     displayName: Recarga arcana I
-    description: "El rayo enfr\xEDa 0,5 s menos."
+    description: "El rayo enfr\xEDa 0,25 s menos."
     cost: 2
     position: {x: -6, y: 3}
     connections:
@@ -319,10 +319,10 @@ MonoBehaviour:
     half: 0
     effects:
     - type: 42
-      value: 0.5
+      value: 0.25
   - id: qc2
     displayName: Recarga arcana II
-    description: "El rayo enfr\xEDa 0,5 s menos."
+    description: "El rayo enfr\xEDa 0,25 s menos."
     cost: 4
     position: {x: -6, y: 4.6}
     connections:
@@ -332,7 +332,7 @@ MonoBehaviour:
     half: 0
     effects:
     - type: 42
-      value: 0.5
+      value: 0.25
   - id: qo1
     displayName: Doble carga
     description: 'Elige 1. +1 carga: dos rayos seguidos; se recargan de una en una.'

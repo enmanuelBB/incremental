@@ -89,7 +89,8 @@ public class BossBalanceTests
     [TestCase(20)]
     public void AtMaxBuild_AWholeBossWaveIsClearedBeforeTheyReachTheBase(int wave)
     {
-        // Los enemigos tardan ~55 s en llegar desde el fondo del mapa: dejamos margen.
+        // Desde el 2026-10-07 (mapa más corto) los primeros enemigos llegan a la base en ~30 s, pero la oleada sale en
+        // manadas durante otros ~30 s más: 50 s para limpiarla entera sigue siendo una estimación gruesa, no un límite real.
         float seconds = WaveHealth(wave) / dps;
 
         Assert.LessOrEqual(seconds, 50f, "oleada " + wave + ": limpiarla tarda " + seconds.ToString("0") + " s");

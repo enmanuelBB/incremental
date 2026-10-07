@@ -63,7 +63,7 @@ public class EnemyBurn : MonoBehaviour
         {
             // El número se publica ANTES de dañar: si el tick mata, el enemigo vuelve al pool y ya no habría dónde mostrarlo.
             GameEvents.RaiseBurnTick(HeadPosition(), damage);
-            enemy.TakeDamage(damage);
+            enemy.TakeTickDamage(damage);
         }
 
         if (!burn.IsBurning) SetTint(false);

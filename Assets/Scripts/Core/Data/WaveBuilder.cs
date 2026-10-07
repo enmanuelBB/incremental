@@ -79,6 +79,39 @@ public static class WaveBuilder
         return result;
     }
 
+    /// <summary>Orden de aparición con los tipos intercalados (uno de cada grupo por vuelta), para que las manadas salgan mixtas.</summary>
+    public static List<EnemyDefinition> Interleave(List<WaveGroup> groups)
+    {
+        var order = new List<EnemyDefinition>();
+        if (groups == null) return order;
+
+        int longest = 0;
+        foreach (WaveGroup g in groups)
+            if (g != null && g.Enemy != null && g.Count > longest) longest = g.Count;
+
+        for (int round = 0; round < longest; round++)
+            foreach (WaveGroup g in groups)
+                if (g != null && g.Enemy != null && round < g.Count) order.Add(g.Enemy);
+
+        return order;
+    }
+
+    /// <summary>Lo que falta por aparecer desde <paramref name="fromIndex"/>, agrupado por tipo (al saltar una oleada pasa a la siguiente).</summary>
+    public static List<WaveGroup> CountRemaining(List<EnemyDefinition> order, int fromIndex)
+    {
+        var remaining = new List<WaveGroup>();
+        if (order == null) return remaining;
+
+        for (int i = System.Math.Max(0, fromIndex); i < order.Count; i++)
+        {
+            WaveGroup existing = remaining.Find(g => g.Enemy == order[i]);
+            if (existing != null) existing.Count++;
+            else remaining.Add(new WaveGroup { Enemy = order[i], Count = 1 });
+        }
+
+        return remaining;
+    }
+
     private static void AddGroups(List<WaveGroup> target, WaveSet.Wave wave, int extraPerGroup)
     {
         if (wave.enemyGroups == null) return;

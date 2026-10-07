@@ -12,6 +12,7 @@ public class EnemyPool : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+        if (GetComponent<EnemyCrowd>() == null) gameObject.AddComponent<EnemyCrowd>();   // apilado de enemigos
     }
 
     private void OnDestroy()

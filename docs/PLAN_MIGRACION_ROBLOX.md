@@ -81,7 +81,7 @@ Clasificación de los eventos actuales de `GameEvents.cs`:
 | Evento | Origen en Roblox | Nota |
 |---|---|---|
 | `PlayerHealthChanged`, `BaseHealthChanged`, `MoneyChanged`, `ManaChanged`, `FuryChanged`, `XpChanged`, `SkillPointsChanged` | Servidor | **Atributos** replicados |
-| `MoneyGained`, `WaveStarted`, `WaveCompleted`, `EnemyKilled`, `EnemyDied`, `BleedTick`, `BurnTick`, `PoisonTick`, `XpGained`, `XpEarned`, `LevelUp`, `SkillPointsGained`, `BossAppeared`, `BossHealthChanged`, `BossDefeated`, `GameStarted`, `GameOver` | Servidor | RemoteEvent → cliente (`BleedTick`, `BurnTick` y `PoisonTick` son muchos: agruparlos por frame) |
+| `MoneyGained`, `WaveStarted`, `WaveCompleted`, `EnemyKilled`, `EnemyDied`, `EnemyHit`, `BleedTick`, `BurnTick`, `PoisonTick`, `XpGained`, `XpEarned`, `LevelUp`, `SkillPointsGained`, `BossAppeared`, `BossHealthChanged`, `BossDefeated`, `GameStarted`, `GameOver` | Servidor | RemoteEvent → cliente (`EnemyHit`, `BleedTick`, `BurnTick` y `PoisonTick` son muchos: agruparlos por frame. `EnemyHit` es cada golpe directo, para los números de daño) |
 | `AbilityUsed`, `AbilityChargesChanged`, `AbilitiesChanged`, `WeaponSlotChanged`, `ResourceModeChanged`, `CharacterChanged` | Servidor confirma, cliente predice | El cliente muestra el enfriamiento al instante; el servidor corrige si lo rechaza |
 | `PromptChanged` | Cliente | Mejor con `ProximityPrompt` de Roblox (ver estaciones) |
 
@@ -120,9 +120,11 @@ Lado: **S** = Shared, **Sv** = Server, **C** = Client.
 
 | Archivo C# | Destino | Dif. | Nota |
 |---|---|---|---|
-| `CombatMath`, `TargetPicker`, `MeleeCone`, `StunRules`, `DashRules`, `HoverMath`, `MovePhase`, `SpawnArea`, `FrierenTreeMath`, `SlowRules` | `Shared/Rules/` | 🟢 | Matemática pura. `Vector3` existe igual en Luau. `SlowRules`: mientras dura una ralentización, solo la reemplaza otra igual o más fuerte |
+| `CombatMath`, `TargetPicker`, `MeleeCone`, `StunRules`, `DashRules`, `HoverMath`, `MovePhase`, `SpawnArea`, `FrierenTreeMath`, `SlowRules`, `BeamAim` | `Shared/Rules/` | 🟢 | Matemática pura. `BeamAim`: la Q de Frieren va del bastón al punto de la mira con su altura (desde el 2026-10-07). `Vector3` existe igual en Luau. `SlowRules`: mientras dura una ralentización, solo la reemplaza otra igual o más fuerte |
+| `PackFormation` | `Shared/Rules/` | 🟢 | Manadas en filas: ancho de cada fila al azar (`RowWidths`, 3 a 5) y puesto de cada enemigo con cada fila centrada (`Slot`) |
+| `EnemyStackRules` | `Shared/Rules/` | 🟢 | Apilado estilo Megabonk: quién está subido encima de quién (de abajo hacia arriba, superposición en planta, tope de altura, quién bloquea al que no cabe). Lo corre el servidor sobre las posiciones lógicas |
 | `BleedStacks`, `BurnState`, `FuryMeter`, `BerserkDrain`, `ManaPool`, `AbilityCooldown`, `AbilityCharges`, `TimedEffect`, `ZoltraakCharge`, `BarrelMagazines`, `FlowerFieldRules`, `SoulRules` | `Shared/Rules/` | 🟢 | Pasan a "clases" Luau (tabla + metatabla). El tiempo debe venir como parámetro (`os.clock()` / `workspace:GetServerTimeNow()`), no leído adentro |
-| `WaveBuilder`, `WaveSet`, `BossRules` | `Shared/Rules/` | 🟢 | |
+| `WaveBuilder`, `WaveSet`, `BossRules` | `Shared/Rules/` | 🟢 | Las oleadas salen en manadas mixtas: `Interleave` (tipos intercalados), `CountRemaining` (lo que pasa a la siguiente al saltar) |
 | `Progression`, `CharacterRules`, `CharacterInfo`, `SkillTreeRules`, `TreeBonuses`, `RunStats`, `UpgradeType`, `HudFormat`, `RecoilSettings` | `Shared/Rules/` | 🟢 | `HudFormat`: revisar el formato de números (separador de miles). `SkillTreeRules` tiene grupos de "elige 1" y nodos divididos (`choiceGroup`, `half`): `CanSwap`/`TrySwap` cambian una opción por otra con reembolso y comprobando que todo siga conectado; el servidor debe validar el cambio igual que una compra |
 | `AbilityDefinition`, `CharacterDefinition`, `EnemyDefinition`, `WeaponDefinition`, `StaffDefinition`, `SwordDefinition`, `SkillTreeDefinition`, `GameDefinition` | `Shared/Data/` (forma de la tabla + validación) | 🟢 | Los campos que apuntan a prefabs, sonidos o iconos pasan a ser nombres de assets o `rbxassetid://` |
 
@@ -158,11 +160,12 @@ Lado: **S** = Shared, **Sv** = Server, **C** = Client.
 
 | Archivo C# (líneas) | Destino | Dif. | Nota |
 |---|---|---|---|
-| `EnemyAI` (379) | Sv | 🔴 | Ir a la base o perseguir al jugador, anti-kiting, ataque por distancia. **No usar un `Humanoid` por enemigo.** Opción recomendada: el servidor mueve una posición lógica por enemigo (rutas precalculadas por waypoints o `PathfindingService` cacheado por zona) y el cliente dibuja y anima el modelo. Prototipo con 100+ enemigos antes de seguir |
-| `EnemyPool` (51) | Sv + C | 🟡 | Pool de modelos en el cliente; IDs de enemigo en el servidor |
+| `EnemyAI` (498) | Sv | 🔴 | Ir a la base o perseguir al jugador, anti-kiting, ataque por distancia. **No usar un `Humanoid` por enemigo.** Opción recomendada: el servidor mueve una posición lógica por enemigo (rutas precalculadas por waypoints o `PathfindingService` cacheado por zona) y el cliente dibuja y anima el modelo. Prototipo con 100+ enemigos antes de seguir. Desde el 2026-10-07: **volador** (altura fija `flyHeight` con vaivén, mismo camino que los de tierra), **ataque a distancia** (`ranged`: se detiene a `attackReach` y lanza `EnemyProjectile`) y altura de apilado; cerca de su objetivo deja de esquivar para meterse entre los otros y trepar. En Unity el `NavMeshAgent` escala sus medidas con el objeto (se le pasan en unidades locales); en Roblox no aplica |
+| `EnemyPool` (52) | Sv + C | 🟡 | Pool de modelos en el cliente; IDs de enemigo en el servidor. Agrega `EnemyCrowd` |
+| `EnemyCrowd` (73) | Sv | 🟡 | Apilado estilo Megabonk cada frame con `EnemyStackRules`: sube/baja suave (6 y 10 m/s), tope 5 m y empuja de lado al que no cabe. Con 100+ enemigos es O(n²): en Roblox hacerlo cada 2-3 frames o por celdas. La altura viaja al cliente con la posición |
 | `EnemyBleed` (92), `EnemyBurn` (96), `EnemyPoison` (96) | Sv (tick) + C (tinte y número) | 🟢 | El tinte rojo con `Highlight` o cambiando el color. El veneno (campo de flores de Frieren) es la misma lógica que la quemadura (`BurnState`), en verde. `EnemyAI` también guarda la Marca de maná (daño recibido +30% por un tiempo) |
-| `BossController` (260), `BossProjectile` (79) | Sv | 🟠 | Embestida, invocar, enfurecer, resucitar, disparar. Proyectiles: simulados en el servidor, dibujados en el cliente |
-| `WaveManager` (187), `SpawnZone` (42) | Sv | 🟢 | |
+| `BossController` (260), `EnemyProjectile` (95) | Sv | 🟠 | Embestida, invocar, enfurecer, resucitar, disparar. `EnemyProjectile` (antes `BossProjectile`) lo usan el jefe Tirador y el Lanzador; apunta a un collider (jugador o base) con color y tamaño propios. Proyectiles: simulados en el servidor, dibujados en el cliente |
+| `WaveManager` (196), `SpawnZone` (48) | Sv | 🟢 | Manadas de 2 filas de frente a la base, de 3 a 5 enemigos al azar cada una, 2,5 m entre cada uno (`PackFormation`), cada `spawnInterval` |
 
 ### 6.5 `Gameplay` — resto
 
@@ -184,7 +187,8 @@ Lado: **S** = Shared, **Sv** = Server, **C** = Client.
 | Archivo C# (líneas) | Dif. | Nota |
 |---|---|---|
 | `UIManager` (196), `AmmoPanelUI`, `StaffHud`, `FuryBarUI`, `XpBarUI`, `BossHealthBarUI`, `AbilitySlotUI`, `HudPunch` | 🟡 | HUD. Escala con `UIScale` / `UIAspectRatioConstraint`; respetar la zona segura del celular |
-| `FloatingText` + `FloatingTextManager` | 🟡 | `BillboardGui` con pool |
+| `FloatingText` + `FloatingTextManager` | 🟡 | `BillboardGui` con pool. Ahora solo el "+X" del dinero |
+| `DamageNumbersUI` (+ `DamageNumberStyle` en `Shared/Rules/`) | 🟡 | Números de daño (desde el 2026-10-07): golpe directo grande con pop, rojo que pasa a blanco; ticks más chicos de su color; suben y se desvanecen en 0,9 s. En Roblox: `BillboardGui` con pool anclado al punto del golpe; el borde, la sombra y el relieve del material TMP se imitan con `UIStroke` y un `UIGradient` |
 | `CharacterSelectUI` (190) | 🟡 | |
 | `UpgradeMenuUI` (133), `WeaponCardUI`, `WeaponInfoUI` | 🟡 | |
 | `AbilityShopUI` (396) | 🟠 | Dos pestañas (rangos y árbol) |
@@ -201,7 +205,7 @@ Copiar **los valores** de cada asset a tablas Luau, sin cambiar los `id`. Convie
 | `Characters/` | `Alucard`, `Maga` (Frieren), `Guts` |
 | `Weapons/` | `Pistola`, `Baston`, `Espada`, `M16` (apagado) |
 | `Abilities/` | `DisparoPesado`, `Niebla`, `Definitiva` (Alucard); `RayoMana`, `CampoFlores`, `PulsoMana` (Frieren); `Llamarada`, `Embestida`, `Armadura` (Guts) |
-| `Enemies/` | `Enemy_Normal`, `Enemy_Tank`, `Mini_Embestidor`, `Mini_Coloso`, `Boss_Invocador`, `Boss_Tirador` |
+| `Enemies/` | `Enemy_Normal`, `Enemy_Tank`, `Enemy_Flyer` (Volador), `Enemy_Shooter` (Lanzador), `Mini_Embestidor`, `Mini_Coloso`, `Boss_Invocador`, `Boss_Tirador` |
 | `Skills/` | `Alucard_Tree` (35 nodos), `Guts_Tree` (39 nodos), `Frieren_Tree` (56 nodos: 4 grupos "elige 1" y 4 nodos divididos) |
 | `Waves/` | `Waves_Default` |
 
@@ -237,7 +241,8 @@ Cada fase termina con algo que se puede probar en Studio.
 - **Listo cuando:** se juega una partida entera con Alucard contra la horda.
 
 ### Fase 4 · Oleadas, enemigos y jefes (1 semana)
-- `WaveManager`, IA completa (base o jugador, anti-kiting), tanque, los 4 jefes y minijefes con sus comportamientos.
+- `WaveManager`, IA completa (base o jugador, anti-kiting), tanque, volador, Lanzador, manadas, apilado, los 4 jefes y minijefes con sus comportamientos.
+- Mapa de 60 x 80 m (desde el 2026-10-07): zona de aparición a z=46 (36 x 8 m), ~30 s hasta la base.
 
 ### Fase 5 · Resto de personajes (1-1,5 semanas)
 - Frieren (Zoltraak, rayo, campo de flores, pulso, levitación).
@@ -263,7 +268,7 @@ Cada fase termina con algo que se puede probar en Studio.
 
 | Riesgo | Impacto | Qué hacer |
 |---|---|---|
-| Rendimiento de la horda | Alto | Fase 2 antes que nada; enemigos sin `Humanoid`; limitar enemigos vivos |
+| Rendimiento de la horda | Alto | Fase 2 antes que nada; enemigos sin `Humanoid`; limitar enemigos vivos. Desde el 2026-10-07 hay más por oleada (20 a 40 en las tres primeras, +4 por oleada) y el apilado agrega un cálculo O(n²) por frame: incluirlo en el prototipo de la fase 2 |
 | Exploits (dinero, daño, velocidad) | Alto | Todo lo valioso en el servidor; validar cadencia, alcance y enfriamientos |
 | Reclamos de copyright | Alto si se publica | Nombres y diseños propios antes de publicar |
 | Latencia: el disparo "no pega" | Medio | Predicción en el cliente y validación tolerante en el servidor (margen de distancia y tiempo) |
@@ -301,5 +306,7 @@ Lo más nuevo arriba.
 
 | Fecha | Commit de Unity | Qué se reflejó |
 |---|---|---|
+| 2026-10-07 | sin commit (sobre `94476e8`) | **Números de daño** (`DamageNumbersUI`, `DamageNumberStyle`, evento `EnemyHit`, `EnemyAI.TakeTickDamage` para los ticks). 615 tests |
+| 2026-10-07 | sin commit (sobre `94476e8`) | Enemigos: x1,6 (jefes x1,3), **Volador** y **Lanzador** nuevos, `EnemyProjectile` genérico (antes `BossProjectile`), manadas mixtas de 2 filas de 3 a 5 (`WaveBuilder.Interleave/CountRemaining`, `PackFormation`), mapa 60 x 80 m, **apilado estilo Megabonk** (`EnemyStackRules`, `EnemyCrowd`), arreglo de la escala del `NavMeshAgent`. 609 tests |
 | 2026-10-06 | sin commit (sobre `77da566`) | Árbol de Frieren (56 nodos): grupos "elige 1", nodos divididos y cambio de opción (`SkillTreeRules`, `SkillTreeView`), 31 efectos nuevos, `FrierenTreeMath`, `SlowRules`, `EnemyPoison`, evento `PoisonTick`, Marca de maná en `EnemyAI`. 589 tests |
 | 2026-10-06 | `e886693` | Plan inicial: Alucard, Frieren y Guts con sus 3 habilidades, árboles de Alucard (19 nodos) y Guts (39), 4 jefes/minijefes, guardado v4, 149 tests |

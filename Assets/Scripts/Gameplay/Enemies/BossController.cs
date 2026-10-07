@@ -249,10 +249,11 @@ public class BossController : MonoBehaviour
             if (GameState.IsGameOver || enemy.IsDead) yield break;
 
             PlayerHealth player = FindAnyObjectByType<PlayerHealth>();
-            if (player != null)
+            Collider playerCollider = player != null ? player.GetComponent<Collider>() : null;
+            if (playerCollider != null)
             {
                 Vector3 origin = transform.position + Vector3.up * 1.2f;
-                BossProjectile.Launch(origin, player.transform, ability.projectileSpeed, ability.projectileDamage);
+                EnemyProjectile.Launch(origin, playerCollider, ability.projectileSpeed, ability.projectileDamage, EnemyProjectile.BossColor);
             }
             if (i < ability.burst - 1) yield return new WaitForSeconds(ability.burstSpacing);
         }

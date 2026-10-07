@@ -20,6 +20,7 @@ public class WaveSet : GameDefinition
     {
         public string waveName;
         public EnemyGroup[] enemyGroups;
+        [Tooltip("Segundos entre una manada y la siguiente")]
         public float spawnInterval;
     }
 
@@ -32,6 +33,15 @@ public class WaveSet : GameDefinition
     }
 
     public Wave[] waves;
+
+    [Header("Manadas")]
+    [Tooltip("Filas de cada manada (de frente a la base)")]
+    public int packRows = 2;
+    [Tooltip("Enemigos por fila, al azar entre mínimo y máximo (cada fila por su cuenta)")]
+    public int packRowMin = 3;
+    public int packRowMax = 5;
+    [Tooltip("Metros entre un enemigo y el de al lado (y entre filas)")]
+    public float packSpacing = 2.5f;
 
     [Header("Jefes")]
     [Tooltip("Jefes y minijefes y la oleada en que salen. Salen al inicio de la oleada, junto con los enemigos normales")]

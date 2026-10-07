@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Pool;
@@ -15,6 +16,9 @@ public class EnemyAI : MonoBehaviour, IDamageable
     private static PlayerHealth playerTarget;
     private static Collider baseCollider;
     private static Collider playerCollider;
+
+    // A esta distancia (más el alcance) de su objetivo deja de esquivar a los otros enemigos y empuja para trepar.
+    private const float PressDistance = 6f;
 
     private NavMeshAgent agent;
     private EnemyDefinition def;
@@ -40,6 +44,35 @@ public class EnemyAI : MonoBehaviour, IDamageable
     private float enrageSpeed = 1f;
     private float enrageDamage = 1f;
     private float invulnerableUntil;
+
+    // Altura del cuerpo: la de apoyo en el suelo, más la de vuelo, más la del montón en que está subido.
+    private float groundOffset;
+    private float heightScale = 1f;
+    private float bodyHeight;
+    private float bobPhase;
+    private ObstacleAvoidanceType defaultAvoidance;
+    private float distanceToGoal;
+    private float climbBlockedUntil;
+
+    // Enemigos activos, para el apilado (EnemyCrowd).
+    private static readonly List<EnemyAI> active = new List<EnemyAI>();
+    public static IReadOnlyList<EnemyAI> Active => active;
+
+    /// <summary>Altura a la que está subido sobre otros enemigos (0 = en el suelo). La mueve EnemyCrowd.</summary>
+    public float StackLift { get; set; }
+    public float BodyHeight => bodyHeight;
+    /// <summary>Se sube encima de otros al amontonarse (ni los jefes ni los voladores trepan).</summary>
+    public bool CanClimb => def != null && def.climbsOthers && !def.Flies && !IsBoss && !isDead;
+    /// <summary>Sirve de apoyo a los que trepan (los voladores no).</summary>
+    public bool CanSupport => def != null && !def.Flies && !isDead;
+    /// <summary>Distancia en planta hasta el borde de su objetivo: en un montón, el más cercano queda abajo.</summary>
+    public float DistanceToGoal => distanceToGoal;
+
+    /// <summary>
+    /// Llegó a lo más alto del montón: unos segundos vuelve a esquivar a los demás, así se corre a un lado y el montón
+    /// se ensancha en vez de seguir creciendo en una sola columna.
+    /// </summary>
+    public void BlockClimb(float seconds) => climbBlockedUntil = Time.time + seconds;
 
     public bool IsDead => isDead;
     public bool IsStunned => stun.IsStunned(Time.time);
@@ -106,16 +139,38 @@ public class EnemyAI : MonoBehaviour, IDamageable
         agent.acceleration = 30f;
         agent.stoppingDistance = 0f;
 
+        defaultAvoidance = agent.obstacleAvoidanceType;
+        bobPhase = Random.value * 10f;
+
+        // El agente multiplica radio, alto y altura de apoyo por la escala del objeto: se le pasan en unidades locales
+        // (si no, un enemigo de escala 1,6 flota en el aire y ocupa más espacio del que se ve).
+        Vector3 scale = transform.lossyScale;
+        float flatScale = Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.z), 0.0001f);
+        heightScale = Mathf.Max(Mathf.Abs(scale.y), 0.0001f);
+
         Collider body = GetComponent<Collider>();
         bodyCollider = body;
         if (body != null)
         {
             Vector3 extents = body.bounds.extents;
             bodyRadius = Mathf.Max(extents.x, extents.z);
-            agent.radius = bodyRadius;
-            agent.height = extents.y * 2f;
-            agent.baseOffset = extents.y > 0f ? extents.y : 0.5f;
+            bodyHeight = extents.y * 2f;
+            agent.radius = bodyRadius / flatScale;
+            agent.height = bodyHeight / heightScale;
+            groundOffset = extents.y > 0f ? extents.y : 0.5f;
+            agent.baseOffset = groundOffset / heightScale;
         }
+    }
+
+    private void OnEnable() => active.Add(this);
+
+    private void OnDisable() => active.Remove(this);
+
+    // Vuelo (con un vaivén suave) o altura del montón en que está subido.
+    private void ApplyHeight()
+    {
+        float lift = def.Flies ? def.flyHeight + Mathf.Sin(Time.time * 2f + bobPhase) * 0.15f : StackLift;
+        agent.baseOffset = (groundOffset + lift) / heightScale;
     }
 
     /// <summary>Coloca y activa al enemigo. healthScale permite oleadas más resistentes.</summary>
@@ -141,7 +196,12 @@ public class EnemyAI : MonoBehaviour, IDamageable
         damageTakenBonus = 0f;
         damageTakenUntil = 0f;
         stun.Clear();
+        StackLift = 0f;
+        distanceToGoal = 0f;
+        climbBlockedUntil = 0f;
+        agent.obstacleAvoidanceType = defaultAvoidance;
         ApplySpeed();
+        ApplyHeight();
 
         ResolveTargets();
 
@@ -181,10 +241,19 @@ public class EnemyAI : MonoBehaviour, IDamageable
         if (toBase.sqrMagnitude > 0.001f) transform.rotation = Quaternion.LookRotation(toBase);
     }
 
-    public void TakeDamage(int damage)
+    /// <summary>Golpe directo (balas, espada, habilidades): muestra el número de daño sobre el enemigo.</summary>
+    public void TakeDamage(int damage) => ApplyDamage(damage, true);
+
+    /// <summary>Daño de sangrado, quemadura o veneno: esos publican su propio número (de su color), así que aquí no.</summary>
+    public void TakeTickDamage(int damage) => ApplyDamage(damage, false);
+
+    private void ApplyDamage(int damage, bool showNumber)
     {
         if (isDead || Time.time < invulnerableUntil) return;
         if (Time.time < damageTakenUntil) damage = FrierenTreeMath.Scale(damage, damageTakenBonus);   // Marca de maná
+
+        // El número se publica antes de restar la vida: si el golpe mata, el enemigo vuelve al pool.
+        if (showNumber && damage > 0) GameEvents.RaiseEnemyHit(HeadPosition(), damage);
 
         currentHealth -= damage;
         if (currentHealth > 0) return;
@@ -207,6 +276,13 @@ public class EnemyAI : MonoBehaviour, IDamageable
 
         if (pool != null) pool.Release(this);
         else gameObject.SetActive(false);
+    }
+
+    // Justo encima del cuerpo (donde salen los números de daño).
+    private Vector3 HeadPosition()
+    {
+        float top = bodyCollider != null ? bodyCollider.bounds.max.y : transform.position.y + 1f;
+        return new Vector3(transform.position.x, top + 0.25f, transform.position.z);
     }
 
     /// <summary>Le quita una fracción de velocidad durante unos segundos (0,3 = -30%). Mientras una dura, solo la reemplaza otra igual o más fuerte.</summary>
@@ -289,6 +365,8 @@ public class EnemyAI : MonoBehaviour, IDamageable
     {
         if (isDead || !agent.isOnNavMesh) return;
 
+        ApplyHeight();
+
         // Termina la ralentización: vuelve a su velocidad normal.
         if (slowUntil > 0f && Time.time >= slowUntil)
         {
@@ -317,15 +395,20 @@ public class EnemyAI : MonoBehaviour, IDamageable
         // caso sigue caminando hacia la base en vez de detenerse.
         Collider target = ChooseTarget();
         bool playerInReach = DistanceToEdge(playerCollider) <= def.attackReach;
+        distanceToGoal = DistanceToEdge(target);
 
         if (playerInReach) Attack(true);
 
-        if (DistanceToEdge(target) <= def.attackReach)
+        if (distanceToGoal <= def.attackReach)
         {
             agent.isStopped = true;
             if (!playerInReach) Attack(target == playerCollider);
             return;
         }
+
+        // Cerca de su objetivo deja de esquivar a los demás y se mete entre ellos: así trepa y se forman montones.
+        bool pressing = CanClimb && !def.ranged && Time.time >= climbBlockedUntil && distanceToGoal <= def.attackReach + PressDistance;
+        agent.obstacleAvoidanceType = pressing ? ObstacleAvoidanceType.NoObstacleAvoidance : defaultAvoidance;
 
         agent.isStopped = false;
         if (Time.time >= nextRepathTime)
@@ -385,8 +468,24 @@ public class EnemyAI : MonoBehaviour, IDamageable
         if (Time.time < nextAttackTime) return;
         nextAttackTime = Time.time + def.damageInterval;
 
+        if (def.ranged)
+        {
+            Shoot(targetIsPlayer ? playerCollider : baseCollider, targetIsPlayer ? def.damageToPlayer : def.damageToBase);
+            return;
+        }
+
         if (targetIsPlayer) playerTarget.TakeDamage(Mathf.RoundToInt(def.damageToPlayer * enrageDamage));
         else baseTarget.TakeDamage(Mathf.RoundToInt(def.damageToBase * enrageDamage));
+    }
+
+    // El Lanzador mira a su objetivo y le lanza un proyectil desde la parte de arriba del cuerpo.
+    private void Shoot(Collider target, int damage)
+    {
+        if (target == null) return;
+
+        FaceDirection(target.bounds.center - transform.position);
+        Vector3 origin = transform.position + Vector3.up * (bodyHeight * 0.35f) + transform.forward * (bodyRadius + 0.2f);
+        EnemyProjectile.Launch(origin, target, def.projectileSpeed, Mathf.RoundToInt(damage * enrageDamage), def.projectileColor, def.projectileSize);
     }
 
     private static void ResolveTargets()

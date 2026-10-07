@@ -77,7 +77,26 @@ public class FrierenAssetTests
         StaffDefinition staff = Staff;
         Assert.AreEqual(40, staff.abilityDamage);
         Assert.AreEqual(25f, staff.abilityManaCost, 1e-4f);
-        Assert.AreEqual(3f, staff.abilityCooldown, 1e-4f);
+        Assert.AreEqual(4.5f, staff.abilityCooldown, 1e-4f);
+    }
+
+    // Pedido del usuario (2026-10-07): al máximo la Q se recargaba en 1 s, más rápido que el Zoltraak cargado.
+    // Con la tienda y el árbol completos debe tardar 3 s: más del doble que un Zoltraak a carga completa.
+    [Test]
+    public void Q_AtMaxBuild_RechargesIn3Seconds_SlowerThanAFullZoltraak()
+    {
+        StaffDefinition staff = Staff;
+        SkillTreeDefinition tree = Maga.skillTree;
+        TreeBonuses bonuses = SkillTreeRules.Compute(tree, System.Linq.Enumerable.Select(tree.nodes, n => n.id));
+        int manaLevel = CombatMath.MaxLevels(staff)[1];
+
+        float shop = staff.AbilityCooldownAt(manaLevel);
+        float beam = Mathf.Max(1f, shop - bonuses.BeamCooldownReduction);   // igual que PlayerAbilities.CooldownFor
+        float zoltraak = FrierenTreeMath.ChargeSeconds(staff.zoltraakChargeSeconds, bonuses.ZoltraakChargeReduction) + staff.zoltraakPause;
+
+        Assert.AreEqual(3.5f, shop, 1e-4f, "con la tienda al máximo");
+        Assert.AreEqual(3f, beam, 1e-4f, "con la tienda y el árbol al máximo");
+        Assert.Greater(beam, 2f * zoltraak, "la Q tiene que ser bastante más lenta que el Zoltraak cargado (" + zoltraak + " s)");
     }
 
     [Test]

@@ -62,6 +62,7 @@ public static class GameEvents
     public static event Action<WeaponSlotInfo> WeaponSlotChanged; // estado de una arma (munición, si está comprada, si es la equipada)
     public static event Action<int> EnemyKilled;                // recompensa en dinero
     public static event Action<Vector3, bool> EnemyDied;        // dónde murió y si era jefe o minijefe (solo la muerte real: un jefe que resucita no lo publica)
+    public static event Action<Vector3, int> EnemyHit;          // posición sobre el enemigo y daño de un golpe directo (balas, espada, habilidades; no los ticks)
     public static event Action<Vector3, int> BleedTick;         // posición sobre el enemigo y daño del tick de sangrado
     public static event Action<Vector3, int> PoisonTick;        // posición sobre el enemigo y daño del tick de veneno (Frieren)
     public static event Action<Vector3, int> BurnTick;          // posición sobre el enemigo y daño del tick de quemadura
@@ -94,6 +95,7 @@ public static class GameEvents
     public static void RaiseWeaponSlotChanged(WeaponSlotInfo slot) => WeaponSlotChanged?.Invoke(slot);
     public static void RaiseEnemyKilled(int reward) => EnemyKilled?.Invoke(reward);
     public static void RaiseEnemyDied(Vector3 position, bool isBoss) => EnemyDied?.Invoke(position, isBoss);
+    public static void RaiseEnemyHit(Vector3 worldPosition, int damage) => EnemyHit?.Invoke(worldPosition, damage);
     public static void RaiseBleedTick(Vector3 worldPosition, int damage) => BleedTick?.Invoke(worldPosition, damage);
     public static void RaiseBurnTick(Vector3 worldPosition, int damage) => BurnTick?.Invoke(worldPosition, damage);
     public static void RaisePoisonTick(Vector3 worldPosition, int damage) => PoisonTick?.Invoke(worldPosition, damage);

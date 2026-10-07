@@ -27,11 +27,11 @@ public class WaveManager : MonoBehaviour
     private bool allSpawned;
     private Coroutine waveRoutine;
 
-    // Para poder calcular lo que falta por spawnear si se salta la oleada
-    private List<WaveGroup> currentGroups;
-    private int currentGroupIndex;
-    private int currentSpawnCountInGroup;
+    // Orden de aparición de la oleada actual y cuántos ya salieron (si se salta la oleada, el resto pasa a la siguiente)
+    private List<EnemyDefinition> spawnOrder;
+    private int spawnedCount;
     private readonly List<WaveGroup> pendingCarryOver = new List<WaveGroup>();
+    private BaseHealth baseTarget;
 
     private void Awake()
     {
@@ -87,18 +87,31 @@ public class WaveManager : MonoBehaviour
         // El jefe sale al inicio de su oleada, por el centro de la zona; los enemigos normales son su escolta.
         if (plan.Boss != null) SpawnBoss(plan.Boss, plan.HealthScale);
 
-        currentGroups = WaveBuilder.Merge(plan.Groups, pendingCarryOver);
+        // Salen en manadas mixtas: cada intervalo, packRows filas de frente a la base, de packRowMin a packRowMax enemigos cada una.
+        spawnOrder = WaveBuilder.Interleave(WaveBuilder.Merge(plan.Groups, pendingCarryOver));
+        spawnedCount = 0;
         pendingCarryOver.Clear();
 
-        for (currentGroupIndex = 0; currentGroupIndex < currentGroups.Count; currentGroupIndex++)
+        while (spawnedCount < spawnOrder.Count)
         {
-            WaveGroup group = currentGroups[currentGroupIndex];
+            int[] rows = PackFormation.RowWidths(waveSet.packRows, waveSet.packRowMin, waveSet.packRowMax,
+                spawnOrder.Count - spawnedCount, () => Random.value);
+            int size = 0;
+            foreach (int width in rows) size += width;
 
-            for (currentSpawnCountInGroup = 0; currentSpawnCountInGroup < group.Count; currentSpawnCountInGroup++)
+            Vector3 center = PackCenter();
+            Vector3 forward = TowardBase(center);
+            Vector3 right = Vector3.Cross(Vector3.up, forward);
+
+            for (int i = 0; i < size; i++)
             {
-                SpawnEnemy(group.Enemy, plan.HealthScale);
-                yield return new WaitForSeconds(plan.SpawnInterval);
+                Vector2 slot = PackFormation.Slot(i, rows, waveSet.packSpacing);
+                Vector3 position = center + right * slot.x - forward * slot.y;   // y = hacia atrás
+                SpawnEnemy(spawnOrder[spawnedCount], plan.HealthScale, position);
+                spawnedCount++;
             }
+
+            if (spawnedCount < spawnOrder.Count) yield return new WaitForSeconds(plan.SpawnInterval);
         }
 
         // Si el jugador mató todo antes de terminar de spawnear, la oleada se cierra recién aquí.
@@ -117,18 +130,25 @@ public class WaveManager : MonoBehaviour
     /// <summary>Un enemigo que aparece por una habilidad de jefe (invocar): cuenta para cerrar la oleada.</summary>
     public void RegisterSummoned() => enemiesAlive++;
 
-    private void SpawnEnemy(EnemyDefinition enemy, float healthScale)
+    // Punto al azar de la zona (o uno de los puntos fijos) alrededor del cual sale la próxima manada.
+    private Vector3 PackCenter()
     {
-        Vector3 position;
-        if (spawnZone != null)
-        {
-            position = spawnZone.RandomPoint();
-        }
-        else
-        {
-            Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
-            position = spawnPoint.position + new Vector3(Random.Range(-1f, 1f), 0f, Random.Range(-1f, 1f));
-        }
+        if (spawnZone != null) return spawnZone.RandomPoint();
+        return spawnPoints[Random.Range(0, spawnPoints.Length)].position;
+    }
+
+    // Dirección (en el plano) desde la manada hacia la base: las filas quedan de frente a ella.
+    private Vector3 TowardBase(Vector3 from)
+    {
+        if (baseTarget == null) baseTarget = FindFirstObjectByType<BaseHealth>();
+        Vector3 direction = baseTarget != null ? baseTarget.transform.position - from : Vector3.back;
+        direction.y = 0f;
+        return direction.sqrMagnitude > 0.001f ? direction.normalized : Vector3.back;
+    }
+
+    private void SpawnEnemy(EnemyDefinition enemy, float healthScale, Vector3 position)
+    {
+        if (spawnZone != null) position = spawnZone.OnNavMesh(position);
 
         EnemyPool.Instance.Spawn(enemy, position, healthScale);
         enemiesAlive++;
@@ -161,16 +181,9 @@ public class WaveManager : MonoBehaviour
     {
         if (!HasStarted || GameState.IsGameOver) return;
 
-        if (waveActive && !allSpawned && currentGroups != null)
-        {
-            for (int i = currentGroupIndex; i < currentGroups.Count; i++)
-            {
-                WaveGroup group = currentGroups[i];
-                int spawnedInThisGroup = i == currentGroupIndex ? currentSpawnCountInGroup + 1 : 0;
-                int remaining = group.Count - spawnedInThisGroup;
-                if (remaining > 0) AddToPending(group.Enemy, remaining);
-            }
-        }
+        if (waveActive && !allSpawned && spawnOrder != null)
+            foreach (WaveGroup group in WaveBuilder.CountRemaining(spawnOrder, spawnedCount))
+                AddToPending(group.Enemy, group.Count);
 
         StopAllCoroutines();
 

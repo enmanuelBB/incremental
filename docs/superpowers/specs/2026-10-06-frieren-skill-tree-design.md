@@ -27,7 +27,7 @@ Valores y costos propuestos por mí y aprobados; se ajustan en el asset. "**Elig
 | Zoltraak, **elige 1** (7 c/u) | `zo1` **Sobrecarga**: tras un Zoltraak al 100%, el siguiente sale cargado al instante · `zo2` **Eco**: a carga completa, 0,3 s después cae una segunda explosión con 50% del daño y 70% del radio · `zo3` **Escarcha arcana**: a carga completa, ralentiza 40% durante 3 s a los golpeados |
 | **Maná** | `mr1` Reserva I · 2 · +20 de maná máximo · `mr2` II · 4 · +20 (100 → 140) · `mf1` Flujo I · 2 · +0,75/s de regeneración · `mf2` II · 4 · +0,75/s (4 → 5,5/s) |
 | Maná, **elige 1** (7 c/u) | `mo1` **Eficiencia**: −40% de costo de maná de Q, E y F · `mo2` **Absorción**: +3 de maná por cada enemigo que muere · `mo3` **Concentración**: regeneración x2 si no recibió daño en los últimos 3 s |
-| **Q rayo** | `qi1` Rayo intenso I · 2 · +15% de daño del rayo · `qi2` II · 4 · +15% · `qw` Rayo ancho · 3 · +0,2 m de radio (0,4 → 0,6) · `qc1` Recarga arcana I · 2 · −0,5 s de enfriamiento · `qc2` II · 4 · −0,5 s (3 → 2 s) |
+| **Q rayo** | `qi1` Rayo intenso I · 2 · +15% de daño del rayo · `qi2` II · 4 · +15% · `qw` Rayo ancho · 3 · +0,2 m de radio (0,4 → 0,6) · `qc1` Recarga arcana I · 2 · −0,25 s de enfriamiento · `qc2` II · 4 · −0,25 s (**cambiado el 2026-10-07**: antes −0,5 s cada uno; ahora 4,5 s base, 3,5 s con la tienda al máximo y 3 s con el árbol) |
 | Q, **elige 1** (7 c/u) | `qo1` **Doble carga**: +1 carga (dos rayos seguidos, se recargan de una en una) · `qo2` **Rayo gélido**: ralentiza **60%** durante 3 s a los que atraviesa · `qo3` **Perforación creciente**: +15% de daño por cada enemigo ya atravesado antes que él, con tope de +90% |
 | **E campo** | `ep` Pradera · 2 · +1 m de radio · `ef` Floración larga · 3 · +1,5 s de duración · `eb` Brote rápido · 3 · −3 s de enfriamiento · `ev1` Flores venenosas · 5 · el campo envenena (ver §6) · `ev2` Veneno II · 6 · +50% de daño del veneno |
 | E, **4 nodos divididos** | `es1c`/`es1r` · 2 · `es2c`/`es2r` · 3 · `es3c`/`es3r` · 4 · `es4c`/`es4r` · 5. Mitad **Curar** (`…c`): +1 punto de % de cura por segundo (3% → hasta 7%). Mitad **Ralentizar** (`…r`): +10 puntos de ralentización (40% → hasta 80%). Cada nodo se elige por separado (se puede mezclar) |
@@ -124,7 +124,7 @@ Se agregan **al final** de `SkillEffectType` (no se mueven los valores guardados
 | `ManaFocus` | interruptor | regeneración x2 si pasaron 3 s sin recibir daño |
 | `BeamDamagePercent` | +0,15 | daño del rayo de la Q |
 | `BeamRadius` | +0,2 m | radio del `SphereCast` del rayo |
-| `BeamCooldown` | −0,5 s | enfriamiento de la Q (mínimo 1 s, la regla de siempre) |
+| `BeamCooldown` | −0,25 s (antes −0,5) | enfriamiento de la Q (mínimo 1 s, la regla de siempre) |
 | `BeamExtraCharges` | +1 | cargas de la Q (`AbilityCharges`, como la Q de Alucard) |
 | `BeamFrost` | interruptor | `PiercingBeam`: ralentiza 60% durante 3 s a cada enemigo atravesado |
 | `BeamPierceDamage` | 0,15 | `PiercingBeam`: el enemigo número *k* (0 = el primero) recibe x(1 + min(0,15·k, 0,9)) |

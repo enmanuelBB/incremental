@@ -62,11 +62,11 @@ MonoBehaviour:
   abilityIcon: {fileID: 21300000, guid: eabf8a2cb8767aa4da8b4ee59a7581ac, type: 3}
   abilityDamage: 40
   abilityManaCost: 25
-  abilityCooldown: 3
+  abilityCooldown: 4.5
   abilityRange: 100
   abilityBeamRadius: 0.4
-  cooldownStep: 0.3
-  cooldownLimit: 1.5
+  cooldownStep: 0.2
+  cooldownLimit: 3.5
   zoltraakDamage: 45
   zoltraakChargeSeconds: 1.2
   zoltraakMinDamageFraction: 0.4

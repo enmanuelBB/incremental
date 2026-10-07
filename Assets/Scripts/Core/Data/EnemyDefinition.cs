@@ -37,6 +37,22 @@ public class EnemyDefinition : GameDefinition
     [Tooltip("Distancia desde el borde del enemigo al borde del objetivo para poder atacar")]
     public float attackReach = 0.6f;
 
+    [Header("Ataque a distancia")]
+    [Tooltip("Ataca lanzando proyectiles desde 'attackReach' metros en vez de golpear de cerca")]
+    public bool ranged;
+    public float projectileSpeed = 11f;
+    public float projectileSize = 0.4f;
+    public Color projectileColor = new Color(0.4f, 1f, 0.3f);
+
+    [Header("Vuelo y apilado")]
+    [Tooltip("Altura a la que flota sobre el suelo (0 = camina). Los voladores no se apilan")]
+    public float flyHeight;
+    [Tooltip("Se sube encima de otros enemigos cuando se amontonan (los jefes no trepan, pero sirven de apoyo)")]
+    public bool climbsOthers = true;
+
+    /// <summary>Vuela: ni trepa ni sirve de apoyo.</summary>
+    public bool Flies => flyHeight > 0f;
+
     [Header("Persecución")]
     public float detectionRange = 8f;
     public float chaseGiveUpTime = 5f;

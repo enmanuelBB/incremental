@@ -17,20 +17,30 @@ MonoBehaviour:
   - waveName: Oleada 1
     enemyGroups:
     - enemy: {fileID: 11400000, guid: bd30dd44f09ae8441921ebd4a9187930, type: 2}
-      count: 10
-    spawnInterval: 2
+      count: 20
+    spawnInterval: 3
   - waveName: Oleada 2
     enemyGroups:
     - enemy: {fileID: 11400000, guid: bd30dd44f09ae8441921ebd4a9187930, type: 2}
-      count: 20
-    spawnInterval: 1.5
+      count: 28
+    - enemy: {fileID: 11400000, guid: 342ae14066c8aec41b6dcfebb57a6ac0, type: 2}
+      count: 8
+    spawnInterval: 3
   - waveName: Oleada 3
     enemyGroups:
     - enemy: {fileID: 11400000, guid: bd30dd44f09ae8441921ebd4a9187930, type: 2}
-      count: 15
+      count: 24
     - enemy: {fileID: 11400000, guid: 6302a053ad8bf7c488d01b0bb3b54104, type: 2}
-      count: 5
-    spawnInterval: 1.5
+      count: 6
+    - enemy: {fileID: 11400000, guid: 342ae14066c8aec41b6dcfebb57a6ac0, type: 2}
+      count: 6
+    - enemy: {fileID: 11400000, guid: 68fcd79ac7ac1024599a16c089de5622, type: 2}
+      count: 4
+    spawnInterval: 3
+  packRows: 2
+  packRowMin: 3
+  packRowMax: 5
+  packSpacing: 2.5
   bosses:
   - wave: 5
     boss: {fileID: 11400000, guid: e5164a07ed342164c9409ccdf30ea4a1, type: 2}
@@ -42,5 +52,5 @@ MonoBehaviour:
     boss: {fileID: 11400000, guid: 72f60d2cb2c1ec44cac0c576589362d8, type: 2}
   bossCycleLength: 20
   healthMultiplierPerWave: 0.15
-  extraEnemiesPerWave: 2
-  infiniteSpawnInterval: 1
+  extraEnemiesPerWave: 1
+  infiniteSpawnInterval: 2.5

@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0112d453558d3b247a0c0494c156a999, type: 3}
+  m_Name: Enemy_Shooter
+  m_EditorClassIdentifier: Game.Core::EnemyDefinition
+  id: enemy_shooter
+  displayName: Lanzador
+  prefab: {fileID: 7450647215015053723, guid: 592cb91bece9bd744bf33a15128545d1, type: 3}
+  tier: 0
+  isBoss: 0
+  treePointsReward: 0
+  abilities: []
+  speed: 1.8
+  maxHealth: 25
+  moneyReward: 15
+  xpReward: 15
+  damageToBase: 8
+  damageToPlayer: 8
+  damageInterval: 2.5
+  attackReach: 14
+  ranged: 1
+  projectileSpeed: 11
+  projectileSize: 0.4
+  projectileColor: {r: 0.4, g: 1, b: 0.3, a: 1}
+  flyHeight: 0
+  climbsOthers: 1
+  detectionRange: 16
+  chaseGiveUpTime: 8
+  giveUpCooldown: 3
+  directionTolerance: 0
+  repathInterval: 0.25

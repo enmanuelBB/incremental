@@ -25,6 +25,12 @@ public class SpawnZone : MonoBehaviour
         return NavMesh.SamplePosition(point, out NavMeshHit hit, navMeshSearchRadius, NavMesh.AllAreas) ? hit.position : point;
     }
 
+    /// <summary>El punto ajustado al NavMesh si es posible (cada puesto de una manada).</summary>
+    public Vector3 OnNavMesh(Vector3 point)
+    {
+        return NavMesh.SamplePosition(point, out NavMeshHit hit, navMeshSearchRadius, NavMesh.AllAreas) ? hit.position : point;
+    }
+
     /// <summary>El centro de la zona, sobre el NavMesh si es posible (por donde sale el jefe).</summary>
     public Vector3 CenterPoint()
     {
