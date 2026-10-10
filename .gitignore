@@ -75,3 +75,6 @@ desktop.ini
 # Guts: texturas de metal sueltas (canales R/G/B y mapa combinado) que ningun material usa; el modelo solo usa color y normal
 /Assets/Art/Models/Guts/Character/textures/*_met.png*
 /Assets/Art/Models/Guts/Character/textures/*_met_?.png*
+
+# Script de un solo uso para llenar el Discord del equipo (resume notas privadas)
+/tools/discord/
