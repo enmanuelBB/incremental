@@ -2,7 +2,7 @@
 
 Plan para rehacer el juego en Roblox (Luau). **No es un port automático: es una reescritura** que conserva el diseño, los números y las reglas del juego de Unity. Los modelos y las animaciones **no entran en este plan**: se hacen de cero en el formato de Roblox.
 
-El juego de Unity **sigue en desarrollo**. Este plan es un documento vivo: **cada avance importante en Unity se refleja aquí** (ver "Cómo mantener este plan" al final). La sección "Registro de sincronización" dice hasta qué punto de Unity está al día.
+El juego de Unity **sigue en desarrollo**. Este plan es un documento vivo: **cada avance importante en Unity se refleja aquí** (ver la sección 10, "Cómo mantener este plan"). La sección "Registro de sincronización" dice hasta qué punto de Unity está al día. Las ideas de diseño propias de la versión de Roblox (cooperativo, lobby, eventos, monetización...) están en la sección 11.
 
 ---
 
@@ -22,9 +22,9 @@ El juego de Unity **sigue en desarrollo**. Este plan es un documento vivo: **cad
 
 Mientras no se decidan, el plan asume lo marcado como **(por defecto)**.
 
-1. **¿Un jugador o cooperativo?** Cambia la economía, el escalado de oleadas y la sincronización de jefes. **(Por defecto: un jugador por servidor, pero con el código separado en cliente y servidor desde el día 1, para no tener que rehacerlo si después se quiere cooperativo).**
+1. **¿Un jugador o cooperativo?** Cambia la economía, el escalado de oleadas y la sincronización de jefes. **(Por defecto: un jugador por servidor, pero con el código separado en cliente y servidor desde el día 1, para no tener que rehacerlo si después se quiere cooperativo).** Propuesta (sección 11.1): en Roblox el cooperativo es lo que más pesa para que el juego despegue; considerar subirlo de fase opcional a parte del lanzamiento.
 2. **Nombres y diseños propios.** Alucard (Hellsing/Castlevania), Guts y Griffith (Berserk) y Frieren tienen copyright. En Roblox los juegos de fan-art de anime reciben reclamos DMCA, y más si monetizan. Las notas de diseño ya prevén nombres y diseños distintos: en Roblox hay que hacerlo **antes de publicar**, no después. Los `id` internos (`alucard`, `maga`, `guts`) pueden quedarse.
-3. **Monetización.** ¿Algún personaje o mejora se desbloquea con Robux (Developer Products / Game Passes)? **(Por defecto: no; todo con el dinero del juego, como hoy).**
+3. **Monetización.** ¿Algún personaje o mejora se desbloquea con Robux (Developer Products / Game Passes)? **(Por defecto: no; todo con el dinero del juego, como hoy).** Propuesta (sección 11.5): vender solo cosas que no den poder (apariencias, efectos, pases de comodidad).
 4. **Controles táctiles.** Gran parte del público de Roblox juega en celular. Hay que definir los botones en pantalla (disparo, Q/E/F, recarga, correr, cámara). **(Por defecto: se diseñan en la fase 6).**
 5. **Librería de UI.** **(Por defecto: Fusion.)** Alternativa: React-lua (Roact). O ScreenGui a mano si se quiere evitar dependencias.
 
@@ -261,6 +261,7 @@ Cada fase termina con algo que se puede probar en Studio.
 
 ### (Opcional) Fase 8 · Cooperativo
 - Varios jugadores defendiendo la misma base, escalado de vida de enemigos por jugador, reparto de dinero y XP.
+- Ideas de diseño para esta fase (revivir, combos entre personajes, pantalla de MVP, lobby con portales): sección 11.1 y 11.2.
 
 ---
 
@@ -275,6 +276,7 @@ Cada fase termina con algo que se puede probar en Studio.
 | Unity sigue cambiando mientras se migra | Medio | Este plan se actualiza con cada avance (sección 10) y los datos se regeneran con el script de la fase 1 |
 | Pérdida de datos del jugador | Medio | ProfileStore; no escribir el DataStore en cada cambio |
 | UI en celular | Medio | Diseñar para pantalla chica desde la fase 6, no adaptarla al final |
+| Más enemigos por las ideas de la sección 11 | Alto | El cooperativo (vida de enemigos escalada por jugador) y el modo Sin fin aumentan los enemigos en pantalla: medirlos en el prototipo de la fase 2 antes de comprometerse con ellos |
 
 ---
 
@@ -306,7 +308,90 @@ Lo más nuevo arriba.
 
 | Fecha | Commit de Unity | Qué se reflejó |
 |---|---|---|
+| 2026-10-10 | `e6d26dc` | Sin cambios de Unity: se agrega la **sección 11, ideas de diseño para Roblox** (cooperativo, lobby y dificultades, defensa de la base, retención, monetización, celular, contenido, identidad) y las referencias en las secciones 2, 7 y 8 |
 | 2026-10-07 | sin commit (sobre `94476e8`) | **Números de daño** (`DamageNumbersUI`, `DamageNumberStyle`, evento `EnemyHit`, `EnemyAI.TakeTickDamage` para los ticks). 615 tests |
 | 2026-10-07 | sin commit (sobre `94476e8`) | Enemigos: x1,6 (jefes x1,3), **Volador** y **Lanzador** nuevos, `EnemyProjectile` genérico (antes `BossProjectile`), manadas mixtas de 2 filas de 3 a 5 (`WaveBuilder.Interleave/CountRemaining`, `PackFormation`), mapa 60 x 80 m, **apilado estilo Megabonk** (`EnemyStackRules`, `EnemyCrowd`), arreglo de la escala del `NavMeshAgent`. 609 tests |
 | 2026-10-06 | sin commit (sobre `77da566`) | Árbol de Frieren (56 nodos): grupos "elige 1", nodos divididos y cambio de opción (`SkillTreeRules`, `SkillTreeView`), 31 efectos nuevos, `FrierenTreeMath`, `SlowRules`, `EnemyPoison`, evento `PoisonTick`, Marca de maná en `EnemyAI`. 589 tests |
 | 2026-10-06 | `e886693` | Plan inicial: Alucard, Frieren y Guts con sus 3 habilidades, árboles de Alucard (19 nodos) y Guts (39), 4 jefes/minijefes, guardado v4, 149 tests |
+
+---
+
+## 11. Ideas de diseño para la versión de Roblox
+
+Propuestas del 2026-10-10, **sin decidir**: no cambian las decisiones por defecto de la sección 2 hasta que se aprueben. Salen de lo que ya tiene el juego de Unity y de lo que suele funcionar en Roblox. Están ordenadas de mayor a menor impacto. Cuando se decida una, pasarla a la sección 2 (decisión) o a la sección 7 (fase en que se hace).
+
+### 11.1 Cooperativo (lo más importante)
+
+En Roblox la gente juega con amigos; un tower defense para un jugador cuesta mucho que despegue. Los tres personajes ya cubren roles distintos:
+
+| Personaje | Rol en el grupo |
+|---|---|
+| Alucard | Daño a un solo objetivo: jefes y sangrado |
+| Frieren | Control de oleadas: el rayo, el campo de flores que frena y el pulso que aturde |
+| Guts | Primera línea: aturde, aguanta y se cura con las almas |
+
+Para que se sienta como juego en equipo:
+- **Revivir a un aliado caído:** mantener E a su lado mientras corre un contador. Si caen todos, se pierde la partida.
+- **Combos entre personajes:** por ejemplo, el campo de flores de Frieren junta enemigos y la Llamarada de Guts los quema al doble; el Zoltraak hace estallar el sangrado de Alucard.
+- **Pantalla final con el MVP:** daño hecho, curación y enemigos aturdidos de cada jugador (extiende el resumen de `RunSummaryTracker`).
+
+### 11.2 Estructura de la partida
+
+- **Lobby con portales o ascensores:** entras con tu grupo, eliges mapa y dificultad, y se teletransportan juntos a un servidor de partida (`TeleportService`). Es el formato de Tower Defense Simulator y Toilet Tower Defense, y el público ya lo conoce.
+- **Dificultades:** Fácil (15 oleadas), Normal (25), Pesadilla (30, con modificadores) y **Sin fin**, con tabla de récords global por personaje (`OrderedDataStore`).
+- **Partidas de 15 a 25 minutos.** Hoy las oleadas no terminan nunca; en Roblox conviene una "victoria" clara con premio al final.
+
+### 11.3 Defensa de la base
+
+La idea del 2026-10-09 (mejoras de la base, paredes con vida y trampas; detalle en las notas de diseño) encaja bien en Roblox. Respuestas propuestas a sus 5 preguntas abiertas:
+
+| Pregunta | Propuesta |
+|---|---|
+| ¿Con qué se pagan? | Con **dinero de la partida** (opción B). En cooperativo: uno construye y los demás disparan |
+| ¿Cuándo se colocan? | En una **pausa de 15 a 20 s entre oleadas**, con un botón "Listo" para que el grupo la salte |
+| ¿Dónde se colocan? | En **puntos fijos** del mapa: evita cerrar el camino a la base y es mucho más fácil en celular |
+| ¿Se pierden al terminar? | Sí. Lo permanente son las mejoras de la base |
+| ¿Son de todos los personajes? | Sí: la base es la misma para todos |
+
+### 11.4 Progresión y retención
+
+- **Misiones diarias y semanales:** "mata 500 enemigos con sangrado", "derrota al Coloso sin que la base baje del 50%". Le dan uso al gancho `CharacterRules.Unlock`, que hoy nadie llama.
+- **Evento Eclipse por tiempo limitado:** 2 semanas, con un jefe especial para 4 jugadores. Si lo vences, desbloqueas al personaje inspirado en Griffith. En Roblox los eventos con fecha atraen jugadores y dan algo que anunciar.
+- **Premio diario al conectarse** y **códigos** por Discord o redes: cuestan casi nada y son estándar en Roblox.
+- **Títulos** según la oleada máxima, visibles sobre la cabeza en el lobby (por ejemplo "Superviviente de la Oleada 30").
+
+### 11.5 Monetización sin pagar para ganar
+
+La decisión por defecto (sección 2) es que todo se desbloquee con el dinero del juego. Se puede mantener vendiendo solo cosas que no cambian el poder:
+- **Aspecto:** apariencias de personaje, color del sangrado o del maná (sangre negra, maná dorado), efectos al matar y **estilos de números de daño** (el sistema `DamageNumberStyle` ya existe, así que es casi gratis).
+- **Pases de juego (Game Passes):** x2 de dinero o XP, una segunda configuración guardada del árbol, servidor VIP.
+- **Pase de temporada** atado a los eventos.
+- **Evitar:** revivir pagado y personajes de pago; generan rechazo en la comunidad.
+
+### 11.6 Celular (la mitad del público)
+
+- **Asistencia de puntería suave** en táctil, sobre todo para el rayo de Frieren.
+- **Campo de flores en un toque:** hoy son tres pasos (E, apuntar, colocar). En celular, colocarlo directo donde se mira.
+- **Tercera persona por defecto** en celular.
+
+### 11.7 Contenido nuevo
+
+- **Cuarto personaje cuerpo a cuerpo:** el **puñetazo estilo Saitama** (candidato de las notas de diseño) encaja con lo incremental: empieza flojo y escala de forma absurda. Es fácil de vender en Roblox y es un meme conocido sin ser una copia directa (con nombre y diseño propios).
+- **Tercer mago:** estilo Emilia (control con hielo, congela) o estilo Megumin (una sola explosión enorme con mucha recarga, muy vistosa en clips).
+- **Jefes que faltan del catálogo:** barrera con torretas (en cooperativo, uno rompe las torretas mientras los demás aguantan) y lanzabombas.
+- **Varios mapas con un modificador cada uno:** niebla (menos visión), nieve (todos más lentos) o un mapa con dos caminos (obliga al grupo a dividirse).
+
+### 11.8 Identidad y riesgos
+
+- **Nombres propios antes de publicar** (sección 2, punto 2): elegirlos pronto permite usarlos en la miniatura, el ícono y el marketing desde el principio.
+- **El apilado como sello del juego:** los montones de enemigos trepándose (estilo Megabonk) se ven muy bien en un clip de 10 segundos, que es como se descubren juegos de Roblox. Usar esa imagen en la miniatura.
+- **Rendimiento:** el cooperativo y el modo Sin fin multiplican los enemigos en pantalla (ver la sección 8). El prototipo de horda de la fase 2 decide cuánto de esto es viable.
+
+### 11.9 Orden recomendado
+
+1. Prototipo de horda (fase 2).
+2. Cooperativo y lobby con portales (11.1 y 11.2).
+3. Defensa de la base con puntos fijos (11.3).
+4. Misiones diarias y el evento Eclipse (11.4).
+5. Apariencias y pases (11.5).
+6. Cuarto personaje (11.7).
